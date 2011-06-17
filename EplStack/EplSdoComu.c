@@ -2147,7 +2147,7 @@ BYTE            bFlag;
                     bFlag |= 0x10;
                     AmiSetByteToLe(&pCommandFrame->m_le_bFlags,  bFlag);
                     // init variable header
-                    AmiSetDwordToLe(&pCommandFrame->m_le_abCommandData[0],pSdoComCon_p->m_uiTransSize);
+                    AmiSetDwordToLe(&pCommandFrame->m_le_abCommandData[0],pSdoComCon_p->m_uiTransSize + 4); //data size counts its own field (+4)
                     // copy data in frame
                     EPL_MEMCPY(&pCommandFrame->m_le_abCommandData[4],pSdoComCon_p->m_pData, (EPL_SDO_MAX_SEGMENT_SIZE-4));
 
@@ -2453,7 +2453,9 @@ BYTE*           pbSrcData;
         // d.k. no one calls the user OD callback function
 
         EntrySize = EplObduGetDataSize(uiIndex, uiSubindex);
-        if(EntrySize < pSdoComCon_p->m_uiTransSize)
+        // check if all data fits in object
+        // Write by Index fields and variable header field (8 byte) do not count to object payload
+        if(EntrySize < pSdoComCon_p->m_uiTransSize - 8) 
         {   // parameter too big
             pSdoComCon_p->m_dwLastAbortCode = EPL_SDOAC_DATA_TYPE_LENGTH_TOO_HIGH;
             // send abort
