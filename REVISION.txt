@@ -760,3 +760,6 @@ Fellow worker:    Daniel Krüger (d.k.)
                     - New feature: SDO via UDP: New function to change network part of IP address.
                     (d.k.)
 
+17.06.2011 V1.7.2   - Filed archive on SYS TEC internal server.
+                    (d.b. and d.k.)
+
