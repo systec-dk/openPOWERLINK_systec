@@ -208,11 +208,13 @@
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
         // Object 1F9Fh: NMT_RequestCmd_REC
-        EPL_OBD_BEGIN_INDEX_RAM(0x1F9F, 0x04, EplApiCbObdAccess)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1F9F, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x03)
+        EPL_OBD_BEGIN_INDEX_RAM(0x1F9F, 0x05, EplApiCbObdAccess)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1F9F, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x04)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1F9F, 0x01, kEplObdTypBool, kEplObdAccRW, tEplObdBoolean, Release_BOOL, FALSE)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1F9F, 0x02, kEplObdTypUInt8, kEplObdAccRW, tEplObdUnsigned8, CmdID_U8, 0xFF)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1F9F, 0x03, kEplObdTypUInt8, kEplObdAccRW, tEplObdUnsigned8, CmdTarget_U8, 0x00)
+            EPL_OBD_SUBINDEX_RAM_DOMAIN(0x1F9F, 0x04, kEplObdAccVRW, CmdData_DOM)
+
         EPL_OBD_END_INDEX(0x1F9F)
 #endif
 
