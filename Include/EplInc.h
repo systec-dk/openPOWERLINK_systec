@@ -283,6 +283,10 @@ typedef union
     #endif
 #endif
 
+#ifndef EPL_DEF_FEATURE_NMT_EXT
+    #define EPL_DEF_FEATURE_NMT_EXT             (EPL_FEATURE_NMT_EXT)
+#endif
+
 #define EPL_DEF_FEATURE_FLAGS                   (EPL_DEF_FEATURE_ISOCHR \
                                                 | EPL_DEF_FEATURE_SDO_ASND \
                                                 | EPL_DEF_FEATURE_SDO_UDP \
@@ -291,8 +295,8 @@ typedef union
                                                 | EPL_DEF_FEATURE_CFM \
                                                 | EPL_DEF_FEATURE_DLL_MULTIPLEX \
                                                 | EPL_DEF_FEATURE_MASND \
-                                                | EPL_DEF_FEATURE_PRES_CHAINING)
-
+                                                | EPL_DEF_FEATURE_PRES_CHAINING \
+                                                | EPL_DEF_FEATURE_NMT_EXT)
 
 #ifndef tabentries
 #define tabentries(aVar_p)  (sizeof(aVar_p)/sizeof(*(aVar_p)))

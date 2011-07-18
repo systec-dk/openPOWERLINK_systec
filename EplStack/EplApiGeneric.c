@@ -168,6 +168,8 @@
 // const defines
 //---------------------------------------------------------------------------
 
+#define EPL_C_MAX_NMT_CMD_DATA_SIZE (EPL_C_DLL_MAX_PAYL_OFFSET-6)
+
 //---------------------------------------------------------------------------
 // local types
 //---------------------------------------------------------------------------
@@ -184,12 +186,31 @@ typedef struct
 
 } tEplApiInstance;
 
+typedef struct
+{
+    unsigned    int     m_uiObjIndex;
+    void*               m_pVar;
+    unsigned    int     m_uiVarEntries;
+    tEplObdSize         m_EntrySize;
+    unsigned    int     m_uiFirstSubindex;
+}
+tEplApiLinkObjectRequest;
+
 //---------------------------------------------------------------------------
 // local vars
 //---------------------------------------------------------------------------
 
 static tEplApiInstance  EplApiInstance_g;
 
+
+// Object dictionary entries
+BYTE    abCmdData_DOM[EPL_C_MAX_NMT_CMD_DATA_SIZE];
+
+// List of objects that need to get linked
+tEplApiLinkObjectRequest    EplApiLinkObjectRequestsMN[]  =
+{//     Index       Variable        Count   Object size             SubIndex
+    {   0x1F9F,     abCmdData_DOM,  1,      sizeof(abCmdData_DOM),  4   },
+};
 
 //---------------------------------------------------------------------------
 // local function prototypes
@@ -209,6 +230,10 @@ static tEplKernel PUBLIC EplApiUpdateSdoConfig();
 
 // update OD from init param
 static tEplKernel PUBLIC EplApiUpdateObd(BOOL fUpdateStorableParam_p);
+
+// Link the needed domain objects
+static tEplKernel PUBLIC EplApiLinkDomainObjects(tEplApiLinkObjectRequest* pLinkRequ,
+                                                 size_t RequCnt);
 
 // process events from user event queue
 static tEplKernel PUBLIC EplApiProcessEvent(tEplEvent* pEplEvent_p);
@@ -372,6 +397,12 @@ tEplDllkInitParam   DllkInitParam;
     }
     #endif
 #endif
+
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
+    Ret = EplApiLinkDomainObjects(EplApiLinkObjectRequestsMN,
+                                  tabentries(EplApiLinkObjectRequestsMN));
+#endif
+
 #endif
 
 #if EPL_USE_SHAREDBUFF != FALSE
@@ -1663,6 +1694,8 @@ tEplApiEventArg     EventArg;
             BYTE        bCmdTarget;
             tEplObdSize ObdSize;
             tEplNmtState    NmtState;
+            BYTE*       pCmdData;
+            tEplObdSize CmdDataSize;
 
                 ObdSize = sizeof (bCmdId);
                 Ret = EplObdReadEntry(0x1F9F, 2, &bCmdId, &ObdSize);
@@ -1680,6 +1713,32 @@ tEplApiEventArg     EventArg;
                     goto Exit;
                 }
 
+                if ((bCmdId >= 0x40) && (bCmdId <= 0x5F))
+                {
+                    pCmdData = EPL_MALLOC (EPL_C_MAX_NMT_CMD_DATA_SIZE);
+                    if (pCmdData == NULL)
+                    {
+                        Ret = kEplNoResource;
+                        pParam_p->m_dwAbortCode = EPL_SDOAC_GENERAL_ERROR;
+                        goto Exit;
+                    }
+
+                    CmdDataSize = EPL_C_MAX_NMT_CMD_DATA_SIZE;
+
+                    Ret = EplObdReadEntry(0x1F9F, 4, pCmdData, &CmdDataSize);
+                    if (Ret != kEplSuccessful)
+                    {
+                        EPL_FREE (pCmdData);
+                        pParam_p->m_dwAbortCode = EPL_SDOAC_GENERAL_ERROR;
+                        goto Exit;
+                    }
+                }
+                else
+                {
+                    CmdDataSize = 0;
+                    pCmdData = NULL;
+                }
+
                 NmtState = EplNmtuGetNmtState();
 
                 if (NmtState < kEplNmtMsNotActive)
@@ -1693,7 +1752,9 @@ tEplApiEventArg     EventArg;
                 {   // local node is MN
                     // directly execute the requested NMT command
                     Ret = EplNmtMnuRequestNmtCommand(bCmdTarget,
-                                                     (tEplNmtCommand) bCmdId);
+                                                     (tEplNmtCommand) bCmdId,
+                                                     pCmdData,
+                                                     CmdDataSize );
                 }
                 if (Ret != kEplSuccessful)
                 {
@@ -1702,6 +1763,12 @@ tEplApiEventArg     EventArg;
 
                 // reset request flag
                 *((BYTE*)pParam_p->m_pArg) = 0;
+
+                // Free allocated resources
+                if (pCmdData != NULL)
+                {
+                    EPL_FREE (pCmdData);
+                }
             }
             break;
         }
@@ -2671,6 +2738,45 @@ Exit:
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplObdLinkDomainObjects()
+//
+// Description: -
+//
+// Parameters:  -
+//
+// Return:      tEplKernel      =   Errorcode
+//
+//---------------------------------------------------------------------------
+
+static tEplKernel PUBLIC EplApiLinkDomainObjects(tEplApiLinkObjectRequest* pLinkRequ,
+                                                 size_t RequCnt)
+{
+    tEplKernel                  Ret;
+    tEplObdSize                 EntrySize;
+    unsigned int                uiVarEntries;
+    size_t                      Cnt;
+
+    Ret = kEplSuccessful;
+
+    for (Cnt = 0; Cnt < RequCnt; Cnt ++, pLinkRequ ++)
+    {
+        EntrySize = pLinkRequ->m_EntrySize;
+        uiVarEntries = pLinkRequ->m_uiVarEntries;
+
+        Ret = EplApiLinkObject(pLinkRequ->m_uiObjIndex, pLinkRequ->m_pVar,
+                               &uiVarEntries, &EntrySize,
+                               pLinkRequ->m_uiFirstSubindex);
+        // Return first link error
+        if( kEplSuccessful != Ret )
+        {
+            break;
+        }
+    }
+
+    return Ret;
+}
 
 #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
 // ----------------------------------------------------------------------------

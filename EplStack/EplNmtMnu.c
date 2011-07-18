@@ -287,6 +287,14 @@ typedef struct
 #endif
 } tEplNmtMnuInstance;
 
+typedef struct
+{
+    BYTE                m_bCmdData;
+    unsigned int        m_uiCmdDataId;
+    unsigned int        m_uiNodeIdCnt;
+    BYTE                m_bNodeIdMask;
+    unsigned int        m_uiNodeId;
+} tEplNmtMntGetNodeId;
 
 //---------------------------------------------------------------------------
 // local vars
@@ -298,6 +306,18 @@ static tEplNmtMnuInstance   EplNmtMnuInstance_g;
 //---------------------------------------------------------------------------
 // local function prototypes
 //---------------------------------------------------------------------------
+
+static tEplKernel EplNmtMntGetNodeIdFromCmd(
+                                    unsigned int            uiNodeId,
+                                    tEplNmtCommand          NmtCommand,
+                                    BYTE                    *pCmdData_p,
+                                    tEplNmtMntGetNodeId     *pOp_p,
+                                    unsigned int            *puiNodeId_p);
+
+static tEplKernel EplNmtMntNodeListToNodeId(
+                                    BYTE                    *pCmdData_p,
+                                    tEplNmtMntGetNodeId     *pOp_p,
+                                    unsigned int            *puiNodeId_p);
 
 static tEplKernel PUBLIC EplNmtMnuCbNmtRequest(tEplFrameInfo * pFrameInfo_p);
 
@@ -511,14 +531,18 @@ tEplKernel EplNmtMnuSendNmtCommandEx(unsigned int uiNodeId_p,
                                     void* pNmtCommandData_p,
                                     unsigned int uiDataSize_p)
 {
-tEplKernel          Ret;
-tEplFrameInfo       FrameInfo;
-BYTE                abBuffer[EPL_C_DLL_MINSIZE_NMTCMDEXT];
-tEplFrame*          pFrame;
-tEplDllNodeOpParam  NodeOpParam;
+    tEplKernel          Ret;
+    tEplFrameInfo       FrameInfo;
+    BYTE                abBuffer[EPL_C_DLL_MINSIZE_NMTCMDEXT];
+    tEplFrame*          pFrame;
+    tEplDllNodeOpParam  NodeOpParam;
 #if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
-tEplNmtMnuNodeInfo* pNodeInfo;
+    tEplNmtMnuNodeInfo* pNodeInfo;
 #endif
+	unsigned int        uiNodeId_tmp = EPL_C_ADR_INVALID;   // Init to non-existent nodeId
+    BYTE*               pCmdData;
+    tEplNmtMntGetNodeId NodeListOp;
+    tEplKernel          RetGetNodeId;
 
     Ret = kEplSuccessful;
 
@@ -528,98 +552,11 @@ tEplNmtMnuNodeInfo* pNodeInfo;
         goto Exit;
     }
 
-    if ((pNmtCommandData_p != NULL) && (uiDataSize_p > (EPL_C_DLL_MINSIZE_NMTCMDEXT - EPL_C_DLL_MINSIZE_NMTCMD)))
-    {
-        Ret = kEplNmtInvalidParam;
-        goto Exit;
-    }
+    // Ensure maximum size of command data
+    uiDataSize_p    = min(uiDataSize_p, (unsigned int) (EPL_C_DLL_MINSIZE_NMTCMDEXT - EPL_C_DLL_MINSIZE_NMTCMD));
 
     // $$$ d.k. may be check in future versions if the caller wants to perform prohibited state transitions
     //     the CN should not perform these transitions, but the expected NMT state will be changed and never fullfilled.
-
-#if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
-    pNodeInfo = EPL_NMTMNU_GET_NODEINFO(uiNodeId_p);
-
-    if (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_PRES_CHAINING)
-    {   // Node is a PRes Chaining node
-        switch (NmtCommand_p)
-        {
-            case kEplNmtCmdStopNode:
-            case kEplNmtCmdResetNode:
-            case kEplNmtCmdResetCommunication:
-            case kEplNmtCmdResetConfiguration:
-            case kEplNmtCmdSwReset:
-            {
-                if (pNodeInfo->m_wPrcFlags & (EPL_NMTMNU_NODE_FLAG_PRC_ADD_SCHEDULED |
-                                              EPL_NMTMNU_NODE_FLAG_PRC_ADD_IN_PROGRESS))
-                {   // For this node, addition to the isochronous phase is scheduled
-                    // or in progress
-                    // Skip addition for this node
-                    pNodeInfo->m_wPrcFlags &= ~(EPL_NMTMNU_NODE_FLAG_PRC_ADD_SCHEDULED |
-                                                EPL_NMTMNU_NODE_FLAG_PRC_ADD_IN_PROGRESS);
-                }
-
-                if (pNodeInfo->m_wFlags & EPL_NMTMNU_NODE_FLAG_ISOCHRON)
-                {   // PRes Chaining is enabled
-                tEplDllSyncRequest SyncReqData;
-                unsigned int       uiSize;
-
-                    // Store NMT command for later execution
-                    EplNmtMnuPrcSetFlagsNmtCommandReset(pNodeInfo, NmtCommand_p);
-
-                    // Disable PRes Chaining
-                    SyncReqData.m_uiNodeId      = uiNodeId_p;
-                    SyncReqData.m_dwSyncControl = EPL_SYNC_PRES_MODE_RESET |
-                                                  EPL_SYNC_DEST_MAC_ADDRESS_VALID;
-                    uiSize = sizeof(unsigned int) + sizeof(DWORD);
-
-                    Ret = EplSyncuRequestSyncResponse(EplNmtMnuPrcCbSyncResNextAction, &SyncReqData, uiSize);
-                    switch (Ret)
-                    {
-                        case kEplSuccessful:
-                        {
-                            // Mark node as removed from the isochronous phase
-                            pNodeInfo->m_wFlags &= ~EPL_NMTMNU_NODE_FLAG_ISOCHRON;
-                            // Send NMT command when SyncRes is received
-                            goto Exit;
-                        }
-
-                        case kEplNmtSyncReqRejected:
-                        {   // There has already been posted a SyncReq for this node.
-                            // Retry when SyncRes is received
-                            Ret = kEplSuccessful;
-                            goto Exit;
-                        }
-
-                        default:
-                        {
-                            goto Exit;
-                        }
-                    }
-                }
-
-                if (pNodeInfo->m_wPrcFlags & (EPL_NMTMNU_NODE_FLAG_PRC_RESET_MASK |
-                                              EPL_NMTMNU_NODE_FLAG_PRC_ADD_SYNCREQ_SENT))
-                {   // A Node-reset NMT command was already scheduled or
-                    // PRes Chaining is going to be enabled but the appropriate SyncRes
-                    // has not been received, yet.
-
-                    // Set the current NMT command if it has higher priority than a present one.
-                    EplNmtMnuPrcSetFlagsNmtCommandReset(pNodeInfo, NmtCommand_p);
-
-                    // Wait for the SyncRes
-                    goto Exit;
-                }
-
-                break;
-            }
-            default:
-            {   // Other NMT commands
-                break;
-            }
-        }
-    }
-#endif
 
     // build frame
     pFrame = (tEplFrame*) abBuffer;
@@ -648,19 +585,14 @@ tEplNmtMnuNodeInfo* pNodeInfo;
 
     EPL_DBGLVL_NMTMN_TRACE("NMTCmd(%02X->%02X)\n", NmtCommand_p, uiNodeId_p);
 
-#if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
-    if (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_PRES_CHAINING)
-    {   // Node is a PRes Chaining node
-        // The following action (delete node) is only necessary for non-PRC nodes
-        goto Exit;
-    }
-#endif
-
     switch (NmtCommand_p)
     {
         case kEplNmtCmdStartNode:
+        case kEplNmtCmdStartNodeEx:
         case kEplNmtCmdEnterPreOperational2:
+        case kEplNmtCmdEnterPreOperational2Ex:
         case kEplNmtCmdEnableReadyToOperate:
+        case kEplNmtCmdEnableReadyToOperateEx:
         {
             // nothing left to do,
             // because any further processing is done
@@ -669,6 +601,7 @@ tEplNmtMnuNodeInfo* pNodeInfo;
         }
 
         case kEplNmtCmdStopNode:
+        case kEplNmtCmdStopNodeEx:
         {
             // remove CN from isochronous phase softly
             NodeOpParam.m_OpNodeType = kEplDllNodeOpTypeSoftDelete;
@@ -676,9 +609,13 @@ tEplNmtMnuNodeInfo* pNodeInfo;
         }
 
         case kEplNmtCmdResetNode:
+        case kEplNmtCmdResetNodeEx:
         case kEplNmtCmdResetCommunication:
+        case kEplNmtCmdResetCommunicationEx:
         case kEplNmtCmdResetConfiguration:
+        case kEplNmtCmdResetConfigurationEx:
         case kEplNmtCmdSwReset:
+        case kEplNmtCmdSwResetEx:
         {
             // remove CN immediately from isochronous phase
             NodeOpParam.m_OpNodeType = kEplDllNodeOpTypeIsochronous;
@@ -699,21 +636,120 @@ tEplNmtMnuNodeInfo* pNodeInfo;
     // remove CN from isochronous phase;
     // This must be done here and not when NMT command is actually sent
     // because it will be too late and may cause unwanted errors
-    if (uiNodeId_p != EPL_C_ADR_BROADCAST)
+    pCmdData    = pFrame->m_Data.m_Asnd.m_Payload.m_NmtCommandService.m_le_abNmtCommandData;
+    EPL_MEMSET( &NodeListOp, 0x00, sizeof(NodeListOp));
+
+    RetGetNodeId = EplNmtMntGetNodeIdFromCmd(   uiNodeId_p,
+                                                NmtCommand_p,
+                                                pCmdData,
+                                                &NodeListOp,
+                                                &uiNodeId_tmp);
+
+    while( RetGetNodeId  == kEplRetry )
     {
-        NodeOpParam.m_uiNodeId = uiNodeId_p;
-        Ret = EplDlluCalDeleteNode(&NodeOpParam);
-    }
-    else
-    {   // do it for all active CNs
-        for (uiNodeId_p = 1; uiNodeId_p <= tabentries(EplNmtMnuInstance_g.m_aNodeInfo); uiNodeId_p++)
-        {
-            if ((EPL_NMTMNU_GET_NODEINFO(uiNodeId_p)->m_dwNodeCfg & (EPL_NODEASSIGN_NODE_IS_CN | EPL_NODEASSIGN_NODE_EXISTS)) != 0)
-            {
-                NodeOpParam.m_uiNodeId = uiNodeId_p;
-                Ret = EplDlluCalDeleteNode(&NodeOpParam);
+        #if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
+            pNodeInfo = EPL_NMTMNU_GET_NODEINFO(uiNodeId_tmp);
+
+            if (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_PRES_CHAINING)
+            {   // Node is a PRes Chaining node
+                switch (NmtCommand_p)
+                {
+                    case kEplNmtCmdStopNode:
+                    case kEplNmtCmdResetNode:
+                    case kEplNmtCmdResetCommunication:
+                    case kEplNmtCmdResetConfiguration:
+                    case kEplNmtCmdSwReset:
+                    {
+                        if (pNodeInfo->m_wPrcFlags & (EPL_NMTMNU_NODE_FLAG_PRC_ADD_SCHEDULED |
+                                                      EPL_NMTMNU_NODE_FLAG_PRC_ADD_IN_PROGRESS))
+                        {   // For this node, addition to the isochronous phase is scheduled
+                            // or in progress
+                            // Skip addition for this node
+                            pNodeInfo->m_wPrcFlags &= ~(EPL_NMTMNU_NODE_FLAG_PRC_ADD_SCHEDULED |
+                                                        EPL_NMTMNU_NODE_FLAG_PRC_ADD_IN_PROGRESS);
+                        }
+
+                        if (pNodeInfo->m_wFlags & EPL_NMTMNU_NODE_FLAG_ISOCHRON)
+                        {   // PRes Chaining is enabled
+                        tEplDllSyncRequest SyncReqData;
+                        unsigned int       uiSize;
+
+                            // Store NMT command for later execution
+                            EplNmtMnuPrcSetFlagsNmtCommandReset(pNodeInfo, NmtCommand_p);
+
+                            // Disable PRes Chaining
+                            SyncReqData.m_uiNodeId      = uiNodeId_tmp;
+                            SyncReqData.m_dwSyncControl = EPL_SYNC_PRES_MODE_RESET |
+                                                          EPL_SYNC_DEST_MAC_ADDRESS_VALID;
+                            uiSize = sizeof(unsigned int) + sizeof(DWORD);
+
+                            Ret = EplSyncuRequestSyncResponse(EplNmtMnuPrcCbSyncResNextAction, &SyncReqData, uiSize);
+                            switch (Ret)
+                            {
+                                case kEplSuccessful:
+                                {
+                                    // Mark node as removed from the isochronous phase
+                                    pNodeInfo->m_wFlags &= ~EPL_NMTMNU_NODE_FLAG_ISOCHRON;
+                                    // Send NMT command when SyncRes is received
+                                    goto Exit;
+                                }
+
+                                case kEplNmtSyncReqRejected:
+                                {   // There has already been posted a SyncReq for this node.
+                                    // Retry when SyncRes is received
+                                    Ret = kEplSuccessful;
+                                    goto Exit;
+                                }
+
+                                default:
+                                {
+                                    goto Exit;
+                                }
+                            }
+                        }
+
+                        if (pNodeInfo->m_wPrcFlags & (EPL_NMTMNU_NODE_FLAG_PRC_RESET_MASK |
+                                                      EPL_NMTMNU_NODE_FLAG_PRC_ADD_SYNCREQ_SENT))
+                        {   // A Node-reset NMT command was already scheduled or
+                            // PRes Chaining is going to be enabled but the appropriate SyncRes
+                            // has not been received, yet.
+
+                            // Set the current NMT command if it has higher priority than a present one.
+                            EplNmtMnuPrcSetFlagsNmtCommandReset(pNodeInfo, NmtCommand_p);
+
+                            // Wait for the SyncRes
+                            goto Exit;
+                        }
+
+                        break;
+                    }
+                    default:
+                    {   // Other NMT commands
+                        break;
+                    }
+                }
             }
+        #endif
+
+        #if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
+            if (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_PRES_CHAINING)
+            {   // Node is a PRes Chaining node
+                // The following action (delete node) is only necessary for non-PRC nodes
+                goto Exit;
+            }
+        #endif
+
+        if ((EPL_NMTMNU_GET_NODEINFO(uiNodeId_tmp)->m_dwNodeCfg & (EPL_NODEASSIGN_NODE_IS_CN | EPL_NODEASSIGN_NODE_EXISTS)) != 0)
+        {
+            NodeOpParam.m_uiNodeId  = uiNodeId_tmp;
+            Ret                     = EplDlluCalDeleteNode(&NodeOpParam);
         }
+
+        RetGetNodeId = EplNmtMntGetNodeIdFromCmd(   uiNodeId_p,
+                                                    NmtCommand_p,
+                                                    pCmdData,
+                                                    &NodeListOp,
+                                                    &uiNodeId_tmp);
     }
 
 Exit:
@@ -755,6 +791,8 @@ tEplKernel      Ret = kEplSuccessful;
 //
 // Parameters:  uiNodeId_p              = node ID to which the NMT command will be sent
 //              NmtCommand_p            = NMT command
+//              pNmtCommandData_p       = NMT command data (32 byte)
+//              uiDataSize_p            = size of NMT command data
 //
 // Returns:     tEplKernel              = error code
 //
@@ -763,7 +801,9 @@ tEplKernel      Ret = kEplSuccessful;
 //---------------------------------------------------------------------------
 
 tEplKernel EplNmtMnuRequestNmtCommand(unsigned int uiNodeId_p,
-                                    tEplNmtCommand  NmtCommand_p)
+                                    tEplNmtCommand  NmtCommand_p,
+                                    void* pNmtCommandData_p,
+                                    unsigned int uiDataSize_p)
 {
 tEplKernel      Ret = kEplSuccessful;
 tEplNmtState    NmtState;
@@ -869,9 +909,13 @@ tEplNmtState    NmtState;
     switch (NmtCommand_p)
     {
         case kEplNmtCmdResetNode:
+        case kEplNmtCmdResetNodeEx:
         case kEplNmtCmdResetCommunication:
+        case kEplNmtCmdResetCommunicationEx:
         case kEplNmtCmdResetConfiguration:
+        case kEplNmtCmdResetConfigurationEx:
         case kEplNmtCmdSwReset:
+        case kEplNmtCmdSwResetEx:
         {
             if (uiNodeId_p == EPL_C_ADR_BROADCAST)
             {   // memorize that this is a user requested reset
@@ -881,9 +925,14 @@ tEplNmtState    NmtState;
         }
 
         case kEplNmtCmdStartNode:
+        case kEplNmtCmdStartNodeEx:
         case kEplNmtCmdStopNode:
+        case kEplNmtCmdStopNodeEx:
         case kEplNmtCmdEnterPreOperational2:
+        case kEplNmtCmdEnterPreOperational2Ex:
         case kEplNmtCmdEnableReadyToOperate:
+        case kEplNmtCmdEnableReadyToOperateEx:
+
         default:
         {
             break;
@@ -899,7 +948,14 @@ tEplNmtState    NmtState;
     }
 
     // send command to remote node
-    Ret = EplNmtMnuSendNmtCommand(uiNodeId_p, NmtCommand_p);
+    if ((pNmtCommandData_p != NULL) && (uiDataSize_p != 0))
+    {
+        Ret = EplNmtMnuSendNmtCommandEx(uiNodeId_p, NmtCommand_p, pNmtCommandData_p, uiDataSize_p);
+    }
+    else
+    {
+        Ret = EplNmtMnuSendNmtCommand(uiNodeId_p, NmtCommand_p);
+    }
 
 Exit:
     return Ret;
@@ -1460,10 +1516,14 @@ tEplKernel      Ret;
 
         case kEplEventTypeNmtMnuNmtCmdSent:
         {
-        tEplFrame* pFrame = (tEplFrame*)pEvent_p->m_pArg;
-        unsigned int        uiNodeId;
-        tEplNmtCommand      NmtCommand;
-        BYTE                bNmtState;
+            tEplFrame* pFrame = (tEplFrame*)pEvent_p->m_pArg;
+            unsigned int        uiNodeId;
+            tEplNmtCommand      NmtCommand;
+            BYTE                bNmtState;
+            unsigned int        uiNodeId_tmp;
+            BYTE*               *pCmdData;
+            tEplNmtMntGetNodeId NodeListOp;
+            tEplKernel          RetGetNodeId;
 
             if (pEvent_p->m_uiSize < EPL_C_DLL_MINSIZE_NMTCMD)
             {
@@ -1477,18 +1537,22 @@ tEplKernel      Ret;
             switch (NmtCommand)
             {
                 case kEplNmtCmdStartNode:
+                case kEplNmtCmdStartNodeEx:
                     bNmtState = (BYTE) (kEplNmtCsOperational & 0xFF);
                     break;
 
                 case kEplNmtCmdStopNode:
+                case kEplNmtCmdStopNodeEx:
                     bNmtState = (BYTE) (kEplNmtCsStopped & 0xFF);
                     break;
 
                 case kEplNmtCmdEnterPreOperational2:
+                case kEplNmtCmdEnterPreOperational2Ex:
                     bNmtState = (BYTE) (kEplNmtCsPreOperational2 & 0xFF);
                     break;
 
                 case kEplNmtCmdEnableReadyToOperate:
+                case kEplNmtCmdEnableReadyToOperateEx:
                     // d.k. do not change expected node state, because of DS 1.0.0 7.3.1.2.1 Plain NMT State Command
                     //      and because node may not change NMT state within EPL_C_NMT_STATE_TOLERANCE
                     bNmtState = (BYTE) (kEplNmtCsPreOperational2 & 0xFF);
@@ -1498,6 +1562,10 @@ tEplKernel      Ret;
                 case kEplNmtCmdResetCommunication:
                 case kEplNmtCmdResetConfiguration:
                 case kEplNmtCmdSwReset:
+                case kEplNmtCmdResetNodeEx:
+                case kEplNmtCmdResetCommunicationEx:
+                case kEplNmtCmdResetConfigurationEx:
+                case kEplNmtCmdSwResetEx:
                     bNmtState = (BYTE) (kEplNmtCsNotActive & 0xFF);
                     // EplNmtMnuProcessInternalEvent() sets internal node state to kEplNmtMnuNodeStateUnknown
                     // after next unresponded IdentRequest/StatusRequest
@@ -1508,75 +1576,78 @@ tEplKernel      Ret;
             }
 
             // process as internal event which update expected NMT state in OD
-            if (uiNodeId != EPL_C_ADR_BROADCAST)
+            pCmdData    = pFrame->m_Data.m_Asnd.m_Payload.m_NmtCommandService.m_le_abNmtCommandData;
+            EPL_MEMSET( &NodeListOp, 0x00, sizeof(NodeListOp));
+
+            RetGetNodeId = EplNmtMntGetNodeIdFromCmd(   uiNodeId,
+                                                        NmtCommand,
+                                                        pCmdData,
+                                                        &NodeListOp,
+                                                        &uiNodeId_tmp);
+
+            while( RetGetNodeId  == kEplRetry )
             {
-                Ret = EplNmtMnuProcessInternalEvent(uiNodeId,
-                                                    (tEplNmtState) (bNmtState | EPL_NMT_TYPE_CS),
-                                                    0,
-                                                    kEplNmtMnuIntNodeEventNmtCmdSent);
-
-            }
-            else
-            {   // process internal event for all active nodes (except myself)
-
-                for (uiNodeId = 1; uiNodeId <= tabentries(EplNmtMnuInstance_g.m_aNodeInfo); uiNodeId++)
+                if ((EPL_NMTMNU_GET_NODEINFO(uiNodeId_tmp)->m_dwNodeCfg & (EPL_NODEASSIGN_NODE_IS_CN | EPL_NODEASSIGN_NODE_EXISTS)) != 0)
                 {
-                    if ((EPL_NMTMNU_GET_NODEINFO(uiNodeId)->m_dwNodeCfg & (EPL_NODEASSIGN_NODE_IS_CN | EPL_NODEASSIGN_NODE_EXISTS)) != 0)
-                    {
-                        Ret = EplNmtMnuProcessInternalEvent(uiNodeId,
-                                                            (tEplNmtState) (bNmtState | EPL_NMT_TYPE_CS),
-                                                            0,
-                                                            kEplNmtMnuIntNodeEventNmtCmdSent);
+                    Ret = EplNmtMnuProcessInternalEvent(uiNodeId_tmp,
+                                                        (tEplNmtState) (bNmtState | EPL_NMT_TYPE_CS),
+                                                        0,
+                                                        kEplNmtMnuIntNodeEventNmtCmdSent);
 
-                        if (Ret != kEplSuccessful)
-                        {
-                            goto Exit;
-                        }
-                    }
-                }
-
-                if ((EplNmtMnuInstance_g.m_wFlags & EPL_NMTMNU_FLAG_USER_RESET) != 0)
-                {   // user or diagnostic nodes requests a reset of the MN
-                tEplNmtEvent    NmtEvent;
-
-                    switch (NmtCommand)
-                    {
-                        case kEplNmtCmdResetNode:
-                        {
-                            NmtEvent = kEplNmtEventResetNode;
-                            break;
-                        }
-
-                        case kEplNmtCmdResetCommunication:
-                        {
-                            NmtEvent = kEplNmtEventResetCom;
-                            break;
-                        }
-
-                        case kEplNmtCmdResetConfiguration:
-                        {
-                            NmtEvent = kEplNmtEventResetConfig;
-                            break;
-                        }
-
-                        case kEplNmtCmdSwReset:
-                        {
-                            NmtEvent = kEplNmtEventSwReset;
-                            break;
-                        }
-
-                        case kEplNmtCmdInvalidService:
-                        default:
-                        {   // actually no reset was requested
-                            goto Exit;
-                        }
-                    }
-
-                    Ret = EplNmtuNmtEvent(NmtEvent);
                     if (Ret != kEplSuccessful)
                     {
                         goto Exit;
                     }
+                }
+
+                RetGetNodeId = EplNmtMntGetNodeIdFromCmd(uiNodeId, NmtCommand,
+                                                         pCmdData, &NodeListOp, &uiNodeId_tmp);
+            }
+
+            // User requested reset commands that were broadcasted to all nodes
+            // have to be forwarded to Nmtk module
+            if ((uiNodeId == EPL_C_ADR_BROADCAST) &&
+                ((EplNmtMnuInstance_g.m_wFlags & EPL_NMTMNU_FLAG_USER_RESET) != 0))
+            {   // user or diagnostic nodes requests a reset of the MN
+            tEplNmtEvent    NmtEvent;
+
+                switch (NmtCommand)
+                {
+                    case kEplNmtCmdResetNode:
+                    {
+                        NmtEvent = kEplNmtEventResetNode;
+                        break;
+                    }
+
+                    case kEplNmtCmdResetCommunication:
+                    {
+                        NmtEvent = kEplNmtEventResetCom;
+                        break;
+                    }
+
+                    case kEplNmtCmdResetConfiguration:
+                    {
+                        NmtEvent = kEplNmtEventResetConfig;
+                        break;
+                    }
+
+                    case kEplNmtCmdSwReset:
+                    {
+                        NmtEvent = kEplNmtEventSwReset;
+                        break;
+                    }
+
+                    case kEplNmtCmdInvalidService:
+                    default:
+                    {   // actually no reset was requested
+                        goto Exit;
+                    }
+                }
+
+                Ret = EplNmtuNmtEvent(NmtEvent);
+                if (Ret != kEplSuccessful)
+                {
+                    goto Exit;
                 }
             }
 
@@ -1797,6 +1868,174 @@ tEplKernel  Ret;
 
 //---------------------------------------------------------------------------
 //
+// Function:    EplNmtMntGetNodeIdFromCmd
+//
+// Description: Calculates node numbers from NMT command frame
+//
+//              Three types of NMT commands are distinguished:
+//
+//              - Plain NMT commands sent via unicast node id to a single node
+//              - Plain NMT commands sent via broadcast node id to all nodes
+//              - Extended NMT commands, who are sent via broadcast node id to
+//                all nodes, but are only accepted by those specified in the node list.
+//
+//              This function detect the command that was used, and returns
+//              all used node ids:
+//
+//              Unicast Plain Cmds:     only the single node id
+//              Broadcast Plain Cmds:   all node ids
+//              Extended Cmds:          all nodes that are in the node list
+//                                      The subfunction EplNmtMntNodeListToNodeId
+//                                      does the main work in this case
+//
+// Parameters:  uiNodeId                = Node Id that was addressed
+//              NmtCommand              = Command that was sent
+//              pCmdData_p              = The node list (extended commands only)
+//              pOp_p                   = Structure to remember current
+//                                        state of operation (memset to zero before first call!)
+//              puiNodeId_p             = Pointer to unsigned int, node id
+//                                        will be saved in here
+//
+// Returns:     tEplKernel              = kEplSuccessful ... parsing nodes finished
+//                                        kEplRetry ... node id found, call again to go on
+//
+// State:
+//
+//---------------------------------------------------------------------------
+static tEplKernel EplNmtMntGetNodeIdFromCmd(unsigned int uiNodeId,
+                                            tEplNmtCommand NmtCommand,
+                                            BYTE *pCmdData_p,
+                                            tEplNmtMntGetNodeId *pOp_p,
+                                            unsigned int *puiNodeId_p)
+{
+    tEplKernel      Ret = kEplNmtUnknownCommand;
+
+    // Unicast command, return exactly that node ID
+
+    // Broadcast command, distinguish between plain and extended commands
+    // Plain commands:      0x20..0x3F
+    // Extended commands:   0x40..0x5F
+
+    if (uiNodeId != EPL_C_ADR_BROADCAST)
+    {
+        if (*puiNodeId_p != uiNodeId)
+        {
+            *puiNodeId_p = uiNodeId;
+            Ret = kEplRetry;
+        }
+        else
+        {
+            Ret = kEplSuccessful;
+        }
+    }
+    else if ((NmtCommand >= 0x20) && (NmtCommand <= 0x3F))
+    {
+        // First valid CN node ID 1
+        if (EPL_C_ADR_INVALID == pOp_p->m_uiNodeId)
+        {
+            pOp_p->m_uiNodeId = 1;
+        }
+
+        // Last valid CN node id is EPL_NMT_MAX_NODE_ID
+        if (pOp_p->m_uiNodeId <= EPL_NMT_MAX_NODE_ID)
+        {
+            *puiNodeId_p = pOp_p->m_uiNodeId;
+            pOp_p->m_uiNodeId ++;
+            Ret = kEplRetry;
+        }
+        else
+        {
+            Ret = kEplSuccessful;
+        }
+    }
+    else if ((NmtCommand >= 0x40 ) && (NmtCommand <= 0x5F))
+    {
+        Ret = EplNmtMntNodeListToNodeId(pCmdData_p, pOp_p, puiNodeId_p);
+    }
+
+    return  Ret;
+}
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplNmtMntNodeListToNodeId
+//
+// Description: Calculates node numbers from a given bit field.
+//
+//              Extended NMT commands use 'Node Lists'.
+//              These are 32 byte wide bit fields, where each
+//              bit corresponds to a node number.
+//
+//              This function walks the bit field, and returns for every
+//              found node id.
+//
+//              For a detailed description of the bit field format, see
+//              section 7.3.1.2.3 'POWERLINK Node List Format' of the
+//              Ethernet POWERLINK specification DS 301 V1.1.0
+//
+//
+// Parameters:  pCmdData_p              = The node list
+//              pOp_p                   = Structure to remember current
+//                                        state of operation (memset to zero before first call!)
+//              puiNodeId_p             = Pointer to unsigned int, node id
+//                                        will be saved in here
+//
+// Returns:     tEplKernel              = kEplSuccessful ... parsing node list finished
+//                                        kEplRetry ... node id found, call again to go on
+//
+// State:
+//
+//---------------------------------------------------------------------------
+static tEplKernel EplNmtMntNodeListToNodeId(BYTE                    *pCmdData_p,
+                                            tEplNmtMntGetNodeId     *pOp_p,
+                                            unsigned int            *puiNodeId_p)
+{
+    tEplKernel      Ret  = kEplSuccessful;
+    BOOL            MatchFound = FALSE;
+
+    *puiNodeId_p    = EPL_C_ADR_INVALID;
+
+    // Loop over bitarray, handle only nodes whose bits are set
+    while ((pOp_p->m_uiCmdDataId < 32) && (MatchFound == FALSE))
+    {
+        pOp_p->m_bCmdData = AmiGetByteFromLe(&pCmdData_p[pOp_p->m_uiCmdDataId]);
+
+        if (pOp_p->m_uiNodeIdCnt == 0)
+        {
+            pOp_p->m_bNodeIdMask = 0x01;
+        }
+
+        while ((pOp_p->m_uiNodeIdCnt < 8) && (MatchFound == FALSE))
+        {
+            if ((pOp_p->m_bCmdData & pOp_p->m_bNodeIdMask) != 0)
+            {
+                // Match
+                *puiNodeId_p = pOp_p->m_uiNodeId;
+                MatchFound = TRUE;
+            }
+
+            pOp_p->m_uiNodeId++;
+            pOp_p->m_uiNodeIdCnt++;
+            pOp_p->m_bNodeIdMask <<= 1;
+        }
+
+        if (pOp_p->m_uiNodeIdCnt == 8)
+        {
+            pOp_p->m_uiNodeIdCnt = 0;
+            pOp_p->m_uiCmdDataId++;
+        }
+    }
+
+    if (MatchFound == TRUE)
+    {
+        Ret = kEplRetry;
+    }
+
+    return  Ret;
+}
+
+//---------------------------------------------------------------------------
+//
 // Function:    EplNmtMnuCbNmtRequest
 //
 // Description: callback funktion for NmtRequest
@@ -1831,8 +2070,7 @@ tEplNmtRequestService*  pNmtRequestService;
     uiTargetNodeId = AmiGetByteFromLe(
             &pNmtRequestService->m_le_bTargetNodeId);
 
-    Ret = EplNmtMnuRequestNmtCommand(uiTargetNodeId,
-                                     NmtCommand);
+    Ret = EplNmtMnuRequestNmtCommand(uiTargetNodeId, NmtCommand, NULL, 0);
     if (Ret != kEplSuccessful)
     {   // error -> reply with kEplNmtCmdInvalidService
     unsigned int uiSourceNodeId;
