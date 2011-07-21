@@ -2536,6 +2536,13 @@ tEplSdoAddress  SdoAddress;
     if (Ret == kEplObdAccessAdopted)
     {
         Ret = kEplSuccessful;
+        if (pSdoComCon_p->m_SdoTransType == kEplSdoTransExpedited)
+        {
+            // send sequence layer acknowledge, because of expedited transfer
+            Ret = EplSdoAsySeqSendData(pSdoComCon_p->m_SdoSeqConHdl,
+                                                    0,
+                                                    (tEplFrame*)NULL);
+        }
         goto Exit;
     }
     else if (Ret != kEplSuccessful)
