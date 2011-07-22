@@ -1774,6 +1774,14 @@ tEplKernel          Ret = kEplSuccessful;
         {
             EplAppDumpData(pParam_p->m_pData, min (pParam_p->m_SegmentSize, 256));
         }
+        else
+        {
+            pParam_p->m_TransferSize = min(pParam_p->m_uiSubIndex + 1, 8);
+            if (pParam_p->m_SegmentSize > pParam_p->m_TransferSize)
+            {   // limit segment size
+                pParam_p->m_SegmentSize = pParam_p->m_TransferSize;
+            }
+        }
 
         if (pParam_p->m_pfnAccessFinished == NULL)
         {
