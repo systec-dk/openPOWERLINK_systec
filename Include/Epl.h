@@ -379,7 +379,9 @@ extern char *EplGetEventTypeStr(tEplEventType eventType_p);
 extern char *EplGetEventSourceStr(tEplEventSource eventSrc_p);
 extern char *EplGetEventSinkStr(tEplEventSink eventSink_p);
 extern char *EplGetNmtStateStr(tEplNmtState nmtState_p);
-
+extern char *EplGetApiEventStr( tEplApiEventType ApiEvent_p);
+extern char *EplGetNmtNodeEventTypeStr( tEplNmtNodeEvent NodeEventType_p );
+extern char *EplGetNmtBootEventTypeStr( tEplNmtBootEvent BootEventType_p );
 
 #endif  // #ifndef _EPL_API_H_
 
