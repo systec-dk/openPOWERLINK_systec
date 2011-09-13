@@ -595,6 +595,10 @@ ExitShutdown:
     // halt the NMT state machine
     // so the processing of POWERLINK frames stops
     EplRet = EplApiExecNmtCommand(kEplNmtEventSwitchOff);
+
+    // Free resources used by the process image API
+    EplRet = EplApiProcessImageFree();
+
     // delete instance for all modules
     EplRet = EplApiShutdown();
 
