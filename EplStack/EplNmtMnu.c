@@ -146,7 +146,7 @@
 #define EPL_NMTMNU_NODE_FLAG_PRC_RESET_MASK         0x7000
 #endif
 
-// defines for timer arguments to draw a distinction between serveral events
+// defines for timer arguments to draw a distinction between several events
 #define EPL_NMTMNU_TIMERARG_NODE_MASK   0x000000FFL // mask that contains the node-ID
 #define EPL_NMTMNU_TIMERARG_IDENTREQ    0x00010000L // timer event is for IdentRequest
 #define EPL_NMTMNU_TIMERARG_STATREQ     0x00020000L // timer event is for StatusRequest
@@ -605,7 +605,7 @@ tEplNmtMnuNodeInfo* pNodeInfo;
                     // PRes Chaining is going to be enabled but the appropriate SyncRes
                     // has not been received, yet.
 
-                    // Set the current NMT command if it has higher priortity than a present one.
+                    // Set the current NMT command if it has higher priority than a present one.
                     EplNmtMnuPrcSetFlagsNmtCommandReset(pNodeInfo, NmtCommand_p);
 
                     // Wait for the SyncRes
@@ -1071,13 +1071,13 @@ tEplKernel      Ret = kEplSuccessful;
             break;
         }
 
-        // node process isochronus and asynchronus frames
+        // node process isochronous and asynchronous frames
         case kEplNmtCsPreOperational2:
         {
             break;
         }
 
-        // node should be configured und application is ready
+        // node should be configured and application is ready
         case kEplNmtCsReadyToOperate:
         {
             break;
@@ -1090,7 +1090,7 @@ tEplKernel      Ret = kEplSuccessful;
         }
 
         // node stopped by MN
-        // -> only process asynchronus frames
+        // -> only process asynchronous frames
         case kEplNmtCsStopped:
         {
             break;
@@ -1141,7 +1141,7 @@ tEplKernel      Ret = kEplSuccessful;
 */
 
             // inform DLL about NMT state change,
-            // so that it can clear the asynchonous queues and start the reduced cycle
+            // so that it can clear the asynchronous queues and start the reduced cycle
             Event.m_EventSink = kEplEventSinkDllk;
             Event.m_EventType = kEplEventTypeDllkStartReducedCycle;
             EPL_MEMSET(&Event.m_NetTime, 0x00, sizeof(Event.m_NetTime));
@@ -1210,7 +1210,7 @@ tEplKernel      Ret = kEplSuccessful;
             break;
         }
 
-        // node should be configured und application is ready
+        // node should be configured and application is ready
         case kEplNmtMsReadyToOperate:
         {
             // check if PRes of CNs are OK
@@ -1250,7 +1250,7 @@ tEplKernel      Ret = kEplSuccessful;
 //
 // Function:    EplNmtMnuCbCheckEvent
 //
-// Description: callback funktion for NMT events before they are actually executed.
+// Description: callback function for NMT events before they are actually executed.
 //              The EPL API layer must forward NMT events from NmtCnu module.
 //              This module will reject some NMT commands while MN.
 //
@@ -2438,7 +2438,7 @@ tEplNmtMnuNodeInfo* pNodeInfo;
 
                 EplNmtMnuInstance_g.m_uiSignalSlaveCount++;
                 // signal slave counter shall be decremented if timeout elapsed and regardless of an error
-                // mandatory slave counter shall be decremented if timeout elapsed and no error occured
+                // mandatory slave counter shall be decremented if timeout elapsed and no error occurred
             }
         }
     }
@@ -2455,7 +2455,7 @@ Exit:
 // Function:    EplNmtMnuNodeCheckCom
 //
 // Description: checks communication of the specified node.
-//              That means wait some time and if no error occured everything
+//              That means wait some time and if no error occurred everything
 //              is OK.
 //
 // Parameters:  uiNodeId_p              = node ID
@@ -2479,7 +2479,7 @@ tEplTimerArg    TimerArg;
     {   // CN is not async-only and timeout for CheckCom was set
 
         // check communication,
-        // that means wait some time and if no error occured everything is OK;
+        // that means wait some time and if no error occurred everything is OK;
 
         // start timer (when the timer expires the CN must be still ReadyToOp)
         EPL_NMTMNU_SET_FLAGS_TIMERARG_LONGER(
@@ -2595,7 +2595,7 @@ Exit:
 //
 // Parameters:  uiNodeId_p              = node ID
 //              NodeNmtState_p          = NMT state of CN
-//              NodeEvent_p             = occured events
+//              NodeEvent_p             = occurred events
 //
 // Returns:     tEplKernel              = error code
 //
