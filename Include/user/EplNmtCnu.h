@@ -93,9 +93,11 @@
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_CN)) != 0)
 
-EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuInit(unsigned int uiNodeId_p);
+EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuInit(unsigned int uiNodeId_p,
+                                    tEplRebootCb pfnRebootCb_p);
 
-EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuAddInstance(unsigned int uiNodeId_p);
+EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuAddInstance(unsigned int uiNodeId_p,
+                                    tEplRebootCb pfnRebootCb_p);
 
 EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuDelInstance(void);
 

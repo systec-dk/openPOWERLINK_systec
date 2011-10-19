@@ -94,6 +94,7 @@ typedef struct
 {
     unsigned int                m_uiNodeId;
     tEplNmtuCheckEventCallback  m_pfnCheckEventCb;
+    tEplRebootCb                m_pfnRebootCb;
 
 } tEplNmtCnuInstance;
 
@@ -130,7 +131,7 @@ static tEplKernel PUBLIC EplNmtCnuCommandCb(tEplFrameInfo * pFrameInfo_p);
 //
 //
 // Parameters:      uiNodeId_p = NodeId of the local node
-//
+//                  pfnRebootCb_p = pointer to reboot callback function
 //
 // Returns:         tEplKernel = errorcode
 //
@@ -138,11 +139,12 @@ static tEplKernel PUBLIC EplNmtCnuCommandCb(tEplFrameInfo * pFrameInfo_p);
 // State:
 //
 //---------------------------------------------------------------------------
-EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuInit(unsigned int uiNodeId_p)
+EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuInit(unsigned int uiNodeId_p,
+                                             tEplRebootCb pfnRebootCb_p)
 {
 tEplKernel Ret;
 
-    Ret = EplNmtCnuAddInstance(uiNodeId_p);
+    Ret = EplNmtCnuAddInstance(uiNodeId_p, pfnRebootCb_p);
 
     return Ret;
 }
@@ -156,7 +158,7 @@ tEplKernel Ret;
 //
 //
 // Parameters:      uiNodeId_p = NodeId of the local node
-//
+//                  pfnRebootCb_p = pointer to reboot callback function
 //
 // Returns:         tEplKernel = errorcode
 //
@@ -164,7 +166,8 @@ tEplKernel Ret;
 // State:
 //
 //---------------------------------------------------------------------------
-EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuAddInstance(unsigned int uiNodeId_p)
+EPLDLLEXPORT tEplKernel PUBLIC EplNmtCnuAddInstance(unsigned int uiNodeId_p,
+                                                    tEplRebootCb pfnRebootCb_p)
 {
 tEplKernel Ret;
 
@@ -175,6 +178,7 @@ tEplKernel Ret;
 
     // save nodeid
     EplNmtCnuInstance_g.m_uiNodeId = uiNodeId_p;
+    EplNmtCnuInstance_g.m_pfnRebootCb = pfnRebootCb_p;
 
     // register callback-function for NMT-commands
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLU)) != 0)
@@ -402,7 +406,17 @@ tEplNmtEvent    NmtEvent = kEplNmtEventNoEvent;
         }
 
         case kEplNmtCmdSwReset:
-        {   // send NMT-Event to state maschine kEplNmtEventSwReset
+        {
+            // if there is a reboot callback function we call it now
+            // to reset the node
+            if (EplNmtCnuInstance_g.m_pfnRebootCb != NULL)
+            {
+                EplNmtCnuInstance_g.m_pfnRebootCb();
+            }
+
+            // send NMT-Event to state maschine kEplNmtEventSwReset
+            // if there was a reboot callback which reseted the board, we
+            // never come here!
             NmtEvent = kEplNmtEventSwReset;
             break;
         }

@@ -502,7 +502,7 @@ tEplDllkInitParam   DllkInitParam;
 
     // initialize EplNmtCnu module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_CN)) != 0)
-    Ret = EplNmtCnuAddInstance(EplApiInstance_g.m_InitParam.m_uiNodeId);
+    Ret = EplNmtCnuAddInstance(EplApiInstance_g.m_InitParam.m_uiNodeId, EplApiInstance_g.m_InitParam.m_pfnRebootCb);
     if (Ret != kEplSuccessful)
     {
         goto Exit;
