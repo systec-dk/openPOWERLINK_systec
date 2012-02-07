@@ -97,6 +97,8 @@
         #define _WIN32_WINDOWS 0x0401
         #define _WIN32_WINNT   0x0501
 
+        #define _WINSOCKAPI_ // prevent windows.h from including winsock.h
+
         #include <windows.h>
         #include <process.h>
     #endif
@@ -159,7 +161,7 @@ typedef struct _tEplTgtTimeStamp tEplTgtTimeStamp;
 typedef struct
 {
     unsigned int    m_uiDevNumber;  // device number for selecting Ethernet controller
-    char*           m_pszDevName;   // device name (valid if non-null)
+    const char*     m_pszDevName;   // device name (valid if non-null)
 
 } tEplHwParam;
 
