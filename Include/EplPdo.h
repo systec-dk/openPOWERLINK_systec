@@ -178,6 +178,9 @@ typedef struct
 } tEplPdoAllocationParam;
 
 
+// callback function for pre- and postprocessing of PDO copy operation
+typedef void (* tEplPdoCbCopyPdo) (BYTE bChannelId);
+
 //---------------------------------------------------------------------------
 // function prototypes
 //---------------------------------------------------------------------------

@@ -78,6 +78,7 @@
 #include "EplLed.h"
 #include "EplCfm.h"
 #include "EplEvent.h"
+#include "EplPdo.h"
 
 #include <stddef.h>
 
@@ -260,6 +261,8 @@ typedef struct
     tEplApiCbEvent      m_pfnCbEvent;
     void*               m_pEventUserArg;
     tEplSyncCb          m_pfnCbSync;
+    tEplPdoCbCopyPdo    m_pfnCbTpdoPreCopy;  // function preprocesses TPDO copy operation
+    tEplPdoCbCopyPdo    m_pfnCbRpdoPostCopy; // function postprocesses RPDO copy operation
 
     tEplObdInitRam      m_pfnObdInitRam;    // function initializes OBD in RAM
     tEplObdDeinitRam    m_pfnObdDeinitRam;  // function frees OBD (for future use, currently NULL)

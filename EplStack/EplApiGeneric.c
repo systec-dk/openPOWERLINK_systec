@@ -463,7 +463,8 @@ tEplDllkInitParam   DllkInitParam;
 
     // initialize EplPdok module
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOK)) != 0)
-    Ret = EplPdokAddInstance();
+    Ret = EplPdokAddInstance(EplApiInstance_g.m_InitParam.m_pfnCbTpdoPreCopy,
+                             EplApiInstance_g.m_InitParam.m_pfnCbRpdoPostCopy);
     if (Ret != kEplSuccessful)
     {
         goto Exit;
