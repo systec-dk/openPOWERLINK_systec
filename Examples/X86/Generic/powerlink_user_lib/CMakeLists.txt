@@ -186,6 +186,7 @@ SET (LIB_SOURCES_USER ${LIB_SOURCES_USER}
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoComu.c
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoAsySequ.c
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoAsndu.c
+                      ${POWERLINK_SOURCE_DIR}/EplStack/EplGenericAsndu.c
     )
 
 #
@@ -263,6 +264,7 @@ SET (LIB_HEADERS_USER ${LIB_HEADERS_USER}
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplSdoComu.h
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplStatusu.h
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplTimeru.h
+                      ${POWERLINK_SOURCE_DIR}/Include/user/EplGenericAsndu.h
     )
 
 IF (CMAKE_CL_64)

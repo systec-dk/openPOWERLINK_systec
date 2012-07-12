@@ -87,6 +87,8 @@
 #include "user/EplStatusu.h"
 #include "user/EplTimeru.h"
 #include "user/EplCfmu.h"
+#include "user/EplGenericAsndu.h"
+#include <stddef.h>
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
 #include "kernel/VirtualEthernet.h"
@@ -1184,6 +1186,65 @@ tEplKernel      Ret = kEplSuccessful;
     return Ret;
 }
 
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiSendAsndFrame()
+//
+// Description: Send a generic Asnd frame
+//
+// Parameters:  bDstNodeId_p            = Node ID of destination node
+//              pAsndFrame_p            = Pointer to Asnd frame that should be sent
+//              uiAsndSize_p            = Size of Asnd frame (service ID + payload)
+//
+// Return:      tEplKernel              = error code
+//
+// ----------------------------------------------------------------------------
+tEplKernel PUBLIC EplApiSendAsndFrame
+(
+    BYTE            bDstNodeId_p,
+    tEplAsndFrame   *pAsndFrame_p,
+    size_t          uiAsndSize_p
+)
+{
+    // Check for valid frame size
+    // The size of the full POWERLINK frame is limited by the MTU of the network.
+    // The maximum payload size is smaller by the payload offset + 1
+    // (plus 1 to compensate that offsets start at zero).
+    if( uiAsndSize_p > (EPL_C_DLL_MAX_ASYNC_MTU - (offsetof(tEplFrame, m_Data)+1) ) )
+    {
+        return kEplApiInvalidParam;
+    }
+
+    if( pAsndFrame_p == NULL )
+    {
+        return kEplApiInvalidParam;
+    }
+
+    return EplGenericAsnduSendFrame( bDstNodeId_p, pAsndFrame_p, uiAsndSize_p );
+}
+
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiSetAsndForward()
+//
+// Description: Enable or disable the forwarding of received Asnd frames
+//              Asnd frames from the DLL to the application.
+//
+// Parameters:  bServiceId_p            = The Asnd service ID which should be configured
+//              fEnable_p               = Flag which specifies whether the forwarding should
+//                                        be enabled (TRUE) or disabled (FALSE).
+//
+// Return:      tEplKernel              = error code
+//
+// ----------------------------------------------------------------------------
+tEplKernel PUBLIC EplApiSetAsndForward
+(
+    BYTE            bServiceId_p,
+    BOOL            fEnable_p
+)
+{
+    return EplGenericAsnduSetAsndForward( bServiceId_p, fEnable_p );
+}
 
 // ----------------------------------------------------------------------------
 //
@@ -1678,6 +1739,21 @@ tEplApiEventType    EventType;
 
             EventType = kEplApiEventUserDef;
             ApiEventArg.m_pUserArg = *(void**)pEplEvent_p->m_pArg;
+
+            // call user callback
+            Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
+            break;
+        }
+
+        // Forward received ASnd frames
+        case kEplEventTypeReceivedAsnd:
+        {
+            tEplApiEventArg                 ApiEventArg;
+
+            ApiEventArg.m_RcvAsnd.m_pFrame      = pEplEvent_p->m_pArg;
+            ApiEventArg.m_RcvAsnd.m_FrameSize   = pEplEvent_p->m_uiSize;
+
+            EventType = kEplApiEventReceivedAsnd;
 
             // call user callback
             Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);

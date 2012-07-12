@@ -155,6 +155,7 @@ SET(MODULE_SOURCE_FILES
     ${POWERLINK_SOURCE_DIR}/EplStack/VirtualEthernetLinux.c
     ${POWERLINK_SOURCE_DIR}/EplStack/SocketLinuxKernel.c
     ${POWERLINK_SOURCE_DIR}/EplStack/PosixFileLinuxKernel.c
+    ${POWERLINK_SOURCE_DIR}/EplStack/EplGenericAsndu.c
     ${POWERLINK_SOURCE_DIR}/SharedBuff/SharedBuff.c
     ${POWERLINK_SOURCE_DIR}/SharedBuff/ShbIpc-LinuxKernel.c
     ${POWERLINK_SOURCE_DIR}/Target/X86/Linux/gnu/generic/TimerHighReskX86.c

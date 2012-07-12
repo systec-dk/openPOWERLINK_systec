@@ -126,6 +126,12 @@ typedef struct
 
 } tEplApiEventCfmResult;
 
+typedef struct
+{
+    tEplFrame           *m_pFrame;
+    size_t              m_FrameSize;
+}
+tEplApiEventRcvAsnd;
 
 typedef enum
 {
@@ -142,6 +148,7 @@ typedef enum
     kEplApiEventLed            = 0x70,    // m_Led
     kEplApiEventCfmProgress    = 0x71,    // m_CfmProgress
     kEplApiEventCfmResult      = 0x72,    // m_CfmResult
+    kEplApiEventReceivedAsnd   = 0x73,    // m_RcvAsnd
 } tEplApiEventType;
 
 
@@ -158,7 +165,7 @@ typedef union
     tEplCfmEventCnProgress  m_CfmProgress;
     tEplApiEventCfmResult   m_CfmResult;
     tEplErrHistoryEntry     m_ErrHistoryEntry;
-
+    tEplApiEventRcvAsnd     m_RcvAsnd;
 } tEplApiEventArg;
 
 
@@ -335,6 +342,19 @@ EPLDLLEXPORT tEplKernel PUBLIC EplApiExecNmtCommand(tEplNmtEvent NmtEvent_p);
 EPLDLLEXPORT tEplKernel PUBLIC EplApiProcess(void);
 
 EPLDLLEXPORT tEplKernel PUBLIC EplApiPostUserEvent(void* pUserArg_p);
+
+EPLDLLEXPORT tEplKernel PUBLIC EplApiSendAsndFrame
+(
+    BYTE            bDstNodeId_p,
+    tEplAsndFrame   *pAsndFrame_p,
+    size_t          uiAsndSize_p
+);
+
+EPLDLLEXPORT tEplKernel PUBLIC EplApiSetAsndForward
+(
+    BYTE            bServiceId_p,
+    BOOL            fEnable_p
+);
 
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
