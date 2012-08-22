@@ -1,78 +1,100 @@
-/****************************************************************************
-  (c) SYSTEC electronic GmbH, D-07973 Greiz, August-Bebel-Str. 29
-      www.systec-electronic.com
-  (c) Bernecker + Rainer Industrie-Elektronik Ges.m.b.H.
-      A-5142 Eggelsberg, B&R Strasse 1
-      www.br-automation.com
+/**
+********************************************************************************
+\file       Cmp_Lcd.c
 
-  Project:      openPOWERLINK
+\brief      Generic lcd functions for the TERASIC board
 
-  Description:  lcd module for the TERASIC board
+Application of the directIO example which starts the openPOWERLINK stack and
+implements AppCbSync and AppCbEvent.
 
-  License:
+Copyright (c) 2012, Bernecker+Rainer Industrie-Elektronik Ges.m.b.H. (B&R)
+Copyright (c) 2012, SYSTEC electronik GmbH
+Copyright (c) 2012, Kalycito Infotech Private Ltd.
+All rights reserved.
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the copyright holders nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    1. Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDERS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
 
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    3. Neither the name of SYSTEC electronic GmbH nor the names of its
-       contributors may be used to endorse or promote products derived
-       from this software without prior written permission. For written
-       permission, please contact info@systec-electronic.com.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-
-    Severability Clause:
-
-        If a provision of this License is or becomes illegal, invalid or
-        unenforceable in any jurisdiction, that shall not affect:
-        1. the validity or enforceability in that jurisdiction of any other
-           provision of this License; or
-        2. the validity or enforceability in other jurisdictions of that or
-           any other provision of this License.
-
-  -------------------------------------------------------------------------
-
-                $RCSfile$
-
-                $Author$
-
-                $Revision$  $Date$
-
-                $State$
-
-                Build Environment:
-                    GCC V3.4
-
-****************************************************************************/
-
+//------------------------------------------------------------------------------
+// includes
+//------------------------------------------------------------------------------
 #include <unistd.h> // for usleep()
 #include <string.h>
 #include <io.h>
 #include "system.h"
 #include "lcd.h"
 
-#ifdef LCD_BASE
+//============================================================================//
+//            G L O B A L   D E F I N I T I O N S                             //
+//============================================================================//
 
-//-------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// const defines
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// module global vars
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// global function prototypes
+//------------------------------------------------------------------------------
+
+//============================================================================//
+//            P R I V A T E   D E F I N I T I O N S                           //
+//============================================================================//
+
+//------------------------------------------------------------------------------
+// const defines
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// local types
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// local vars
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// local function prototypes
+//------------------------------------------------------------------------------
+
+
+//============================================================================//
+//            P U B L I C   F U N C T I O N S                                 //
+//============================================================================//
+
+
+#ifdef LCD_BASE  // LCD module present
+
+//------------------------------------------------------------------------------
+/**
+\brief               Init the LCD display
+
+Writes init parameters to the LCD display
+*/
+//------------------------------------------------------------------------------
 void LCD_Init()
 {
   lcd_write_cmd(LCD_BASE,0x38);
@@ -86,13 +108,29 @@ void LCD_Init()
   lcd_write_cmd(LCD_BASE,0x80);
   usleep(2000);
 }
-//-------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+/**
+\brief               Clear the LCD display
+
+Writes clear command to the LCD display
+*/
+//------------------------------------------------------------------------------
 void LCD_Clear()
 {
   lcd_write_cmd(LCD_BASE,0x01);
   usleep(2000);
 }
-//-------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+/**
+\brief               Print text to the LCD display
+
+Writes text to the LCD display
+
+\param               Text                                 The text to print
+*/
+//------------------------------------------------------------------------------
 void LCD_Show_Text(char* Text)
 {
   int i;
@@ -102,26 +140,31 @@ void LCD_Show_Text(char* Text)
     usleep(2000);
   }
 }
-//-------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+/**
+\brief               Change to line one
+
+Changes to line one of the LCD display
+*/
+//------------------------------------------------------------------------------
+void LCD_Line1()
+{
+  lcd_write_cmd(LCD_BASE,0x80);
+  usleep(2000);
+}
+
+//------------------------------------------------------------------------------
+/**
+\brief               Change to line two
+
+Changes to line two of the LCD display
+*/
+//------------------------------------------------------------------------------
 void LCD_Line2()
 {
   lcd_write_cmd(LCD_BASE,0xC0);
   usleep(2000);
 }
-//-------------------------------------------------------------------------
-void LCD_Test()
-{
-  char Text1[16] = "POWERLINK SLAVE";
-  char Text2[16] = "-- by B & R -- ";
-  //  Initial LCD
-  LCD_Init();
-  //  Show Text to LCD
-  LCD_Show_Text(Text1);
-  //  Change Line2
-  LCD_Line2();
-  //  Show Text to LCD
-  LCD_Show_Text(Text2);
-}
-//-------------------------------------------------------------------------
 
-#endif /* LCD_BASE */
+#endif // LCD_BASE
