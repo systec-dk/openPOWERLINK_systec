@@ -1414,6 +1414,15 @@ tEplApiEventArg     EventArg;
             break;
         }
 
+        case 0x1300:    // SDO_SequLayerTimeout_U32
+        {
+            if( kEplObdEvPostWrite == pParam_p->m_ObdEvent )
+            {
+                Ret = EplSdoAsySeqSetTimeout( *((DWORD *) pParam_p->m_pArg) );
+            }
+            break;
+        }
+
         case 0x1F9E:    // NMT_ResetCmd_U8
         {
             if (pParam_p->m_ObdEvent == kEplObdEvPreWrite)
