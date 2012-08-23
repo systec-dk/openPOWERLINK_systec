@@ -114,11 +114,7 @@
         #include <limits.h>
     #endif
 #elif (TARGET_SYSTEM == _VXWORKS_)
-	#include "ioLib.h"
-#elif (DEV_SYSTEM == _DEV_PAR_BECK1X3_)
-
-    #include <io.h>
-    #include <string.h>
+    #include "ioLib.h"
 #endif
 
 #if (TARGET_SYSTEM == _WIN32_)
@@ -392,7 +388,6 @@ BYTE*       pbBuffer;
             pbBuffer = pCdcInfo_p->m_pbCurBuffer;
             do
             {
-                // warning C4267: 'Funktion': Konvertierung von 'size_t' nach 'unsigned int', Datenverlust möglich
                 iReadSize = read(pCdcInfo_p->m_Handle.m_hCdcFile, pbBuffer, iBufferSize);
                 if (iReadSize <= 0)
                 {
