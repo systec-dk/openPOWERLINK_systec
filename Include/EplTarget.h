@@ -158,7 +158,12 @@
     #include <string.h>
 
     #ifndef PRINTF0
-        #define PRINTF                      printf
+        #ifndef NDEBUG
+            #define PRINTF printf
+        #else // !NDEBUG
+            #define PRINTF
+        #endif // !NDEBUG
+
         #define PRINTF0(arg)                PRINTF(arg)
         #define PRINTF1(arg,p1)             PRINTF(arg,p1)
         #define PRINTF2(arg,p1,p2)          PRINTF(arg,p1,p2)
