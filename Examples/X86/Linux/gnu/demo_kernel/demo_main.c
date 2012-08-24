@@ -3,10 +3,13 @@
   (c) SYSTEC electronic GmbH, D-07973 Greiz, August-Bebel-Str. 29
       www.systec-electronic.com
 
+  (c) Bernecker + Rainer Industrie-Elektronik Ges.m.b.H.
+      B&R Strasse 1, A-5142 Eggelsberg
+      www.br-automation.com
+
   Project:      openPOWERLINK
 
-  Description:  demoapplication for EPL MN with CFM (with SDO over UDP)
-                under Linux on X86 with RTL8139 Ethernet controller
+  Description:  openPOWERLINK MN kernel demo application
 
   License:
 
@@ -21,7 +24,7 @@
        notice, this list of conditions and the following disclaimer in the
        documentation and/or other materials provided with the distribution.
 
-    3. Neither the name of SYSTEC electronic GmbH nor the names of its
+    3. Neither the name of the copyright holders nor the names of its
        contributors may be used to endorse or promote products derived
        from this software without prior written permission. For written
        permission, please contact info@systec-electronic.com.
@@ -47,25 +50,6 @@
            provision of this License; or
         2. the validity or enforceability in other jurisdictions of that or
            any other provision of this License.
-
-  -------------------------------------------------------------------------
-
-                $RCSfile$
-
-                $Author$
-
-                $Revision$
-
-                $State$
-
-                Build Environment:
-                GCC
-
-  -------------------------------------------------------------------------
-
-  Revision History:
-
-  2006/09/01 d.k.:   start of implementation
 
 ****************************************************************************/
 
@@ -165,17 +149,6 @@ MODULE_LICENSE("Dual BSD/GPL");
 
 CONST BYTE abMacAddr[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-BYTE    bVarIn1_l;
-BYTE    bVarOut1_l;
-BYTE    bVarOut1Old_l;
-BYTE    bModeSelect_l;      // state of the pushbuttons to select the mode
-BYTE    bSpeedSelect_l;     // state of the pushbuttons to increase/decrease the speed
-BYTE    bSpeedSelectOld_l;  // old state of the pushbuttons
-DWORD   dwLeds_l;           // current state of all LEDs
-BYTE    bLedsRow1_l;        // current state of the LEDs in row 1
-BYTE    bLedsRow2_l;        // current state of the LEDs in row 2
-BYTE    abSelect_l[3];      // pushbuttons from CNs
-
 DWORD   dwMode_l;           // current mode
 int     iCurCycleCount_l;   // current cycle count
 int     iMaxCycleCount_l;   // maximum cycle count (i.e. number of cycles until next light movement step)
@@ -191,8 +164,6 @@ static DWORD    dw_le_CycleLen_g;
 #endif
 
 static uint uiNodeId_g = EPL_C_ADR_INVALID;
-module_param_named(nodeid, uiNodeId_g, uint, 0);
-MODULE_PARM_DESC(nodeid, "Local Node-ID of this POWERLINK node (0x01 - 0xEF -> CNs, 0xF0 -> MN");
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
 static uint uiCycleLen_g = 0;
@@ -200,8 +171,8 @@ static uint uiCycleLen_g = 0;
 static uint uiCycleLen_g = CYCLE_LEN;
 #endif
 
-#ifdef CONFIG_OPENCONFIGURATOR_MAPPING
-
+/*----------------------------------------------------------------------------*/
+/* process image stuff */
 #include "xap.h"
 
 static PI_IN AppProcessImageIn_g;
@@ -229,9 +200,8 @@ static int                  iUsedNodeIds_g[] = {1, 32, 110, 0};
 static unsigned int         uiCnt_g;
 static APP_NODE_VAR_T       nodeVar_g[MAX_NODES];
 /*----------------------------------------------------------------------------*/
-
-#endif
-
+module_param_named(nodeid, uiNodeId_g, uint, 0);
+MODULE_PARM_DESC(nodeid, "Local Node-ID of this POWERLINK node (0x01 - 0xEF -> CNs, 0xF0 -> MN");
 
 module_param_named(cyclelen, uiCycleLen_g, uint, 0);
 MODULE_PARM_DESC(cyclelen, "Cyclelength in [µs] (it is stored in object 0x1006)");
@@ -243,7 +213,6 @@ MODULE_PARM_DESC(cdc, "Full path to ConciseDCF (CDC file) which is imported into
 #endif
 
 static FD_TYPE hAppFdTracingEnabled_g;
-
 
 //---------------------------------------------------------------------------
 // local function prototypes
@@ -285,19 +254,15 @@ module_exit(EplLinExit);
 
 //---------------------------------------------------------------------------
 //
-// Function:
+// Function:        EplLinInit
 //
-// Description:
+// Description:     Entry point of kernel module
+////
 //
-//
-//
-// Parameters:
-//
-//
-// Returns:
+// Parameters:      N/A
 //
 //
-// State:
+// Returns:         Return code
 //
 //---------------------------------------------------------------------------
 static  int  __init  EplLinInit (void)
@@ -305,12 +270,6 @@ static  int  __init  EplLinInit (void)
 tEplKernel          EplRet;
 static tEplApiInitParam EplApiInitParam = {0};
 char*               sHostname = HOSTNAME;
-
-#ifndef CONFIG_OPENCONFIGURATOR_MAPPING
-unsigned int        uiVarEntries;
-tEplObdSize         ObdSize;
-#endif
-
 BOOL                fApiInit = FALSE;
 BOOL                fLinProcInit =FALSE;
 
@@ -350,29 +309,18 @@ BOOL                fLinProcInit =FALSE;
     EplApiInitParam.m_uiPrescaler = 2;         // required for sync
     EplApiInitParam.m_dwLossOfFrameTolerance = 500000;
     EplApiInitParam.m_dwAsyncSlotTimeout = 3000000;
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
-    EplApiInitParam.m_dwWaitSocPreq = 0;
-#else
     EplApiInitParam.m_dwWaitSocPreq = 150000;
-#endif
     EplApiInitParam.m_dwDeviceType = (DWORD) ~0UL;      // NMT_DeviceType_U32
     EplApiInitParam.m_dwVendorId = (DWORD) ~0UL;        // NMT_IdentityObject_REC.VendorId_U32
     EplApiInitParam.m_dwProductCode = (DWORD) ~0UL;     // NMT_IdentityObject_REC.ProductCode_U32
     EplApiInitParam.m_dwRevisionNumber = (DWORD) ~0UL;  // NMT_IdentityObject_REC.RevisionNo_U32
     EplApiInitParam.m_dwSerialNumber = (DWORD) ~0UL;    // NMT_IdentityObject_REC.SerialNo_U32
+
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway = 0;
     EPL_MEMCPY(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
     EplApiInitParam.m_uiSyncNodeId = EPL_C_ADR_SYNC_ON_SOA;
     EplApiInitParam.m_fSyncOnPrcNode = FALSE;
-
-    // currently unset parameters left at default value 0
-    //EplApiInitParam.m_qwVendorSpecificExt1;
-    //EplApiInitParam.m_dwVerifyConfigurationDate; // CFM_VerifyConfiguration_REC.ConfDate_U32
-    //EplApiInitParam.m_dwVerifyConfigurationTime; // CFM_VerifyConfiguration_REC.ConfTime_U32
-    //EplApiInitParam.m_dwApplicationSwDate;       // PDL_LocVerApplSw_REC.ApplSwDate_U32 on programmable device or date portion of NMT_ManufactSwVers_VS on non-programmable device
-    //EplApiInitParam.m_dwApplicationSwTime;       // PDL_LocVerApplSw_REC.ApplSwTime_U32 on programmable device or time portion of NMT_ManufactSwVers_VS on non-programmable device
-    //EplApiInitParam.m_abVendorSpecificExt2[48];
 
     // set callback functions
     EplApiInitParam.m_pfnCbEvent = AppCbEvent;
@@ -405,15 +353,12 @@ BOOL                fLinProcInit =FALSE;
     }
     fApiInit = TRUE;
 
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
     EplRet = EplApiSetCdcFilename(pszCdcFilename_g);
     if(EplRet != kEplSuccessful)
     {
         goto Exit;
     }
-#endif
 
-#ifdef CONFIG_OPENCONFIGURATOR_MAPPING
     PRINTF0("Initializing process image...\n");
     PRINTF1("Size of input process image: %ld\n", sizeof(AppProcessImageIn_g));
     PRINTF1("Size of output process image: %ld\n", sizeof (AppProcessImageOut_g));
@@ -438,85 +383,6 @@ BOOL                fLinProcInit =FALSE;
     {
         goto Exit;
     }
-#else
-    PRINTF0("Linking objects ...\n");
-
-    // link process variables used by CN to object dictionary
-    ObdSize = sizeof(bVarIn1_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x6000, &bVarIn1_l, &uiVarEntries, &ObdSize, 0x01);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    ObdSize = sizeof(bVarOut1_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x6200, &bVarOut1_l, &uiVarEntries, &ObdSize, 0x01);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    // link process variables used by MN to object dictionary
-#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
-    ObdSize = sizeof(bLedsRow1_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x2000, &bLedsRow1_l, &uiVarEntries, &ObdSize, 0x01);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    ObdSize = sizeof(bLedsRow2_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x2000, &bLedsRow2_l, &uiVarEntries, &ObdSize, 0x02);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    ObdSize = sizeof(bSpeedSelect_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x2000, &bSpeedSelect_l, &uiVarEntries, &ObdSize, 0x03);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    ObdSize = sizeof(bSpeedSelectOld_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x2000, &bSpeedSelectOld_l, &uiVarEntries, &ObdSize, 0x04);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-
-    ObdSize = sizeof(abSelect_l[0]);
-    uiVarEntries = sizeof(abSelect_l);
-    EplRet = EplApiLinkObject(0x2200, &abSelect_l[0], &uiVarEntries, &ObdSize, 0x01);
-    if (EplRet != kEplSuccessful)
-    {
-        goto Exit;
-    }
-#endif
-
-    // link a DOMAIN to object 0x6100, but do not exit, if it is missing
-    ObdSize = sizeof(abDomain_l);
-    uiVarEntries = 1;
-    EplRet = EplApiLinkObject(0x6100, &abDomain_l, &uiVarEntries, &ObdSize, 0x00);
-    if (EplRet != kEplSuccessful)
-    {
-        PRINTF1("EplApiLinkObject(0x6100): returns 0x%X\n", EplRet);
-    }
-
-    // reset old process variables
-    bVarOut1Old_l = 0;
-    bSpeedSelectOld_l = 0;
-    dwMode_l = APP_DEFAULT_MODE;
-    iMaxCycleCount_l = DEFAULT_MAX_CYCLE_COUNT;
-#endif
-
 
     // start the NMT state machine
     EplRet = EplApiExecNmtCommand(kEplNmtEventSwReset);
@@ -543,6 +409,19 @@ Exit:
     }
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:        EplLinExit
+//
+// Description:     Exit point of kernel module
+////
+//
+// Parameters:      N/A
+//
+//
+// Returns:         Return code
+//
+//---------------------------------------------------------------------------
 static  void  __exit  EplLinExit (void)
 {
 tEplKernel          EplRet;
@@ -559,10 +438,8 @@ tEplKernel          EplRet;
         EplRet = kEplShutdown;
     }*/
 
-#ifdef CONFIG_OPENCONFIGURATOR_MAPPING
     // Free resources used by the process image API
     EplRet = EplApiProcessImageFree();
-#endif
 
     // delete instance for all modules
     EplRet = EplApiShutdown();
@@ -577,7 +454,6 @@ tEplKernel          EplRet;
         close(hAppFdTracingEnabled_g);
     }
 }
-
 
 //=========================================================================//
 //                                                                         //
@@ -638,51 +514,15 @@ tEplKernel          EplRet = kEplSuccessful;
 
                 case kEplNmtGsResetCommunication:
                 {
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) == 0)
-                DWORD   dwNodeAssignment;
-
-                    // configure OD for MN in state ResetComm after reseting the OD
-                    // TODO: setup your own network configuration here
-                    dwNodeAssignment = (EPL_NODEASSIGN_NODE_IS_CN | EPL_NODEASSIGN_NODE_EXISTS);    // 0x00000003L
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x01, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x02, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x03, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x04, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x05, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x06, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x07, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x08, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x20, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0xFE, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0x6E, &dwNodeAssignment, sizeof (dwNodeAssignment));
-
-//                    dwNodeAssignment |= EPL_NODEASSIGN_MANDATORY_CN;    // 0x0000000BL
-//                    EplRet = EplApiWriteLocalObject(0x1F81, 0x6E, &dwNodeAssignment, sizeof (dwNodeAssignment));
-                    dwNodeAssignment = (EPL_NODEASSIGN_MN_PRES | EPL_NODEASSIGN_NODE_EXISTS);       // 0x00010001L
-                    EplRet = EplApiWriteLocalObject(0x1F81, 0xF0, &dwNodeAssignment, sizeof (dwNodeAssignment));
-#endif
                     // continue
                 }
 
                 case kEplNmtGsResetConfiguration:
                 {
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
                     if (uiCycleLen_g != 0)
                     {
                         EplRet = EplApiWriteLocalObject(0x1006, 0x00, &uiCycleLen_g, sizeof (uiCycleLen_g));
                     }
-#else
-                    unsigned int uiSize;
-
-                    // fetch object 0x1006 NMT_CycleLen_U32 from local OD (in little endian byte order)
-                    // for configuration of remote CN
-                    uiSize = 4;
-                    EplRet = EplApiReadObject(NULL, 0, 0x1006, 0x00, &dw_le_CycleLen_g, &uiSize, kEplSdoTypeAsnd, NULL);
-                    if (EplRet != kEplSuccessful)
-                    {   // local OD access failed
-                        break;
-                    }
-#endif
                     // continue
                 }
 
@@ -805,36 +645,6 @@ tEplKernel          EplRet = kEplSuccessful;
             {
                 case kEplNmtNodeEventCheckConf:
                 {
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) == 0)
-                 tEplSdoComConHdl SdoComConHdl;
-                    // update object 0x1006 on CN
-                    EplRet = EplApiWriteObject(&SdoComConHdl, pEventArg_p->m_Node.m_uiNodeId, 0x1006, 0x00, &dw_le_CycleLen_g, 4, kEplSdoTypeAsnd, NULL);
-                    if (EplRet == kEplApiTaskDeferred)
-                    {   // SDO transfer started
-                        EplRet = kEplReject;
-                    }
-                    else if (EplRet == kEplSuccessful)
-                    {   // local OD access (should not occur)
-                        printk("AppCbEvent(Node) write to local OD\n");
-                    }
-                    else
-                    {   // error occurred
-                        TGT_DBG_SIGNAL_TRACE_POINT(1);
-
-                        EplRet = EplApiFreeSdoChannel(SdoComConHdl);
-                        SdoComConHdl = 0;
-
-                        EplRet = EplApiWriteObject(&SdoComConHdl, pEventArg_p->m_Node.m_uiNodeId, 0x1006, 0x00, &dw_le_CycleLen_g, 4, kEplSdoTypeAsnd, NULL);
-                        if (EplRet == kEplApiTaskDeferred)
-                        {   // SDO transfer started
-                            EplRet = kEplReject;
-                        }
-                        else
-                        {
-                            printk("AppCbEvent(Node): EplApiWriteObject() returned 0x%02X\n", EplRet);
-                        }
-                    }
-#endif
                     PRINTF2("%s(Node=0x%X, CheckConf)\n", __func__, pEventArg_p->m_Node.m_uiNodeId);
                     break;
                 }
@@ -870,29 +680,6 @@ tEplKernel          EplRet = kEplSuccessful;
             }
             break;
         }
-
-#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) == 0)
-        case kEplApiEventSdo:
-        {   // SDO transfer finished
-            EplRet = EplApiFreeSdoChannel(pEventArg_p->m_Sdo.m_SdoComConHdl);
-            if (EplRet != kEplSuccessful)
-            {
-                break;
-            }
-#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
-            if (pEventArg_p->m_Sdo.m_SdoComConState == kEplSdoComTransferFinished)
-            {   // continue boot-up of CN with NMT command Reset Configuration
-                EplRet = EplApiMnTriggerStateChange(pEventArg_p->m_Sdo.m_uiNodeId, kEplNmtNodeCommandConfReset);
-            }
-            else
-            {   // indicate configuration error CN
-                EplRet = EplApiMnTriggerStateChange(pEventArg_p->m_Sdo.m_uiNodeId, kEplNmtNodeCommandConfErr);
-            }
-#endif
-
-            break;
-        }
-#endif
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
         case kEplApiEventCfmProgress:
@@ -981,7 +768,6 @@ tEplKernel PUBLIC AppCbSync(void)
 {
 tEplKernel          EplRet = kEplSuccessful;
 
-#ifdef CONFIG_OPENCONFIGURATOR_MAPPING
     int                 i;
 
     EplRet = EplApiProcessImageExchange(&AppProcessImageCopyJob_g);
@@ -1044,185 +830,7 @@ tEplKernel          EplRet = kEplSuccessful;
     AppProcessImageIn_g.CN32_M00_Digital_Ouput_8_Bit_Byte_1 = nodeVar_g[1].m_uiLeds;
     AppProcessImageIn_g.CN110_M00_Digital_Ouput_8_Bit_Byte_1 = nodeVar_g[2].m_uiLeds;
 
-#else
-    if (bVarOut1Old_l != bVarOut1_l)
-    {   // output variable has changed
-        bVarOut1Old_l = bVarOut1_l;
-        // set LEDs
-
-//        printk("bVarIn = 0x%02X bVarOut = 0x%02X\n", (WORD) bVarIn_l, (WORD) bVarOut_l);
-    }
-    bVarIn1_l++;
-
-    if (uiNodeId_g == EPL_C_ADR_MN_DEF_NODE_ID)
-    {   // we are the master and must run the control loop
-
-        // collect inputs from CNs and own input
-        bSpeedSelect_l = abSelect_l[0];
-
-        bModeSelect_l = abSelect_l[1] | abSelect_l[2];
-
-        if ((bModeSelect_l & APP_MODE_MASK) != 0)
-        {
-            dwMode_l = bModeSelect_l & APP_MODE_MASK;
-        }
-
-        iCurCycleCount_l--;
-
-        if (iCurCycleCount_l <= 0)
-        {
-            if ((dwMode_l & 0x01) != 0)
-            {   // fill-up
-                if (iToggle)
-                {
-                    if ((dwLeds_l & APP_DOUBLE_LED_MASK) == 0x00)
-                    {
-                        dwLeds_l = 0x01;
-                    }
-                    else
-                    {
-                        dwLeds_l <<= 1;
-                        dwLeds_l++;
-                        if (dwLeds_l >= APP_DOUBLE_LED_MASK)
-                        {
-                            iToggle = 0;
-                        }
-                    }
-                }
-                else
-                {
-                    dwLeds_l <<= 1;
-                    if ((dwLeds_l & APP_DOUBLE_LED_MASK) == 0x00)
-                    {
-                        iToggle = 1;
-                    }
-                }
-                bLedsRow1_l = (unsigned char) (dwLeds_l & APP_LED_MASK);
-                bLedsRow2_l = (unsigned char) ((dwLeds_l >> APP_LED_COUNT) & APP_LED_MASK);
-            }
-
-            else if ((dwMode_l & 0x02) != 0)
-            {   // running light forward
-                dwLeds_l <<= 1;
-                if ((dwLeds_l > APP_DOUBLE_LED_MASK) || (dwLeds_l == 0x00000000L))
-                {
-                    dwLeds_l = 0x01;
-                }
-                bLedsRow1_l = (unsigned char) (dwLeds_l & APP_LED_MASK);
-                bLedsRow2_l = (unsigned char) ((dwLeds_l >> APP_LED_COUNT) & APP_LED_MASK);
-            }
-
-            else if ((dwMode_l & 0x04) != 0)
-            {   // running light backward
-                dwLeds_l >>= 1;
-                if ((dwLeds_l > APP_DOUBLE_LED_MASK) || (dwLeds_l == 0x00000000L))
-                {
-                    dwLeds_l = 1 << (APP_LED_COUNT * 2);
-                }
-                bLedsRow1_l = (unsigned char) (dwLeds_l & APP_LED_MASK);
-                bLedsRow2_l = (unsigned char) ((dwLeds_l >> APP_LED_COUNT) & APP_LED_MASK);
-            }
-
-            else if ((dwMode_l & 0x08) != 0)
-            {   // Knightrider
-                if (bLedsRow1_l == 0x00)
-                {
-                    bLedsRow1_l = 0x01;
-                    iToggle = 1;
-                }
-                else if (iToggle)
-                {
-                    bLedsRow1_l <<= 1;
-                    if ( bLedsRow1_l >= (1 << (APP_LED_COUNT - 1)) )
-                    {
-                        iToggle = 0;
-                    }
-                }
-                else
-                {
-                    bLedsRow1_l >>= 1;
-                    if( bLedsRow1_l <= 0x01 )
-                    {
-                        iToggle = 1;
-                    }
-                }
-                bLedsRow2_l = bLedsRow1_l;
-            }
-
-            else if ((dwMode_l & 0x10) != 0)
-            {   // Knightrider
-                if ((bLedsRow1_l == 0x00)
-                    || (bLedsRow2_l == 0x00)
-                    || ((bLedsRow2_l & ~APP_LED_MASK) != 0))
-                {
-                    bLedsRow1_l = 0x01;
-                    bLedsRow2_l = (1 << (APP_LED_COUNT - 1));
-                    iToggle = 1;
-                }
-                else if (iToggle)
-                {
-                    bLedsRow1_l <<= 1;
-                    bLedsRow2_l >>= 1;
-                    if ( bLedsRow1_l >= (1 << (APP_LED_COUNT - 1)) )
-                    {
-                        iToggle = 0;
-                    }
-                }
-                else
-                {
-                    bLedsRow1_l >>= 1;
-                    bLedsRow2_l <<= 1;
-                    if ( bLedsRow1_l <= 0x01 )
-                    {
-                        iToggle = 1;
-                    }
-                }
-            }
-
-            // set own output
-            bVarOut1_l = bLedsRow1_l;
-//            bVarOut1_l = (bLedsRow1_l & 0x03) | (bLedsRow2_l << 2);
-
-            // restart cycle counter
-            iCurCycleCount_l = iMaxCycleCount_l;
-        }
-
-        if (bSpeedSelectOld_l == 0)
-        {
-            if ((bSpeedSelect_l & 0x01) != 0)
-            {
-                if (iMaxCycleCount_l < 200)
-                {
-                    iMaxCycleCount_l++;
-                }
-                bSpeedSelectOld_l = bSpeedSelect_l;
-            }
-            else if ((bSpeedSelect_l & 0x02) != 0)
-            {
-                if (iMaxCycleCount_l > 1)
-                {
-                    iMaxCycleCount_l--;
-                }
-                bSpeedSelectOld_l = bSpeedSelect_l;
-            }
-            else if ((bSpeedSelect_l & 0x04) != 0)
-            {
-                iMaxCycleCount_l = DEFAULT_MAX_CYCLE_COUNT;
-                bSpeedSelectOld_l = bSpeedSelect_l;
-            }
-        }
-        else if (bSpeedSelect_l == 0)
-        {
-            bSpeedSelectOld_l = 0;
-        }
-    }
-
-    TGT_DBG_SIGNAL_TRACE_POINT(1);
-#endif
-
     return EplRet;
 }
-
-
 
 // EOF
