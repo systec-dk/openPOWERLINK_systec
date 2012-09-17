@@ -200,6 +200,9 @@ static tEplKernel PUBLIC EplApiCbNmtStateChange(tEplEventNmtStateChange NmtState
 // update DLL configuration from OD
 static tEplKernel PUBLIC EplApiUpdateDllConfig(BOOL fUpdateIdentity_p);
 
+// update SDO configuration from OD
+static tEplKernel PUBLIC EplApiUpdateSdoConfig();
+
 // update OD from init param
 static tEplKernel PUBLIC EplApiUpdateObd(void);
 
@@ -1475,15 +1478,6 @@ tEplApiEventArg     EventArg;
             break;
         }
 
-        case 0x1300:    // SDO_SequLayerTimeout_U32
-        {
-            if( kEplObdEvPostWrite == pParam_p->m_ObdEvent )
-            {
-                Ret = EplSdoAsySeqSetTimeout( *((DWORD *) pParam_p->m_pArg) );
-            }
-            break;
-        }
-
         case 0x1F9E:    // NMT_ResetCmd_U8
         {
             if (pParam_p->m_ObdEvent == kEplObdEvPreWrite)
@@ -1899,6 +1893,12 @@ tEplApiEventArg     EventArg;
                 goto Exit;
             }
 
+            Ret = EplApiUpdateSdoConfig();
+            if (Ret != kEplSuccessful)
+            {
+                goto Exit;
+            }
+
             break;
         }
 
@@ -2299,6 +2299,40 @@ Exit:
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiUpdateSdoConfig
+//
+// Description: update configuration of SDO modules
+//
+// Parameters:  -
+//
+// Returns:     tEplKernel              = error code
+//
+//
+//---------------------------------------------------------------------------
+static tEplKernel PUBLIC EplApiUpdateSdoConfig()
+{
+    tEplKernel          Ret = kEplSuccessful;
+    tEplObdSize         ObdSize;
+    DWORD               SdoSequTimeout;
+
+    ObdSize = sizeof(SdoSequTimeout);
+    Ret = EplObdReadEntry(0x1300, 0, &SdoSequTimeout, &ObdSize);
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplSdoAsySeqSetTimeout( SdoSequTimeout );
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+Exit:
+    return Ret;
+}
 //---------------------------------------------------------------------------
 //
 // Function:    EplApiUpdateObd
