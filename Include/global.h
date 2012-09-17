@@ -165,9 +165,9 @@
         #define TARGET_SYSTEM   _NO_OS_
         // Microblaze could be either big or little endian
         #if (__BIG_ENDIAN__ == 1)
-            #define DEV_SYSTEM      _DEV_MICROBLAZE_BIG
+            #define DEV_SYSTEM      _DEV_MICROBLAZE_BIG_
         #else
-            #define DEV_SYSTEM      _DEV_MICROBLAZE_LITTLE
+            #define DEV_SYSTEM      _DEV_MICROBLAZE_LITTLE_
         #endif
 
     #elif defined (__VXWORKS__)
