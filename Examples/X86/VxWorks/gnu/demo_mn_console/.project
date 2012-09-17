@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml	version="1.0"	encoding="UTF-8"?>
 <projectDescription>
 	<name>demo_mn_console</name>
 	<comment></comment>
@@ -153,6 +153,11 @@
 			<name>EplSdoAsndu.c</name>
 			<type>1</type>
 			<location>OPENPOWERLINK_DIR/EplStack/EplSdoAsndu.c</location>
+		</link>
+		<link>
+			<name>EplGenericAsndu.c</name>
+			<type>1</type>
+			<location>OPENPOWERLINK_DIR/EplStack/EplGenericAsndu.c</location>
 		</link>
 		<link>
 			<name>EplSdoAsySequ.c</name>

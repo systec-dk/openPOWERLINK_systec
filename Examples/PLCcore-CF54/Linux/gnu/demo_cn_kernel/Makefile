@@ -28,6 +28,7 @@ MODULEOBJS	= demo_main.o \
 			  $(MAINPATH)/EplStack/EplPdou.o $(MAINPATH)/EplStack/EplPdouCal.o \
 			  $(MAINPATH)/EplStack/EplObd.o \
 			  $(MAINPATH)/EplStack/EplSdoUdpu.o $(MAINPATH)/EplStack/EplSdoComu.o $(MAINPATH)/EplStack/EplSdoAsySequ.o $(MAINPATH)/EplStack/EplSdoAsndu.o \
+			  ${MAINPATH}/EplStack/EplGenericAsndu.c \
 			  $(MAINPATH)/EplStack/EplTimeruLinuxKernel.o \
 			  $(MAINPATH)/EplStack/EplErrorHandlerk.o \
 			  $(MAINPATH)/EplStack/EplApiGeneric.o \
