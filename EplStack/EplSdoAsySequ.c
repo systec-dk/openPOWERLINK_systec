@@ -970,7 +970,7 @@ unsigned int        uiFreeEntries;
                 case kAsySdoSeqEventFrameRec:
                 {
 
-                    DEBUG_LVL_25_TRACE3("%s scon=%u rcon=%u\n",
+                    DEBUG_LVL_25_TRACE("%s scon=%u rcon=%u\n",
                             __func__,
                             pRecFrame_p->m_le_bSendSeqNumCon,
                             pRecFrame_p->m_le_bRecSeqNumCon);
@@ -1040,7 +1040,7 @@ unsigned int        uiFreeEntries;
         // and rcon = 1
         case kEplAsySdoStateInit1:
         {
-//            PRINTF0("EplSdoAsySequ: StateInit1\n");
+//            PRINTF("EplSdoAsySequ: StateInit1\n");
 
             // check event
             switch(Event_p)
@@ -1156,7 +1156,7 @@ unsigned int        uiFreeEntries;
         // init connection step 2
         case kEplAsySdoStateInit2:
         {
-//            PRINTF0("EplSdoAsySequ: StateInit2\n");
+//            PRINTF("EplSdoAsySequ: StateInit2\n");
 
             // check event
             switch(Event_p)
@@ -1497,7 +1497,7 @@ unsigned int        uiFreeEntries;
                                                     kAsySdoConStateTransferAbort);
 
                             // restart immediately with initialization request
-                            DEBUG_LVL_25_TRACE0("EplSdoAsySequ: Reinit immediately\n");
+                            DEBUG_LVL_25_TRACE("EplSdoAsySequ: Reinit immediately\n");
                             Ret = kEplRetry;
                             break;
                         }
@@ -1510,7 +1510,7 @@ unsigned int        uiFreeEntries;
                         {
                             if ((AmiGetByteFromLe(&pRecFrame_p->m_le_bRecSeqNumCon) & EPL_ASY_SDO_CON_MASK) == 3)
                             {
-//                                PRINTF0("EplSdoAsySequ: error response received\n");
+//                                PRINTF("EplSdoAsySequ: error response received\n");
 
                                 // error response (retransmission request)
                                 // resend frames from history
@@ -1722,7 +1722,7 @@ unsigned int        uiFreeEntries;
         // wait for Acknowledge (history buffer full)
         case kEplAsySdoStateWaitAck:
         {
-            DEBUG_LVL_25_TRACE0("EplSdoAsySequ: StateWaitAck\n");
+            DEBUG_LVL_25_TRACE("EplSdoAsySequ: StateWaitAck\n");
 
             // set timer
             Ret = EplSdoAsySeqSetTimer(pAsySdoSeqCon,
@@ -1884,7 +1884,7 @@ unsigned int        uiFreeEntries;
         // unknown state
         default:
         {
-            EPL_DBGLVL_SDO_TRACE0("Error: Unknown State in EplSdoAsySeqProcess\n");
+            EPL_DBGLVL_SDO_TRACE("Error: Unknown State in EplSdoAsySeqProcess\n");
 
         }
     }// end of switch(pAsySdoSeqCon->m_SdoState)
@@ -2091,7 +2091,7 @@ tEplAsySdoSeqCon*   pAsySdoSeqCon;
         EnterCriticalSection(AsySdoSequInstance_g.m_pCriticalSectionReceive);
 #endif
 
-        EPL_DBGLVL_SDO_TRACE2("Handle: 0x%x , First Databyte 0x%x\n", ConHdl_p,((BYTE*)pSdoSeqData_p)[0]);
+        EPL_DBGLVL_SDO_TRACE("Handle: 0x%x , First Databyte 0x%x\n", ConHdl_p,((BYTE*)pSdoSeqData_p)[0]);
 
         // search control structure for this connection
         pAsySdoSeqCon = &AsySdoSequInstance_g.m_AsySdoConnection[uiCount];
@@ -2384,8 +2384,8 @@ tEplAsySdoConHistory*   pHistory;
     if ((pHistory->m_bFreeEntries < EPL_SDO_HISTORY_SIZE)
         && (pHistory->m_bWrite != pHistory->m_bRead))
     {
-//        PRINTF4("EplSdoAsyReadFromHistory(): init = %d, read = %u, write = %u, ack = %u", (int) fInitRead_p, (WORD)pHistory->m_bRead, (WORD)pHistory->m_bWrite, (WORD)pHistory->m_bAck);
-//        PRINTF2(", free entries = %u, next frame size = %u\n", (WORD)pHistory->m_bFreeEntries, pHistory->m_auiFrameSize[pHistory->m_bRead]);
+//        PRINTF("EplSdoAsyReadFromHistory(): init = %d, read = %u, write = %u, ack = %u", (int) fInitRead_p, (WORD)pHistory->m_bRead, (WORD)pHistory->m_bWrite, (WORD)pHistory->m_bAck);
+//        PRINTF(", free entries = %u, next frame size = %u\n", (WORD)pHistory->m_bFreeEntries, pHistory->m_auiFrameSize[pHistory->m_bRead]);
 
         // return pointer to stored frame
         *ppFrame_p = (tEplFrame*)pHistory->m_aabHistoryFrame[pHistory->m_bRead];
@@ -2402,7 +2402,7 @@ tEplAsySdoConHistory*   pHistory;
     }
     else
     {
-//        PRINTF3("EplSdoAsyReadFromHistory(): read = %u, ack = %u, free entries = %u, no frame\n", (WORD)pHistory->m_bRead, (WORD)pHistory->m_bAck, (WORD)pHistory->m_bFreeEntries);
+//        PRINTF("EplSdoAsyReadFromHistory(): read = %u, ack = %u, free entries = %u, no frame\n", (WORD)pHistory->m_bRead, (WORD)pHistory->m_bAck, (WORD)pHistory->m_bFreeEntries);
 
         // no more frames to send
         // return null pointer
