@@ -112,6 +112,8 @@
 // mask to get scon and rcon
 #define EPL_ASY_SDO_CON_MASK        0x03
 
+#define EPL_ASY_SDO_MAX_SEQU_TIMEOUT_MS     86400000       // [ms], 86400000 ms = 1 day
+
 //---------------------------------------------------------------------------
 // local types
 //---------------------------------------------------------------------------
@@ -848,8 +850,8 @@ Exit:
 //---------------------------------------------------------------------------
 tEplKernel PUBLIC EplSdoAsySeqSetTimeout( DWORD Timeout_p )
 {
-    // Adopt new SDO sequence layer timeout
-    AsySdoSequInstance_g.m_SdoSequTimeout   = Timeout_p;
+    // Adopt new SDO sequence layer timeout (truncated to an upper bound)
+    AsySdoSequInstance_g.m_SdoSequTimeout   = min(Timeout_p, EPL_ASY_SDO_MAX_SEQU_TIMEOUT_MS);
 
     return  kEplSuccessful;
 }
