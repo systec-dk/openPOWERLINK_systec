@@ -57,16 +57,19 @@ IF (UNIX)
     ADD_DEFINITIONS(-Wall -Wextra -pedantic -std=c99 -pthread -D_GNU_SOURCE -D_POSIX_C_SOURCE=200112L)
 ELSEIF (WIN32)
     ADD_DEFINITIONS(-D_CONSOLE -DWPCAP -DHAVE_REMOTE)
-ENDIF ()
+ENDIF (UNIX)
 
-# Select object dictionary	
-SET(OBJDICT CiA302-4_MN)
+# Select object dictionary
+IF(CFG_POWERLINK_MN)
+    SET(OBJDICT CiA302-4_MN)
+ELSE(CFG_POWERLINK_MN)
+    SET(OBJDICT CiA401_CN)
+ENDIF(CFG_POWERLINK_MN)
 
 #
 # Configure depending selected mode
 #
-IF(CFG_POWERLINK_CFM)
-
+IF(CFG_POWERLINK_MN)
     SET(LIB_SOURCES ${LIB_SOURCES}
                     ${POWERLINK_SOURCE_DIR}/EplStack/EplObdCdc.c
         )
@@ -77,13 +80,8 @@ IF(CFG_POWERLINK_CFM)
                           ${POWERLINK_SOURCE_DIR}/Include/user/EplCfmu.h
         )
 
-    ADD_DEFINITIONS(-DCONFIG_CFM)
-
-    IF(CFG_POWERLINK_PROCESS_IMAGE)
-        ADD_DEFINITIONS( -DCONFIG_OPENCONFIGURATOR_MAPPING)
-    ENDIF(CFG_POWERLINK_PROCESS_IMAGE)
-
-ENDIF(CFG_POWERLINK_CFM)
+    ADD_DEFINITIONS(-DCONFIG_CFM -DCONFIG_OPENCONFIGURATOR_MAPPING -DCONFIG_MN)
+ENDIF(CFG_POWERLINK_MN)
 
 #
 # Set type of library
@@ -128,7 +126,6 @@ SET (LIB_SOURCES ${LIB_SOURCES}
                  ${POWERLINK_SOURCE_DIR}/EplStack/EplDebug.c
                  ${POWERLINK_SOURCE_DIR}/EplStack/EplObd.c
                  ${POWERLINK_SOURCE_DIR}/EplStack/EplApiProcessImage.c
-                 ${POWERLINK_SOURCE_DIR}/Edrv/EdrvCyclic.c
                  ${POWERLINK_SOURCE_DIR}/EplStack/amix86.c
                  ${POWERLINK_SOURCE_DIR}/SharedBuff/SharedBuff.c
                  ${POWERLINK_SOURCE_DIR}/Edrv/EdrvCyclic.c
@@ -183,6 +180,7 @@ SET (LIB_SOURCES_USER ${LIB_SOURCES_USER}
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoComu.c
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoAsySequ.c
                       ${POWERLINK_SOURCE_DIR}/EplStack/EplSdoAsndu.c
+                      ${POWERLINK_SOURCE_DIR}/EplStack/EplGenericAsndu.c
     )
 
 #
@@ -260,6 +258,7 @@ SET (LIB_HEADERS_USER ${LIB_HEADERS_USER}
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplSdoComu.h
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplStatusu.h
                       ${POWERLINK_SOURCE_DIR}/Include/user/EplTimeru.h
+                      ${POWERLINK_SOURCE_DIR}/Include/user/EplGenericAsndu.h
     )
 
 IF (CMAKE_CL_64)

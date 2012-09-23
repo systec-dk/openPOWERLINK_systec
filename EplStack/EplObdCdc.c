@@ -114,11 +114,7 @@
         #include <limits.h>
     #endif
 #elif (TARGET_SYSTEM == _VXWORKS_)
-	#include "ioLib.h"
-#elif (DEV_SYSTEM == _DEV_PAR_BECK1X3_)
-
-    #include <io.h>
-    #include <string.h>
+    #include "ioLib.h"
 #endif
 
 #if (TARGET_SYSTEM == _WIN32_)
@@ -392,7 +388,6 @@ BYTE*       pbBuffer;
             pbBuffer = pCdcInfo_p->m_pbCurBuffer;
             do
             {
-                // warning C4267: 'Funktion': Konvertierung von 'size_t' nach 'unsigned int', Datenverlust möglich
                 iReadSize = read(pCdcInfo_p->m_Handle.m_hCdcFile, pbBuffer, iBufferSize);
                 if (iReadSize <= 0)
                 {
@@ -484,11 +479,11 @@ size_t          iCurDataSize;
         uiObjectSubIndex = AmiGetByteFromLe(&pCdcInfo_p->m_pbCurBuffer[EPL_CDC_OFFSET_SUBINDEX]);
         iCurDataSize = (size_t) AmiGetDwordFromLe(&pCdcInfo_p->m_pbCurBuffer[EPL_CDC_OFFSET_SIZE]);
 
-        EPL_DBGLVL_OBD_TRACE4("%s: Reading object 0x%04X/%u with size %u from CDC\n", __func__, uiObjectIndex, uiObjectSubIndex, iCurDataSize);
+        EPL_DBGLVL_OBD_TRACE("%s: Reading object 0x%04X/%u with size %u from CDC\n", __func__, uiObjectIndex, uiObjectSubIndex, iCurDataSize);
         Ret = EplObdCdcLoadNextBuffer(pCdcInfo_p, iCurDataSize);
         if (Ret != kEplSuccessful)
         {
-            EPL_DBGLVL_OBD_TRACE2("%s: Reading the corresponding data from CDC failed with 0x%02X\n", __func__, Ret);
+            EPL_DBGLVL_OBD_TRACE("%s: Reading the corresponding data from CDC failed with 0x%02X\n", __func__, Ret);
             goto Exit;
         }
 
@@ -500,7 +495,7 @@ size_t          iCurDataSize;
             ObdError.m_uiIndex = uiObjectIndex;
             ObdError.m_uiSubIndex = uiObjectSubIndex;
 
-            EPL_DBGLVL_OBD_TRACE4("%s: Writing object 0x%04X/%u to local OBD failed with 0x%02X\n", __func__, uiObjectIndex, uiObjectSubIndex, Ret);
+            EPL_DBGLVL_OBD_TRACE("%s: Writing object 0x%04X/%u to local OBD failed with 0x%02X\n", __func__, uiObjectIndex, uiObjectSubIndex, Ret);
             Ret = EplEventuPostError(kEplEventSourceObdu, Ret, sizeof (ObdError), &ObdError);
             if (Ret != kEplSuccessful)
             {

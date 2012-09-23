@@ -109,38 +109,23 @@ openPOWERLINK under Linux on Freescale i.MX51 ARM
   are able to visualize the digital inputs of POWERLINK controlled nodes and are
   driving a running light on the CNs digital outputs.
 
-5.1 Kernel demo
-  The kernel demo is a simple demo application running together with the stack
-  in kernel mode.
-
-  It is located in:
-  Examples/X86/Linux/gnu/demo_kernel
-
-5.2 QT demo
-  The QT demo is a simple QT demo application which can be used together
-  with the openPOWERLINK kernel module.
-
-  It can be found in:
-  Examples/X86/Linux/gnu/demo_qt
-
-5.3 QT demo with process image
+5.1 QT MN demo
   This QT demo implements a POWERLINK managing node (MN) using the configuration
   manager (CFM) to initialize the controlled nodes. It uses a network configuration
   created with the openCONFIGURATOR tool. This demo can be used either with
   the kernel based stack or with the userspace stack.
+  
+  It is found in: 
+  Examples/X86/Generic/demo_mn_qt
 
-  It is found in:
-  Examples/X86/Generic/demo_process_image_qt
-
-5.4 Console demo with process image
+5.2 Console MN demo
   This demo also implements a POWERLINK MN with CFM. It is implemented as
   console application and is intended to machines where no graphical user
   interface is available. This demo can be used either with the kernel-based
   stack or with the userspace stack.
-
-  It is located in:
-  Examples/X86/Generic/demo_process_image_console
-
+  
+  It is located in: 
+  Examples/X86/Generic/demo_mn_console 
 
 6 Building
 ----------
