@@ -4473,10 +4473,16 @@ tEplDllkNodeInfo*   pIntNodeInfo = NULL;
         && (NmtState_p != kEplNmtMsPreOperational2))
     {   // inform PDO module only in ReadyToOp and Op
         // compare real frame size and PDO size?
-        if (((unsigned int) (AmiGetWordFromLe(&pFrame->m_Data.m_Pres.m_le_wSize) + EPL_FRAME_OFFSET_PDO_PAYLOAD)
+        WORD wPresPayloadSize = AmiGetWordFromLe(&pFrame->m_Data.m_Pres.m_le_wSize);
+
+        if (((unsigned int) (wPresPayloadSize + EPL_FRAME_OFFSET_PDO_PAYLOAD)
             > pFrameInfo_p->m_uiFrameSize)
 #if EPL_NMT_MAX_NODE_ID > 0
-            || (pFrameInfo_p->m_uiFrameSize > (unsigned int) (pIntNodeInfo->m_wPresPayloadLimit + EPL_FRAME_OFFSET_PDO_PAYLOAD))
+            || (wPresPayloadSize > pIntNodeInfo->m_wPresPayloadLimit)
+            || ((EplDllkInstance_g.m_DllConfigParam.m_uiNodeId == EPL_C_ADR_MN_DEF_NODE_ID)
+                && (pFrameInfo_p->m_uiFrameSize >
+                    (unsigned int) (pIntNodeInfo->m_wPresPayloadLimit
+                     + EPL_FRAME_OFFSET_PDO_PAYLOAD)                 ))
 #endif
             )
         {   // format error
