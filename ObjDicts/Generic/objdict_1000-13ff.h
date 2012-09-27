@@ -75,7 +75,7 @@
 #endif
 
         // Object 1300h: SDO_SequLayerTimeout_U32 in [ms]
-        EPL_OBD_BEGIN_INDEX_RAM(0x1300, 0x01, NULL)
+        EPL_OBD_BEGIN_INDEX_RAM(0x1300, 0x01, EplApiCbObdAccess)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1300, 0x00, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, SDO_SequLayerTimeout_U32, 5000)
         EPL_OBD_END_INDEX(0x1300)
 

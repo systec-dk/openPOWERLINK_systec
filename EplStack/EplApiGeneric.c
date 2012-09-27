@@ -88,6 +88,8 @@
 #include "user/EplTimeru.h"
 #include "user/EplCfmu.h"
 
+#include <stddef.h>
+
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
 #include "kernel/VirtualEthernet.h"
 #endif
@@ -198,6 +200,9 @@ static tEplKernel PUBLIC EplApiCbNmtStateChange(tEplEventNmtStateChange NmtState
 // update DLL configuration from OD
 static tEplKernel PUBLIC EplApiUpdateDllConfig(BOOL fUpdateIdentity_p);
 
+// update SDO configuration from OD
+static tEplKernel PUBLIC EplApiUpdateSdoConfig();
+
 // update OD from init param
 static tEplKernel PUBLIC EplApiUpdateObd(void);
 
@@ -232,6 +237,8 @@ static tEplKernel PUBLIC  EplApiCbLedStateChange(tEplLedType LedType_p,
 static tEplKernel PUBLIC  EplApiCbCfmEventCnProgress(tEplCfmEventCnProgress* pEventCnProgress_p);
 static tEplKernel PUBLIC  EplApiCbCfmEventCnResult(unsigned int uiNodeId_p, tEplNmtNodeCommand NodeCommand_p);
 #endif
+
+static tEplKernel PUBLIC EplApiCbReceivedAsnd(tEplFrameInfo *pFrameInfo_p);
 
 // OD initialization function (implemented in Objdict.c)
 //tEplKernel PUBLIC  EplObdInitRam (tEplObdInitParam MEM* pInitParam_p);
@@ -557,34 +564,34 @@ tEplKernel      Ret = kEplSuccessful;
     // deinitialize EplCfmu module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
     Ret = EplCfmuDelInstance();
-//    PRINTF1("EplCfmuDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplCfmuDelInstance():    0x%X\n", Ret);
 #endif
 
     // deinitialize EplSdoCom module
 #if ((((EPL_MODULE_INTEGRATION) & (EPL_MODULE_SDOS)) != 0) || \
      (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_SDOC)) != 0))
     Ret = EplSdoComDelInstance();
-//    PRINTF1("EplSdoComDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplSdoComDelInstance():  0x%X\n", Ret);
 #endif
 
     // deinitialize EplLedu module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_LEDU)) != 0)
     Ret = EplLeduDelInstance();
-//    PRINTF1("EplLeduDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplLeduDelInstance():    0x%X\n", Ret);
 #endif
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
     // deinitialize EplNmtMnu module
     Ret = EplNmtMnuDelInstance();
-//    PRINTF1("EplNmtMnuDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplNmtMnuDelInstance():  0x%X\n", Ret);
 
     // deinitialize EplIdentu module
     Ret = EplIdentuDelInstance();
-//    PRINTF1("EplIdentuDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplIdentuDelInstance():  0x%X\n", Ret);
 
     // deinitialize EplStatusu module
     Ret = EplStatusuDelInstance();
-//    PRINTF1("EplStatusuDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplStatusuDelInstance():  0x%X\n", Ret);
 #endif
 
 #if EPL_NMTMNU_PRES_CHAINING_MN != FALSE
@@ -595,26 +602,26 @@ tEplKernel      Ret = kEplSuccessful;
     // deinitialize EplNmtCnu module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_CN)) != 0)
     Ret = EplNmtCnuDelInstance();
-//    PRINTF1("EplNmtCnuDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplNmtCnuDelInstance():  0x%X\n", Ret);
 #endif
 
     // deinitialize EplNmtu module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMTU)) != 0)
     Ret = EplNmtuDelInstance();
-//    PRINTF1("EplNmtuDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplNmtuDelInstance():    0x%X\n", Ret);
 #endif
 
     // deinitialize EplPdou module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOU)) != 0)
     Ret = EplPdouDelInstance();
-//    PRINTF1("EplPdouDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplPdouDelInstance():    0x%X\n", Ret);
     Ret = EplPdouCalDelInstance();
 #endif
 
     // deinitialize EplPdok module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOK)) != 0)
     Ret = EplPdokDelInstance();
-//    PRINTF1("EplPdokDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplPdokDelInstance():    0x%X\n", Ret);
     Ret = EplPdokCalDelInstance();
 #endif
 
@@ -626,37 +633,37 @@ tEplKernel      Ret = kEplSuccessful;
     // deinitialize EplDlluCal module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLU)) != 0)
     Ret = EplDlluCalDelInstance();
-//    PRINTF1("EplDlluCalDelInstance(): 0x%X\n", Ret);
+//    PRINTF("EplDlluCalDelInstance(): 0x%X\n", Ret);
 
 #endif
 
     // deinitialize EplTimeru module
     Ret = EplTimeruDelInstance();
-//    PRINTF1("EplTimeruDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplTimeruDelInstance():  0x%X\n", Ret);
 
     // deinitialize EplEventu module
     Ret = EplEventuDelInstance();
-//    PRINTF1("EplEventuDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplEventuDelInstance():  0x%X\n", Ret);
 
     // deinitialize EplNmtk module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMTK)) != 0)
     Ret = EplNmtkDelInstance();
-//    PRINTF1("EplNmtkDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplNmtkDelInstance():    0x%X\n", Ret);
 #endif
 
     // deinitialize EplDllk module
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLK)) != 0)
     Ret = EplDllkDelInstance();
-//    PRINTF1("EplDllkDelInstance():    0x%X\n", Ret);
+//    PRINTF("EplDllkDelInstance():    0x%X\n", Ret);
 
     // deinitialize EplDllkCal module
     Ret = EplDllkCalDelInstance();
-//    PRINTF1("EplDllkCalDelInstance(): 0x%X\n", Ret);
+//    PRINTF("EplDllkCalDelInstance(): 0x%X\n", Ret);
 #endif
 
     // deinitialize EplEventk module
     Ret = EplEventkDelInstance();
-//    PRINTF1("EplEventkDelInstance():  0x%X\n", Ret);
+//    PRINTF("EplEventkDelInstance():  0x%X\n", Ret);
 
 #if EPL_USE_SHAREDBUFF != FALSE
     ShbExit();
@@ -1184,6 +1191,103 @@ tEplKernel      Ret = kEplSuccessful;
     return Ret;
 }
 
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiSendAsndFrame()
+//
+// Description: Send a generic Asnd frame
+//
+// Parameters:  bDstNodeId_p            = Node ID of destination node
+//              pAsndFrame_p            = Pointer to Asnd frame that should be sent
+//              uiAsndSize_p            = Size of Asnd frame (service ID + payload)
+//
+// Return:      tEplKernel              = error code
+//
+// ----------------------------------------------------------------------------
+tEplKernel PUBLIC EplApiSendAsndFrame
+(
+    BYTE            bDstNodeId_p,
+    tEplAsndFrame   *pAsndFrame_p,
+    size_t          uiAsndSize_p
+)
+{
+    tEplKernel      Ret;
+    tEplFrameInfo   FrameInfo;
+    BYTE            Buffer[EPL_C_DLL_MAX_ASYNC_MTU];
+
+    // Calculate size of frame (Asnd data + header)
+    FrameInfo.m_uiFrameSize = uiAsndSize_p + offsetof(tEplFrame, m_Data);
+
+    // Check for correct input
+    if
+    (
+        ( pAsndFrame_p              == NULL             )  ||
+        ( FrameInfo.m_uiFrameSize   >= sizeof(Buffer)   )
+    )
+    {
+        return  kEplReject;
+    }
+
+    // Calculate size of frame (Asnd data + header)
+    FrameInfo.m_uiFrameSize = uiAsndSize_p + offsetof(tEplFrame, m_Data);
+    FrameInfo.m_pFrame      = (tEplFrame *) Buffer;
+
+    // Copy Asnd data
+    EPL_MEMSET( FrameInfo.m_pFrame, 0x00, FrameInfo.m_uiFrameSize );
+    EPL_MEMCPY( &FrameInfo.m_pFrame->m_Data.m_Asnd, pAsndFrame_p, uiAsndSize_p );
+
+    // Fill in additional data (SrcNodeId is filled by DLL if it is set to 0)
+    AmiSetByteToLe( &FrameInfo.m_pFrame->m_le_bMessageType, (BYTE) kEplMsgTypeAsnd  );
+    AmiSetByteToLe( &FrameInfo.m_pFrame->m_le_bDstNodeId,   (BYTE) bDstNodeId_p     );
+    AmiSetByteToLe( &FrameInfo.m_pFrame->m_le_bSrcNodeId,   (BYTE) 0                );
+
+    // Request frame transmission
+    Ret = EplDlluCalAsyncSend( &FrameInfo, kEplDllAsyncReqPrioGeneric);
+
+    return Ret;
+}
+
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiSetAsndForward()
+//
+// Description: Enable or disable the forwarding of received Asnd frames
+//              Asnd frames from the DLL to the application.
+//
+// Parameters:  bServiceId_p            = The Asnd service ID which should be configured
+//              FilterType_p            = Specifies which types of Asnd frames should
+//                                        be received (none, unicast, all)
+//
+// Return:      tEplKernel              = error code
+//
+// ----------------------------------------------------------------------------
+tEplKernel PUBLIC EplApiSetAsndForward
+(
+    BYTE                bServiceId_p,
+    tEplApiAsndFilter   FilterType_p
+)
+{
+    tEplKernel          Ret;
+    tEplDllAsndFilter   DllFilter;
+
+    // Map API filter types to stack internal filter types
+    switch( FilterType_p )
+    {
+        case kEplApiAsndFilterLocal:    DllFilter   = kEplDllAsndFilterLocal;
+                                        break;
+
+        case kEplApiAsndFilterAny:      DllFilter   = kEplDllAsndFilterAny;
+                                        break;
+
+        default:
+        case kEplApiAsndFilterNone:     DllFilter   = kEplDllAsndFilterNone;
+                                        break;
+    }
+
+    Ret = EplDlluCalRegAsndService( bServiceId_p, EplApiCbReceivedAsnd, DllFilter);
+
+    return Ret;
+}
 
 // ----------------------------------------------------------------------------
 //
@@ -1814,6 +1918,12 @@ tEplApiEventArg     EventArg;
                 goto Exit;
             }
 
+            Ret = EplApiUpdateSdoConfig();
+            if (Ret != kEplSuccessful)
+            {
+                goto Exit;
+            }
+
             break;
         }
 
@@ -1914,7 +2024,8 @@ tEplApiEventArg     EventArg;
 
         default:
         {
-            TRACE0("EplApiCbNmtStateChange(): unhandled NMT state\n");
+            TRACE("EplApiCbNmtStateChange(): unhandled NMT state\n");
+            break;
         }
     }
 
@@ -1999,7 +2110,7 @@ BYTE                bTemp;
         goto Exit;
     }
 
-    // d.k. There is no dependance between FeatureFlags and async-only CN
+    // d.k. There is no dependence between FeatureFlags and async-only CN
     DllConfigParam.m_fAsyncOnly = EplApiInstance_g.m_InitParam.m_fAsyncOnly;
 
     // 0x1C14: DLL_LossOfFrameTolerance_U32 in [ns]
@@ -2213,6 +2324,40 @@ Exit:
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiUpdateSdoConfig
+//
+// Description: update configuration of SDO modules
+//
+// Parameters:  -
+//
+// Returns:     tEplKernel              = error code
+//
+//
+//---------------------------------------------------------------------------
+static tEplKernel PUBLIC EplApiUpdateSdoConfig()
+{
+    tEplKernel          Ret = kEplSuccessful;
+    tEplObdSize         ObdSize;
+    DWORD               SdoSequTimeout;
+
+    ObdSize = sizeof(SdoSequTimeout);
+    Ret = EplObdReadEntry(0x1300, 0, &SdoSequTimeout, &ObdSize);
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplSdoAsySeqSetTimeout( SdoSequTimeout );
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+Exit:
+    return Ret;
+}
 //---------------------------------------------------------------------------
 //
 // Function:    EplApiUpdateObd
@@ -2701,6 +2846,51 @@ Exit:
 
 #endif
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiCbReceivedAsnd
+//
+// Description: Callback to handle received Asnd frames.
+//              Frames will be forwarded to the application layer.
+//
+// Parameters:  pFrameInfo_p    Pointer to structure with information
+//                              about the received frame
+//
+// Returns:     tEplKernel
+//---------------------------------------------------------------------------
+static tEplKernel PUBLIC EplApiCbReceivedAsnd
+(
+    tEplFrameInfo *pFrameInfo_p
+)
+{
+    tEplKernel          Ret = kEplSuccessful;
+    unsigned int        uiAsndOffset;
+    tEplApiEventArg     ApiEventArg;
+    tEplApiEventType    EventType;
+
+    // Check for correct input
+    uiAsndOffset    = offsetof(tEplFrame, m_Data.m_Asnd);
+
+    if
+    (
+        ( pFrameInfo_p->m_uiFrameSize    <= uiAsndOffset + 1        ) ||
+        ( pFrameInfo_p->m_uiFrameSize    >  EPL_C_DLL_MAX_ASYNC_MTU )
+    )
+    {
+        return kEplReject;
+    }
+
+    // Forward received ASnd frame
+    ApiEventArg.m_RcvAsnd.m_pFrame      = pFrameInfo_p->m_pFrame;
+    ApiEventArg.m_RcvAsnd.m_FrameSize   = pFrameInfo_p->m_uiFrameSize;
+
+    EventType = kEplApiEventReceivedAsnd;
+
+    // call user callback
+    Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
+
+    return Ret;
+}
 
 // EOF
 
