@@ -316,6 +316,12 @@
 #define EPL_VETH_NAME       "epl"   // name of net device in Linux
 #endif
 
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+#ifndef EPL_VETH_NUM_RX_BUFFERS
+  #define EPL_VETH_NUM_RX_BUFFERS    5
+#endif
+#endif
+
 #ifndef EPL_EVENT_USE_KERNEL_QUEUE
 #define EPL_EVENT_USE_KERNEL_QUEUE          TRUE
 #endif
