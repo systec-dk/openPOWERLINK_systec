@@ -68,9 +68,10 @@
 
 #include "xilinx_usleep.h"
 
+#include "xil_types.h"
 #include "xparameters.h"
 
-void usleep(DWORD useconds) __attribute__((section(".local_memory")));
+void usleep(u32 useconds) __attribute__((section(".local_memory")));
 
 #ifdef XPAR_MICROBLAZE_CORE_CLOCK_FREQ_HZ
     #define CPU_SPEED_TICKS XPAR_MICROBLAZE_CORE_CLOCK_FREQ_HZ
@@ -80,23 +81,23 @@ void usleep(DWORD useconds) __attribute__((section(".local_memory")));
 
 #define CPU_SPEED_MHZ (CPU_SPEED_TICKS/1000000)
 
-void usleep(DWORD useconds)
+void usleep(u32 useconds)
 {
     /* The small loop always takes 1us -> it is adjusted to need 10 iterations with 50Mhz */
-    WORD small_loop = 10 * (CPU_SPEED_MHZ/50);
+    u16 small_loop = 10 * (CPU_SPEED_MHZ/50);
 
     asm
     (
-      "       addik r20, r0, 1         \n\t"    // fill r20 with decrement value
-      "outer_loop: rsub %0, r20, %0    \n\t"
-      "inner_loop: rsub %1, r20, %1    \n\t"    //1 cycle
+      "       addik r11, r0, 1         \n\t"    // fill r11 with decrement value
+      "outer_loop: rsub %0, r11, %0    \n\t"
+      "inner_loop: rsub %1, r11, %1    \n\t"    //1 cycle
       "       nop                      \n\t"    //1 cycle
       "       bnei %1, inner_loop      \n\t"    //3 cycles
       "       add %1, r0, %2           \n\t"
       "       bnei %0, outer_loop      \n\t"
           : /* no output registers */
           : "r"(useconds), "r"(small_loop), "r"(small_loop)
-          : "r20"
+          : "r11"
     );
 }
 
