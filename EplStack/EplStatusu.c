@@ -327,7 +327,9 @@ tEplKernel  Ret;
         Ret = kEplInvalidNodeId;
     }
 
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
 Exit:
+#endif
     return Ret;
 
 }
