@@ -252,10 +252,10 @@ clean_sw:
 	-@echo ' '
 
 .PHONY: clean_hw
-clean_hw:
+clean_hw: $(XPS_DIR)/system.make
 	-@echo "Cleaning bitstream parts..."
 	$(MAKE) -C $(XPS_DIR) -f system.make clean
-	-${RM} -rf $(XPS_DIR)/system.make
+	-${RM} -rf $(XPS_DIR)/system.make $(HW_SPEC)
 	-@echo ' '
 
 
