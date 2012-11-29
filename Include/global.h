@@ -81,7 +81,7 @@
 #define _DEV_GNUC_NIOS2_        0x0000001FL     // Altera Nios II GCC
 #define _DEV_GNUC_X86_          0x00000017L     // GNU for I386
 #define _DEV_GNUC_CF_           0x00000014L     // GNU for Coldfire
-#define _DEV_MSEVC_             0x00000012L     // Microsoft embedded Visual C/C++#define _DEV_GNUC_ARM7_         0x0000000EL     // GNU Compiler gcc for ARM7
+#define _DEV_MSEVC_             0x00000012L     // Microsoft embedded Visual C/C++
 #define _DEV_LINUX_GCC_         0x0000000AL     // Linux GNU Compiler gcc
 #define _DEV_MSVC32_            0x00000000L     // Microsoft Visual C/C++
 
