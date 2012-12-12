@@ -59,7 +59,6 @@
  PORT plb_powerlink_0_phyMii0_TxClk_pin = plb_powerlink_0_phyMii0_TxClk, DIR = I
  PORT plb_powerlink_0_phyMii0_TxDat_pin = plb_powerlink_0_phyMii0_TxDat, DIR = O, VEC = [3:0]
  PORT plb_powerlink_0_phyMii0_TxEn_pin = plb_powerlink_0_phyMii0_TxEn, DIR = O
- PORT plb_powerlink_0_phyMii0_TxEr_pin = plb_powerlink_0_phyMii0_TxEr, DIR = O
  PORT plb_powerlink_0_phy1_SMIDat_pin = plb_powerlink_0_phy1_SMIDat, DIR = IO
  PORT plb_powerlink_0_phy1_SMIClk_pin = plb_powerlink_0_phy1_SMIClk, DIR = O
  PORT plb_powerlink_0_phy1_Rst_n_pin = plb_powerlink_0_phy1_Rst_n, DIR = O
@@ -71,7 +70,6 @@
  PORT plb_powerlink_0_phyMii1_TxClk_pin = plb_powerlink_0_phyMii1_TxClk, DIR = I
  PORT plb_powerlink_0_phyMii1_TxDat_pin = plb_powerlink_0_phyMii1_TxDat, DIR = O, VEC = [3:0]
  PORT plb_powerlink_0_phyMii1_TxEn_pin = plb_powerlink_0_phyMii1_TxEn, DIR = O
- PORT plb_powerlink_0_phyMii1_TxEr_pin = plb_powerlink_0_phyMii1_TxEr, DIR = O
  PORT plb_powerlink_0_pio_portio_pin = plb_powerlink_0_pio_portio, DIR = IO, VEC = [31:0]
 
 
@@ -130,7 +128,6 @@ BEGIN plb_powerlink
  PORT phyMii0_TxClk = plb_powerlink_0_phyMii0_TxClk
  PORT phyMii0_TxDat = plb_powerlink_0_phyMii0_TxDat
  PORT phyMii0_TxEn = plb_powerlink_0_phyMii0_TxEn
- PORT phyMii0_TxEr = plb_powerlink_0_phyMii0_TxEr
  PORT phy1_SMIDat = plb_powerlink_0_phy1_SMIDat
  PORT phy1_SMIClk = plb_powerlink_0_phy1_SMIClk
  PORT phy1_Rst_n = plb_powerlink_0_phy1_Rst_n
@@ -142,7 +139,6 @@ BEGIN plb_powerlink
  PORT phyMii1_TxClk = plb_powerlink_0_phyMii1_TxClk
  PORT phyMii1_TxDat = plb_powerlink_0_phyMii1_TxDat
  PORT phyMii1_TxEn = plb_powerlink_0_phyMii1_TxEn
- PORT phyMii1_TxEr = plb_powerlink_0_phyMii1_TxEr
  PORT mac_irq = plb_powerlink_0_mac_irq
  PORT tcp_irq = plb_powerlink_0_tcp_irq
  PORT clk50 = clk_50_0000MHzPLL1

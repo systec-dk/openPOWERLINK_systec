@@ -48,7 +48,6 @@
  PORT axi_powerlink_0_phyMii0_TxClk_pin = axi_powerlink_0_phyMii0_TxClk, DIR = I
  PORT axi_powerlink_0_phyMii0_TxDat_pin = axi_powerlink_0_phyMii0_TxDat, DIR = O, VEC = [3:0]
  PORT axi_powerlink_0_phyMii0_TxEn_pin = axi_powerlink_0_phyMii0_TxEn, DIR = O
- PORT axi_powerlink_0_phyMii0_TxEr_pin = axi_powerlink_0_phyMii0_TxEr, DIR = O
  PORT axi_powerlink_0_phyMii1_RxClk_pin = axi_powerlink_0_phyMii1_RxClk, DIR = I
  PORT axi_powerlink_0_phyMii1_RxDat_pin = axi_powerlink_0_phyMii1_RxDat, DIR = I, VEC = [3:0]
  PORT axi_powerlink_0_phyMii1_RxDv_pin = axi_powerlink_0_phyMii1_RxDv, DIR = I
@@ -56,7 +55,6 @@
  PORT axi_powerlink_0_phyMii1_TxClk_pin = axi_powerlink_0_phyMii1_TxClk, DIR = I
  PORT axi_powerlink_0_phyMii1_TxDat_pin = axi_powerlink_0_phyMii1_TxDat, DIR = O, VEC = [3:0]
  PORT axi_powerlink_0_phyMii1_TxEn_pin = axi_powerlink_0_phyMii1_TxEn, DIR = O
- PORT axi_powerlink_0_phyMii1_TxEr_pin = axi_powerlink_0_phyMii1_TxEr, DIR = O
  PORT axi_powerlink_0_phy0_SMIDat = axi_powerlink_0_phy0_SMIDat, DIR = IO
  PORT axi_powerlink_0_phy0_SMIClk_pin = axi_powerlink_0_phy0_SMIClk, DIR = O
  PORT axi_powerlink_0_phy0_Rst_n_pin = axi_powerlink_0_phy0_Rst_n, DIR = O
@@ -278,7 +276,6 @@ BEGIN axi_powerlink
  PORT phyMii0_TxClk = axi_powerlink_0_phyMii0_TxClk
  PORT phyMii0_TxDat = axi_powerlink_0_phyMii0_TxDat
  PORT phyMii0_TxEn = axi_powerlink_0_phyMii0_TxEn
- PORT phyMii0_TxEr = axi_powerlink_0_phyMii0_TxEr
  PORT phyMii1_RxClk = axi_powerlink_0_phyMii1_RxClk
  PORT phyMii1_RxDat = axi_powerlink_0_phyMii1_RxDat
  PORT phyMii1_RxDv = axi_powerlink_0_phyMii1_RxDv
@@ -286,7 +283,6 @@ BEGIN axi_powerlink
  PORT phyMii1_TxClk = axi_powerlink_0_phyMii1_TxClk
  PORT phyMii1_TxDat = axi_powerlink_0_phyMii1_TxDat
  PORT phyMii1_TxEn = axi_powerlink_0_phyMii1_TxEn
- PORT phyMii1_TxEr = axi_powerlink_0_phyMii1_TxEr
  PORT S_AXI_MAC_REG_ACLK = clk_50_0000MHzPLL1
  PORT S_AXI_MAC_PKT_ACLK = clk_100_0000MHzPLL1
  PORT S_AXI_PDI_PCP_ACLK = clk_100_0000MHzPLL1
