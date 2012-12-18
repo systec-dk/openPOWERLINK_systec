@@ -808,6 +808,39 @@ tEplKernel PUBLIC AppCbEvent
             break;
         }
 
+        case kEplApiEventPdoChange:
+        {
+            unsigned int uiSubIndex;
+            QWORD qwMappObject;
+
+            printlog("%s(%sPDO=0x%X to node 0x%X with %d objects %s)\n",
+                    __func__,
+                    (pEventArg_p->m_PdoChange.m_fTx ? "T" : "R"),
+                    pEventArg_p->m_PdoChange.m_uiPdoMappIndex,
+                    pEventArg_p->m_PdoChange.m_uiNodeId,
+                    pEventArg_p->m_PdoChange.m_uiMappObjectCount,
+                    (pEventArg_p->m_PdoChange.m_fActivated ? "activated" : "deleted"));
+            for (uiSubIndex = 1; uiSubIndex <= pEventArg_p->m_PdoChange.m_uiMappObjectCount; uiSubIndex++)
+            {
+                uiVarLen = sizeof(qwMappObject);
+                EplRet = EplApiReadLocalObject(
+                        pEventArg_p->m_PdoChange.m_uiPdoMappIndex,
+                        uiSubIndex, &qwMappObject, &uiVarLen);
+                if (EplRet != kEplSuccessful)
+                {
+                    printlog("  Reading 0x%X/%d failed with 0x%X\n",
+                            pEventArg_p->m_PdoChange.m_uiPdoMappIndex,
+                            uiSubIndex, EplRet);
+                    continue;
+                }
+                printlog("  %d. mapped object 0x%X/%d\n",
+                        uiSubIndex,
+                        qwMappObject & 0x00FFFFULL,
+                        (qwMappObject & 0xFF0000ULL) >> 16);
+            }
+            break;
+        }
+
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
         case kEplApiEventNode:
         {
