@@ -258,7 +258,7 @@ static inline void  EplTimerSynckDrvSetCompareValue         (DWORD dwVal);
 static inline DWORD EplTimerSynckDrvGetTimeValue            (void);
 
 #ifdef EPL_TIMER_USE_COMPARE_PDI_INT
-static inline void  EplTimerSynckDrvCompareTogPdiInterruptEnable  (void);
+static inline void  EplTimerSynckDrvCompareTogPdiInterruptEnable  (DWORD dwPulseWidthNs_p);
 static inline void  EplTimerSynckDrvCompareTogPdiInterruptDisable  (void);
 static inline void  EplTimerSynckDrvSetCompareTogPdiValue         (DWORD dwVal);
 static void EplTimerSynckDrvCalcCompareTogPdiValue (void);
@@ -672,17 +672,20 @@ tEplKernel      Ret = kEplSuccessful;
 //
 // Description: This function enables the compare pdi interrupt externally
 //
-// Parameters:  void
+// Parameters:  wSyncIntCycle_p     = trigger external sync int every nth cycle
+//              dwPulseWidthNs_p    = pulse width of external sync int.
+//                                    If 0 external sync int is just toggled.
 //
 // Return:      void
 //
 //---------------------------------------------------------------------------
-void PUBLIC EplTimerSynckCompareTogPdiIntEnable (DWORD wSyncIntCycle_p)
+void PUBLIC EplTimerSynckCompareTogPdiIntEnable (DWORD wSyncIntCycle_p,
+                                                DWORD dwPulseWidthNs_p)
 {
     EplTimerSynckInstance_l.m_wCompareTogPdiIntEnabled = TRUE;
     EplTimerSynckInstance_l.m_wSyncIntCycle = wSyncIntCycle_p;
 
-    EplTimerSynckDrvCompareTogPdiInterruptEnable();
+    EplTimerSynckDrvCompareTogPdiInterruptEnable(dwPulseWidthNs_p);
 }
 
 //---------------------------------------------------------------------------
@@ -1107,10 +1110,10 @@ static inline void EplTimerSynckDrvCompareTogPdiInterruptDisable (void)
     TSYN_WR32( EPL_TIMER_SYNC_BASE, TIMERCMP_REG_OFF_CTRL_COMPARE_PDI, 0 );
 }
 
-static inline void EplTimerSynckDrvCompareTogPdiInterruptEnable (void)
+static inline void EplTimerSynckDrvCompareTogPdiInterruptEnable (DWORD dwPulseWidthNs_p)
 {
-    TSYN_WR32( EPL_TIMER_SYNC_BASE, TIMERCMP_REG_OFF_CTRL_COMPARE_PDI, 1 );
-
+    TSYN_WR32( EPL_TIMER_SYNC_BASE, TIMERCMP_REG_OFF_CTRL_COMPARE_PDI,
+            (1 | (OMETH_NS_2_TICKS(dwPulseWidthNs_p) << 1)));
 }
 
 static inline void EplTimerSynckDrvSetCompareTogPdiValue (DWORD dwVal)
