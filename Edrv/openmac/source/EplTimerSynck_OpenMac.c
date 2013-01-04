@@ -1134,7 +1134,7 @@ static void EplTimerSynckDrvCalcCompareTogPdiValue (void)
         dwTargetAbsoluteTime = pTimerInfo->m_dwAbsoluteTime;
 
         EplTimerSynckDrvSetCompareTogPdiValue( dwTargetAbsoluteTime -
-                EplTimerSynckInstance_l.m_dwConfiguredTimeDiff +    // minus one cycle
+                EplTimerSynckInstance_l.m_dwMeanTimeDiff +    // minus one cycle
                 EplTimerSynckInstance_l.m_dwAdvanceShift);      // plus sync shift
         wCycleCnt = 0;
     }
