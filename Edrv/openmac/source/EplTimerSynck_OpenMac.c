@@ -668,9 +668,9 @@ tEplKernel      Ret = kEplSuccessful;
 #ifdef EPL_TIMER_USE_COMPARE_PDI_INT
 //---------------------------------------------------------------------------
 //
-// Function:    EplTimerSynckCompareTogPdiIntEnable()
+// Function:    EplTimerSynckExtSyncIrqEnable()
 //
-// Description: This function enables the compare pdi interrupt externally
+// Description: This function enables the external sync interrupt of 2nd CMP timer
 //
 // Parameters:  wSyncIntCycle_p     = trigger external sync int every nth cycle
 //              dwPulseWidthNs_p    = pulse width of external sync int.
@@ -679,7 +679,7 @@ tEplKernel      Ret = kEplSuccessful;
 // Return:      void
 //
 //---------------------------------------------------------------------------
-void PUBLIC EplTimerSynckCompareTogPdiIntEnable (DWORD wSyncIntCycle_p,
+void PUBLIC EplTimerSynckExtSyncIrqEnable (DWORD wSyncIntCycle_p,
                                                 DWORD dwPulseWidthNs_p)
 {
     EplTimerSynckInstance_l.m_wCompareTogPdiIntEnabled = TRUE;
@@ -690,16 +690,16 @@ void PUBLIC EplTimerSynckCompareTogPdiIntEnable (DWORD wSyncIntCycle_p,
 
 //---------------------------------------------------------------------------
 //
-// Function:    EplTimerSynckCompareTogPdiIntDisable()
+// Function:    EplTimerSynckExtSyncIrqDisable()
 //
-// Description: This function disables the compare pdi interrupt externally
+// Description: This function disables the external sync interrupt of 2nd CMP timer
 //
 // Parameters:  void
 //
 // Return:      void
 //
 //---------------------------------------------------------------------------
-void PUBLIC EplTimerSynckCompareTogPdiIntDisable (void)
+void PUBLIC EplTimerSynckExtSyncIrqDisable (void)
 {
     EplTimerSynckInstance_l.m_wCompareTogPdiIntEnabled = FALSE;
     EplTimerSynckInstance_l.m_wSyncIntCycle = 0;
