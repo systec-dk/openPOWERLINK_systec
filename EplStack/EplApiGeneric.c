@@ -115,6 +115,10 @@
 #include "user/EplSyncu.h"
 #endif
 
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+#include "EplTgtObdArc.h"
+#endif
+
 /***************************************************************************/
 /*                                                                         */
 /*                                                                         */
@@ -204,7 +208,7 @@ static tEplKernel PUBLIC EplApiUpdateDllConfig(BOOL fUpdateIdentity_p);
 static tEplKernel PUBLIC EplApiUpdateSdoConfig();
 
 // update OD from init param
-static tEplKernel PUBLIC EplApiUpdateObd(void);
+static tEplKernel PUBLIC EplApiUpdateObd(BOOL fUpdateStorableParam_p);
 
 // process events from user event queue
 static tEplKernel PUBLIC EplApiProcessEvent(tEplEvent* pEplEvent_p);
@@ -236,6 +240,15 @@ static tEplKernel PUBLIC  EplApiCbLedStateChange(tEplLedType LedType_p,
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
 static tEplKernel PUBLIC  EplApiCbCfmEventCnProgress(tEplCfmEventCnProgress* pEventCnProgress_p);
 static tEplKernel PUBLIC  EplApiCbCfmEventCnResult(unsigned int uiNodeId_p, tEplNmtNodeCommand NodeCommand_p);
+#endif
+
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+static tEplKernel PUBLIC EplApiCbStore(tEplObdCbParam MEM* pParam_p);
+static tEplKernel PUBLIC EplApiCbRestore(tEplObdCbParam MEM* pParam_p);
+static tEplKernel PUBLIC EplApiCbStoreLoadObject(
+    tEplObdCbStoreParam MEM* pCbStoreParam_p);
+static tEplKernel PUBLIC EplApiStoreCheckArchiveState(
+    tEplObdPart     ObdPart_p);
 #endif
 
 static tEplKernel PUBLIC EplApiCbReceivedAsnd(tEplFrameInfo *pFrameInfo_p);
@@ -313,6 +326,52 @@ tEplDllkInitParam   DllkInitParam;
     {
         goto Exit;
     }
+
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+    // register store/restore callback function
+    Ret = EplObdSetStoreLoadObjCallback(EplApiCbStoreLoadObject);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    // initialize target-specific EplTgtObdArc module
+    Ret = EplTgtObdArcInit();
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    #if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+    {
+        DWORD dwSignature;
+
+        // read OD signature of OD part 0x1000-0x1FFF and write it to the EplTgtObdArc module
+        dwSignature = (DWORD) EplObdGetOdSignature(kEplObdPartGen);
+        EplTgtObdArcSetSignature(kEplObdPartGen, dwSignature);
+        if (Ret != kEplSuccessful)
+        {
+            goto Exit;
+        }
+
+        // read OD signature of OD part 0x6000-0x9FFF and write it to the EplTgtObdArc module
+        dwSignature = (DWORD) EplObdGetOdSignature(kEplObdPartDev);
+        EplTgtObdArcSetSignature(kEplObdPartDev, dwSignature);
+        if (Ret != kEplSuccessful)
+        {
+            goto Exit;
+        }
+
+        // read OD signature of OD part 0x2000-0x5FFF and write it to the EplTgtObdArc module
+        dwSignature = (DWORD) EplObdGetOdSignature(kEplObdPartMan);
+        EplTgtObdArcSetSignature(kEplObdPartMan, dwSignature);
+        if (Ret != kEplSuccessful)
+        {
+            goto Exit;
+        }
+    }
+    #endif
+#endif
 #endif
 
 #if EPL_USE_SHAREDBUFF != FALSE
@@ -675,6 +734,10 @@ tEplKernel      Ret = kEplSuccessful;
 
 #if EPL_USE_SHAREDBUFF != FALSE
     ShbExit();
+#endif
+
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+    Ret = EplTgtObdArcShutdown();
 #endif
 
     // deinitialize Obd module
@@ -1643,6 +1706,20 @@ tEplApiEventArg     EventArg;
         }
 #endif // (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
 
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+        case 0x1010:    // NMT_StoreParam_REC
+        {
+            Ret = EplApiCbStore(pParam_p);
+            break;
+        }
+
+        case 0x1011:    // NMT_RestoreDefParam_REC
+        {
+            Ret = EplApiCbRestore(pParam_p);
+            break;
+        }
+#endif
+
         default:
             break;
     }
@@ -1818,6 +1895,7 @@ Exit:
 static tEplKernel PUBLIC EplApiCbNmtStateChange(tEplEventNmtStateChange NmtStateChange_p)
 {
 tEplKernel          Ret = kEplSuccessful;
+tEplKernel          ArchiveState = kEplSuccessful;
 BYTE                bNmtState;
 tEplApiEventArg     EventArg;
 
@@ -1880,38 +1958,45 @@ tEplApiEventArg     EventArg;
                 goto Exit;
             }
 
-            // $$$ d.k.: update OD only if OD was not loaded from non-volatile memory
-            Ret = EplApiUpdateObd();
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+            // check if non-volatile memory of OD archive is valid
+            ArchiveState = EplApiStoreCheckArchiveState(kEplObdPartGen);
+#endif
+
+            // update OD only if OD was not loaded from non-volatile memory
+            Ret = EplApiUpdateObd(ArchiveState == kEplSuccessful);
             if (Ret != kEplSuccessful)
             {
                 goto Exit;
             }
 
 #if (EPL_OBD_USE_LOAD_CONCISEDCF != FALSE)
-            if (EplApiInstance_g.m_pbCdc != NULL)
+            if (ArchiveState == kEplSuccessful)
             {
-                Ret = EplObdCdcLoadBuffer(EplApiInstance_g.m_pbCdc, EplApiInstance_g.m_uiCdcSize);
-            }
-            else if (EplApiInstance_g.m_pszCdcFilename != NULL)
-            {
-                Ret = EplObdCdcLoadFile(EplApiInstance_g.m_pszCdcFilename);
-            }
-            else
-            {
-                Ret = EplObdCdcLoadFile(EPL_OBD_DEF_CONCISEDCF_FILENAME);
-            }
-            if (Ret != kEplSuccessful)
-            {
-                if (Ret == kEplReject)
+                if (EplApiInstance_g.m_pbCdc != NULL)
                 {
-                    Ret = kEplSuccessful;
+                    Ret = EplObdCdcLoadBuffer(EplApiInstance_g.m_pbCdc, EplApiInstance_g.m_uiCdcSize);
+                }
+                else if (EplApiInstance_g.m_pszCdcFilename != NULL)
+                {
+                    Ret = EplObdCdcLoadFile(EplApiInstance_g.m_pszCdcFilename);
                 }
                 else
                 {
-                    goto Exit;
+                    Ret = EplObdCdcLoadFile(EPL_OBD_DEF_CONCISEDCF_FILENAME);
+                }
+                if (Ret != kEplSuccessful)
+                {
+                    if (Ret == kEplReject)
+                    {
+                        Ret = kEplSuccessful;
+                    }
+                    else
+                    {
+                        goto Exit;
+                    }
                 }
             }
-
 #endif
             break;
         }
@@ -2372,16 +2457,15 @@ Exit:
 //
 // Description: update OD from init param
 //
-// Parameters:  (none)
+// Parameters:  fUpdateStorableParam_p  = FALSE -> only update parameters, which
+//                                        cannot be stored in non-volatile memory.
+//                                        TRUE -> update all parameters.
 //
 // Returns:     tEplKernel              = error code
 //
-//
-// State:
-//
 //---------------------------------------------------------------------------
 
-static tEplKernel PUBLIC EplApiUpdateObd(void)
+static tEplKernel PUBLIC EplApiUpdateObd(BOOL fUpdateStorableParam_p)
 {
 tEplKernel          Ret = kEplSuccessful;
 WORD                wTemp;
@@ -2395,14 +2479,16 @@ BYTE                bTemp;
         goto Exit;
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwCycleLen != ~0UL)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_dwCycleLen != (DWORD) ~0UL))
     {
         Ret = EplObdWriteEntry(0x1006, 0,
                         &EplApiInstance_g.m_InitParam.m_dwCycleLen,
                         4);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwLossOfFrameTolerance != ~0UL)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_dwLossOfFrameTolerance != (DWORD) ~0UL))
     {
         Ret = EplObdWriteEntry(0x1C14, 0,
                         &EplApiInstance_g.m_InitParam.m_dwLossOfFrameTolerance,
@@ -2410,7 +2496,7 @@ BYTE                bTemp;
     }
 
     // d.k. There is no dependance between FeatureFlags and async-only CN.
-    if (EplApiInstance_g.m_InitParam.m_dwFeatureFlags != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwFeatureFlags != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1F82, 0,
                                &EplApiInstance_g.m_InitParam.m_dwFeatureFlags,
@@ -2427,13 +2513,15 @@ BYTE                bTemp;
                            &EplApiInstance_g.m_InitParam.m_dwPresMaxLatency,
                            4);
 
-    if (EplApiInstance_g.m_InitParam.m_uiPreqActPayloadLimit <= EPL_C_DLL_ISOCHR_MAX_PAYL)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_uiPreqActPayloadLimit <= EPL_C_DLL_ISOCHR_MAX_PAYL))
     {
         wTemp = (WORD) EplApiInstance_g.m_InitParam.m_uiPreqActPayloadLimit;
         Ret = EplObdWriteEntry(0x1F98, 4, &wTemp, 2);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_uiPresActPayloadLimit <= EPL_C_DLL_ISOCHR_MAX_PAYL)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_uiPresActPayloadLimit <= EPL_C_DLL_ISOCHR_MAX_PAYL))
     {
         wTemp = (WORD) EplApiInstance_g.m_InitParam.m_uiPresActPayloadLimit;
         Ret = EplObdWriteEntry(0x1F98, 5, &wTemp, 2);
@@ -2443,33 +2531,39 @@ BYTE                bTemp;
                            &EplApiInstance_g.m_InitParam.m_dwAsndMaxLatency,
                            4);
 
-    if (EplApiInstance_g.m_InitParam.m_uiMultiplCycleCnt <= 0xFF)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_uiMultiplCycleCnt <= 0xFF))
     {
         bTemp = (BYTE) EplApiInstance_g.m_InitParam.m_uiMultiplCycleCnt;
         Ret = EplObdWriteEntry(0x1F98, 7, &bTemp, 1);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_uiAsyncMtu <= EPL_C_DLL_MAX_ASYNC_MTU)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_uiAsyncMtu <= EPL_C_DLL_MAX_ASYNC_MTU))
     {
         wTemp = (WORD) EplApiInstance_g.m_InitParam.m_uiAsyncMtu;
         Ret = EplObdWriteEntry(0x1F98, 8, &wTemp, 2);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_uiPrescaler <= 1000)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_uiPrescaler <= 1000))
     {
         wTemp = (WORD) EplApiInstance_g.m_InitParam.m_uiPrescaler;
         Ret = EplObdWriteEntry(0x1F98, 9, &wTemp, 2);
     }
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
-    if (EplApiInstance_g.m_InitParam.m_dwWaitSocPreq != ~0UL)
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_dwWaitSocPreq != (DWORD) ~0UL))
     {
         Ret = EplObdWriteEntry(0x1F8A, 1,
                                &EplApiInstance_g.m_InitParam.m_dwWaitSocPreq,
                                4);
     }
 
-    if ((EplApiInstance_g.m_InitParam.m_dwAsyncSlotTimeout != 0) && (EplApiInstance_g.m_InitParam.m_dwAsyncSlotTimeout != ~0UL))
+    if (fUpdateStorableParam_p
+        && (EplApiInstance_g.m_InitParam.m_dwAsyncSlotTimeout != 0)
+        && (EplApiInstance_g.m_InitParam.m_dwAsyncSlotTimeout != (DWORD) ~0UL))
     {
         Ret = EplObdWriteEntry(0x1F8A, 2,
                             &EplApiInstance_g.m_InitParam.m_dwAsyncSlotTimeout,
@@ -2478,35 +2572,35 @@ BYTE                bTemp;
 #endif
 
     // configure Identity
-    if (EplApiInstance_g.m_InitParam.m_dwDeviceType != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwDeviceType != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1000, 0,
                                &EplApiInstance_g.m_InitParam.m_dwDeviceType,
                                4);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwVendorId != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwVendorId != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1018, 1,
                                &EplApiInstance_g.m_InitParam.m_dwVendorId,
                                4);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwProductCode != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwProductCode != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1018, 2,
                                &EplApiInstance_g.m_InitParam.m_dwProductCode,
                                4);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwRevisionNumber != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwRevisionNumber != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1018, 3,
                                &EplApiInstance_g.m_InitParam.m_dwRevisionNumber,
                                4);
     }
 
-    if (EplApiInstance_g.m_InitParam.m_dwSerialNumber != ~0UL)
+    if (EplApiInstance_g.m_InitParam.m_dwSerialNumber != (DWORD) ~0UL)
     {
         Ret = EplObdWriteEntry(0x1018, 4,
                                &EplApiInstance_g.m_InitParam.m_dwSerialNumber,
@@ -2541,32 +2635,32 @@ BYTE                bTemp;
     }
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
-    // write NMT_HostName_VSTR (0x1F9A)
-    Ret = EplObdWriteEntry (
-        0x1F9A, 0,
-        (void GENERIC*) &EplApiInstance_g.m_InitParam.m_sHostname[0],
-        sizeof (EplApiInstance_g.m_InitParam.m_sHostname));
+    if (fUpdateStorableParam_p)
+    {
+        // write NMT_HostName_VSTR (0x1F9A)
+        Ret = EplObdWriteEntry (
+            0x1F9A, 0,
+            (void GENERIC*) &EplApiInstance_g.m_InitParam.m_sHostname[0],
+            sizeof (EplApiInstance_g.m_InitParam.m_sHostname));
 
-//    PRINTF("%s: write NMT_HostName_VSTR %d\n", __func__, Ret);
+        // write NWL_IpAddrTable_Xh_REC.Addr_IPAD (0x1E40/2)
+        Ret = EplObdWriteEntry (
+            0x1E40, 2,
+            (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwIpAddress,
+            sizeof (EplApiInstance_g.m_InitParam.m_dwIpAddress));
 
-    // write NWL_IpAddrTable_Xh_REC.Addr_IPAD (0x1E40/2)
-    Ret = EplObdWriteEntry (
-        0x1E40, 2,
-        (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwIpAddress,
-        sizeof (EplApiInstance_g.m_InitParam.m_dwIpAddress));
+        // write NWL_IpAddrTable_Xh_REC.NetMask_IPAD (0x1E40/3)
+        Ret = EplObdWriteEntry (
+            0x1E40, 3,
+            (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwSubnetMask,
+            sizeof (EplApiInstance_g.m_InitParam.m_dwSubnetMask));
 
-    // write NWL_IpAddrTable_Xh_REC.NetMask_IPAD (0x1E40/3)
-    Ret = EplObdWriteEntry (
-        0x1E40, 3,
-        (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwSubnetMask,
-        sizeof (EplApiInstance_g.m_InitParam.m_dwSubnetMask));
-
-    // write NWL_IpAddrTable_Xh_REC.DefaultGateway_IPAD (0x1E40/5)
-    Ret = EplObdWriteEntry (
-        0x1E40, 5,
-        (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwDefaultGateway,
-        sizeof (EplApiInstance_g.m_InitParam.m_dwDefaultGateway));
-
+        // write NWL_IpAddrTable_Xh_REC.DefaultGateway_IPAD (0x1E40/5)
+        Ret = EplObdWriteEntry (
+            0x1E40, 5,
+            (void GENERIC*) &EplApiInstance_g.m_InitParam.m_dwDefaultGateway,
+            sizeof (EplApiInstance_g.m_InitParam.m_dwDefaultGateway));
+    }
 #endif // (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
 
     // ignore return code
@@ -2575,6 +2669,345 @@ BYTE                bTemp;
 Exit:
     return Ret;
 }
+
+
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiCbStore()
+//
+// Description: callback function, called by OBD module, that notifies of
+//              access to object 0x1010
+//              Writing will only done if following conditions are meet:
+//              - The signature 'save' is correct.
+//              - The selected part of OD supports the writing to non-volatile
+//                memory by command. If the device does not support saving
+//                parameters then abort transfer with abort code 0x08000020.
+//                If device supports only autonomously writing then abort
+//                transfer with abort code 0x08000021.
+//              - The memory device is ready for writing or the device is in
+//                the right state for writing. If this condition not fullfilled
+//                abort transfer (0x08000022).
+//
+// Parameters:  pParam_p               = address to calling parameters
+//
+// Returns:     tEplKernel             = error code
+//
+// ----------------------------------------------------------------------------
+
+static tEplKernel PUBLIC EplApiCbStore(tEplObdCbParam MEM* pParam_p)
+{
+tEplKernel          Ret         = kEplSuccessful;
+tEplObdPart         ObdPart     = kEplObdPartNo;
+DWORD               dwCap       = 0;
+
+    if ((pParam_p->m_uiSubIndex == 0)
+        || ((pParam_p->m_ObdEvent != kEplObdEvPreWrite)
+            && (pParam_p->m_ObdEvent != kEplObdEvPostRead)))
+    {
+        goto Exit;
+    }
+
+    Ret = EplTgtObdArcGetCapabilities(pParam_p->m_uiIndex, pParam_p->m_uiSubIndex,
+                                      &ObdPart, &dwCap);
+    if (Ret != kEplSuccessful)
+    {
+        pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_DUE_DEVICE_STATE;
+        goto Exit;
+    }
+
+    // function is called before writing to OD
+    if (pParam_p->m_ObdEvent == kEplObdEvPreWrite)
+    {
+        // check if signature "save" will be written to object 0x1010
+        if (*((DWORD GENERIC*) pParam_p->m_pArg) != 0x65766173L)
+        {
+            // abort SDO because wrong signature
+            pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_OR_STORED;
+            Ret = kEplWrongSignature;
+            goto Exit;
+        }
+
+        // Does device support saving by command?
+        if ((dwCap & EPL_OBD_STORE_ON_COMMAND) == 0)
+        {
+            // device does not support saving parameters or not by command
+            if ((dwCap & EPL_OBD_STORE_AUTONOMOUSLY) != 0)
+            {
+                // Device saves parameters autonomously.
+                pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_DUE_LOCAL_CONTROL;
+            }
+            else
+            {
+                // Device does not support saving parameters.
+                pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_OR_STORED;
+            }
+
+            Ret = kEplStoreInvalidState;
+            goto Exit;
+        }
+
+        // read all storable objects of selected OD part and store the
+        // current object values to non-volatile memory
+        Ret = EplObdAccessOdPart(ObdPart, kEplObdDirStore);
+        if (Ret != kEplSuccessful)
+        {
+            // abort SDO because access failed
+            pParam_p->m_dwAbortCode = EPL_SDOAC_ACCESS_FAILED_DUE_HW_ERROR;
+            goto Exit;
+        }
+    }
+
+    // function is called after reading from OD
+    else if (pParam_p->m_ObdEvent == kEplObdEvPostRead)
+    {
+        // WARNING: This does not work on big endian machines!
+        //          The SDO adoptable object handling feature provides a clean
+        //          way to implement it.
+        *((DWORD GENERIC*) pParam_p->m_pArg) = dwCap;
+    }
+
+Exit:
+    return Ret;
+
+}
+
+
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiCbRestore()
+//
+// Description: callback function, called by OBD module, that notifies of
+//              access to object 0x1011
+//              Reseting default parameters will only be done if following
+//              conditions are meet:
+//              - The signature 'load' is correct.
+//              - The selected part of OD supports the restoring parameters
+//                by command. If the device does not support restoring
+//                parameters then abort transfer with abort code 0x08000020.
+//              - The memory device is ready for restoring or the device is in
+//                the right state for restoring. If this condition not fullfilled
+//                abort transfer (0x08000022).
+//              - Restoring is done by declaring the stored parameters as invalid.
+//                The function does not load the default parameters. This is only done
+//                by command reset node or reset communication or power-on.
+//
+// Parameters:  pParam_p               = address to calling parameters
+//
+// Returns:     tEplKernel             = error code
+//
+// ----------------------------------------------------------------------------
+
+static tEplKernel PUBLIC EplApiCbRestore(tEplObdCbParam MEM* pParam_p)
+{
+tEplKernel          Ret         = kEplSuccessful;
+tEplObdPart         ObdPart     = kEplObdPartNo;
+DWORD               dwCap       = 0;
+
+    if ((pParam_p->m_uiSubIndex == 0)
+        || ((pParam_p->m_ObdEvent != kEplObdEvPreWrite)
+            && (pParam_p->m_ObdEvent != kEplObdEvPostRead)))
+    {
+        goto Exit;
+    }
+
+    Ret = EplTgtObdArcGetCapabilities(pParam_p->m_uiIndex, pParam_p->m_uiSubIndex,
+                                      &ObdPart, &dwCap);
+    if (Ret != kEplSuccessful)
+    {
+        pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_DUE_DEVICE_STATE;
+        goto Exit;
+    }
+
+    // was this function was called before writing to OD
+    if (pParam_p->m_ObdEvent == kEplObdEvPreWrite)
+    {
+        // check if signature "load" will be written to object 0x1010 subindex X
+        if (*((DWORD GENERIC*) pParam_p->m_pArg) != 0x64616F6CL)
+        {
+            // abort SDO
+            pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_OR_STORED;
+            Ret = kEplWrongSignature;
+            goto Exit;
+        }
+
+        // Does device support saving by command?
+        if ((dwCap & EPL_OBD_STORE_ON_COMMAND) == 0)
+        {
+            // Device does not support saving parameters.
+            pParam_p->m_dwAbortCode = EPL_SDOAC_DATA_NOT_TRANSF_OR_STORED;
+
+            Ret = kEplStoreInvalidState;
+            goto Exit;
+        }
+
+        Ret = EplObdAccessOdPart(ObdPart, kEplObdDirRestore);
+        if (Ret != kEplSuccessful)
+        {
+            // abort SDO
+            pParam_p->m_dwAbortCode = EPL_SDOAC_ACCESS_FAILED_DUE_HW_ERROR;
+            goto Exit;
+        }
+    }
+
+    // function is called after reading from OD
+    else if (pParam_p->m_ObdEvent == kEplObdEvPostRead)
+    {
+        // WARNING: This does not work on big endian machines!
+        //          The SDO adoptable object handling feature provides a clean
+        //          way to implement it.
+        *((DWORD GENERIC*) pParam_p->m_pArg) = dwCap;
+    }
+
+Exit:
+    return Ret;
+
+}
+
+
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiCbStoreLoadObject()
+//
+// Description: callback function, called by OBD module, that notifies of
+//              commands STORE or LOAD
+//              The function is called with the selected OD part:
+//              ODPart = kObdPartGen: 0x1000-0x1FFF
+//                     = kObdPartMan: 0x2000-0x5FFF
+//                     = kObdPartDev: 0x6000-0x9FFF
+//              For each part the function creates an archiv an saves
+//              the parameters. Following command sequence is used:
+//              1. kEplObdCommOpenWrite(Read)  --> create archiv (set last archiv invalid)
+//              2. kEplObdCommWrite(Read)Obj   --> write data to archiv
+//              3. kEplObdCommCloseWrite(Read) --> close archiv (set archiv valid)
+//
+// Parameters:  pData_p                = address to object data in OD
+//              ObjSize_p              = size of this object
+//              Direction_p            = direction (STORE to medium or LOAD from medium)
+//
+// Returns:     tEplKernel             = error code
+//
+// ----------------------------------------------------------------------------
+
+static tEplKernel PUBLIC EplApiCbStoreLoadObject(
+    tEplObdCbStoreParam MEM* pCbStoreParam_p)
+{
+tEplKernel      Ret     = kEplSuccessful;
+tEplObdPart     OdPart  = pCbStoreParam_p->m_bCurrentOdPart; // only one bit is set!
+BOOL            fValid;
+
+    // which event is notified
+    switch (pCbStoreParam_p->m_bCommand)
+    {
+        //-------------------------------------------------
+        case kEplObdCommOpenWrite:
+        {
+            // create archiv to write all objects of this OD part
+            Ret = EplTgtObdArcCreate(OdPart);
+            break;
+        }
+
+        //-------------------------------------------------
+        case kEplObdCommWriteObj:
+        {
+            // store value from pData_p (with size ObjSize_p) to memory medium
+            Ret = EplTgtObdArcStore(OdPart,
+                                (BYTE GENERIC*) pCbStoreParam_p->m_pData,
+                                pCbStoreParam_p->m_ObjSize);
+            break;
+        }
+
+        //-------------------------------------------------
+        case kEplObdCommCloseRead:
+        case kEplObdCommCloseWrite:
+        {
+            Ret = EplTgtObdArcClose(OdPart);
+            break;
+        }
+
+        //-------------------------------------------------
+        case kEplObdCommOpenRead:
+        {
+            // at first open the stream for reading (then check for valid stream)
+            Ret = EplTgtObdArcOpen(OdPart);
+            if (Ret != kEplSuccessful)
+            {
+                goto Exit;
+            }
+
+            // check signature for data valid on medium for this OD part
+            fValid = EplTgtObdArcCheckValid(OdPart);
+            if (fValid == FALSE)
+            {
+                EplTgtObdArcClose(OdPart);
+
+                Ret = kEplStoreInvalidState;
+                goto Exit;
+            }
+            break;
+        }
+
+        //-------------------------------------------------
+        case kEplObdCommReadObj:
+        {
+            Ret = EplTgtObdArcRestore(OdPart,
+                                    (BYTE GENERIC*) pCbStoreParam_p->m_pData,
+                                    pCbStoreParam_p->m_ObjSize);
+            break;
+        }
+
+        //-------------------------------------------------
+        case kEplObdCommClear:
+        {
+            Ret = EplTgtObdArcDelete(OdPart);
+            break;
+        }
+    }
+
+Exit:
+    return Ret;
+}
+
+
+// ----------------------------------------------------------------------------
+//
+// Function:    EplApiStoreCheckArchiveState()
+//
+// Description: checks if the specified OD archive part in non-volatile memory
+//              is valid.
+//
+// Parameters:  ObdPart_p               = OD part
+//
+// Returns:     tEplKernel              = error code
+//
+// ----------------------------------------------------------------------------
+
+static tEplKernel PUBLIC EplApiStoreCheckArchiveState(
+    tEplObdPart     ObdPart_p)
+{
+tEplKernel      Ret     = kEplSuccessful;
+BOOL            fValid;
+
+    // at first open the stream for reading (then check for valid stream)
+    Ret = EplTgtObdArcOpen(ObdPart_p);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    // check signature for data valid on medium for this OD part
+    fValid = EplTgtObdArcCheckValid(ObdPart_p);
+    if (fValid == FALSE)
+    {
+        Ret = kEplStoreInvalidState;
+    }
+
+    EplTgtObdArcClose(ObdPart_p);
+
+Exit:
+    return Ret;
+}
+#endif
 
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)

@@ -37,6 +37,26 @@
            EPL_OBD_SUBINDEX_RAM_VSTRING(0x100A, 0x00, kEplObdAccR, software_version, EPL_OBD_MAX_STRING_SIZE, EPL_PRODUCT_NAME" "EPL_PRODUCT_VERSION)
         EPL_OBD_END_INDEX(0x100A)
 
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+        // Object 1010h: NMT_StoreParam_REC
+        EPL_OBD_BEGIN_INDEX_RAM(0x1010, 0x05, EplApiCbObdAccess)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1010, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x04)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1010, 0x01, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, AllParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1010, 0x02, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, CommunicationParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1010, 0x03, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, ApplicationParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1010, 0x04, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, ManufacturerParam_U32)
+        EPL_OBD_END_INDEX(0x1010)
+
+        // Object 1011h: NMT_RestoreDefParam_REC
+        EPL_OBD_BEGIN_INDEX_RAM(0x1011, 0x05, EplApiCbObdAccess)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1011, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x04)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1011, 0x01, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, AllParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1011, 0x02, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, CommunicationParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1011, 0x03, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, ApplicationParam_U32)
+            EPL_OBD_SUBINDEX_RAM_VAR_NOINIT(0x1011, 0x04, kEplObdTypUInt32, kEplObdAccRW, tEplObdUnsigned32, ManufacturerParam_U32)
+        EPL_OBD_END_INDEX(0x1011)
+#endif
+
         // Object 1018h: NMT_IdentityObject_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1018, 0x05, NULL)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1018, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x04)
