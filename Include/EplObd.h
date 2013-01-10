@@ -110,7 +110,6 @@ typedef enum
 // commands for store
 typedef enum
 {
-    kEplObdCommNothing     = 0x00,
     kEplObdCommOpenWrite   = 0x01,
     kEplObdCommWriteObj    = 0x02,
     kEplObdCommCloseWrite  = 0x03,
@@ -118,7 +117,6 @@ typedef enum
     kEplObdCommReadObj     = 0x05,
     kEplObdCommCloseRead   = 0x06,
     kEplObdCommClear       = 0x07,
-    kEplObdCommUnknown     = 0xFF
 }tEplObdCommand;
 
 //-----------------------------------------------------------------------------------------------------------
@@ -142,7 +140,7 @@ typedef enum
 typedef unsigned int tEplObdPart;
 
 #define kEplObdPartNo          0x00    // nothing
-#define kEplObdPartGen         0x01    //  part      (0x1000 - 0x1FFF)
+#define kEplObdPartGen         0x01    // communication part (0x1000 - 0x1FFF)
 #define kEplObdPartMan         0x02    // manufacturer part (0x2000 - 0x5FFF)
 #define kEplObdPartDev         0x04    // device part       (0x6000 - 0x9FFF)
 #define kEplObdPartUsr         0x08    // dynamic part e.g. for ICE61131-3
