@@ -3303,7 +3303,7 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
                             CbStore.m_ObjSize  = ObjSize;
 
                             // call callback function for read or write object
-                            Ret = ObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
+                            Ret = EplObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
                                 &CbStore);
                             if (Ret != kEplSuccessful)
                             {
