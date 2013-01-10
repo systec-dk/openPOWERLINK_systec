@@ -78,6 +78,8 @@ FIND_PACKAGE(Qt4 QUIET)
 
 OPTION (CFG_POWERLINK_MN "Compile openPOWERLINK MN (Otherwise CN)" ON)
 SET(CFG_DEBUG_LVL "0xEC000000L" CACHE STRING "Debug Level for debug output")
+CMAKE_DEPENDENT_OPTION (CFG_STORE_RESTORE "Support storing of OD in non-volatile memory (file system)" OFF
+                        "NOT CFG_POWERLINK_MN" OFF)
 
 CMAKE_DEPENDENT_OPTION (CFG_X86_DEMO_MN_CONSOLE "Build process image based console demo application" ON
                         "CFG_POWERLINK_MN" OFF)

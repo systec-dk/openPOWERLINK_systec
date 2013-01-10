@@ -270,6 +270,10 @@
 
 #endif // CONFIG_CFM
 
+#ifdef CONFIG_STORE_RESTORE
+#define EPL_OBD_USE_STORE_RESTORE           TRUE
+#endif // CONFIG_STORE_RESTORE
+
 // =========================================================================
 // Timer module specific defines
 // =========================================================================
