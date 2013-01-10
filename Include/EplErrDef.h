@@ -227,6 +227,9 @@ typedef enum
     kEplCfmUnsuppDatatypeDcf    = 0x00C7,       // unsupported datatype found in dcf
                                                 // -> this entry was not configured
 
+    kEplStoreInvalidState       = 0x00E0,       // non-volatile memory is in invalid state (nothing saved)
+    kEplStoreHwError            = 0x00E1,       // HW error while accessing non-volatile memory
+
     kEplApiTaskDeferred         = 0x0140,       // EPL performs task in background and informs the application (or vice-versa), when it is finished
     kEplApiInvalidParam         = 0x0142,       // passed invalid parameters to a function (e.g. invalid node id)
     kEplApiNoObdInitRam         = 0x0143,       // no function pointer for ObdInitRam supplied

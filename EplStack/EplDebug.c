@@ -410,6 +410,8 @@ static tEplDebugEplKernelInfo EplKernelInfo_g[] =
     { kEplCfmNoConfigData,              "kEplCfmNoConfigData"           },
     { kEplCfmUnsuppDatatypeDcf,         "kEplCfmUnsuppDatatypeDcf"      },
 
+    { kEplStoreInvalidState,            "kEplStoreInvalidState"         },
+    { kEplStoreHwError,                 "kEplStoreHwError"              },
     { kEplApiTaskDeferred,              "kEplApiTaskDeferred"           },
     { kEplApiInvalidParam,              "kEplApiInvalidParam"           },
     { kEplApiNoObdInitRam,              "kEplApiNoObdInitRam"           },
