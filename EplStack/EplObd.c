@@ -71,6 +71,9 @@
 
 #include "EplInc.h"
 #include "kernel/EplObdk.h"         // function prototyps of the EplOBD-Modul
+#if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+#include "EplCrc.h"
+#endif
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_OBDK)) != 0)
 
@@ -96,7 +99,13 @@ INSTANCE_TYPE_BEGIN
     EPL_MCO_DECL_INSTANCE_MEMBER ()
 
     STATIC      tEplObdInitParam               INST_FAR    m_ObdInitParam;
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
     STATIC      tEplObdStoreLoadObjCallback    INST_NEAR   m_fpStoreLoadObjCallback;
+#endif
+
+#if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+    STATIC      WORD                        INST_FAR    m_awOdSignature[3];
+#endif
 
 INSTANCE_TYPE_END
 
@@ -287,8 +296,14 @@ tEplKernel Ret;
     // save init parameters
     EPL_MEMCPY (&EPL_MCO_GLB_VAR (m_ObdInitParam), pInitParam_p, sizeof (tEplObdInitParam));
 
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
     // clear callback function for command LOAD and STORE
     EPL_MCO_GLB_VAR (m_fpStoreLoadObjCallback) = NULL;
+#endif
+
+#if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+    EPL_MEMSET (&EPL_MCO_GLB_VAR (m_awOdSignature), -1, sizeof (EPL_MCO_GLB_VAR (m_awOdSignature)));
+#endif
 
     // sign instance as used
     EPL_MCO_WRITE_INSTANCE_STATE (kStateUsed);
@@ -1605,6 +1620,49 @@ tEplObdSubEntryPtr   pSubindexEntry;
     return Ret;
 
 }
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplObdGetOdSignature()
+//
+// Description: reads the OD signature for checking valid OD in Store/Restore-file
+//
+// Parameters:  OdPart_p        = specifies the part of the OD
+//
+// Return:      WORD
+//
+// State:       not tested
+//
+//---------------------------------------------------------------------------
+#if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+EPLDLLEXPORT WORD PUBLIC EplObdGetOdSignature (EPL_MCO_DECL_INSTANCE_PTR_
+    tEplObdPart OdPart_p)
+{
+WORD wOdCrc = (WORD) ~0U;
+
+    // check for all API function if instance is valid
+    EPL_MCO_CHECK_INSTANCE_STATE ();
+
+    switch (OdPart_p)
+    {
+        case kEplObdPartGen:
+        wOdCrc = EPL_MCO_GLB_VAR (m_awOdSignature[0]);
+            break;
+        case kEplObdPartMan:
+            wOdCrc = EPL_MCO_GLB_VAR (m_awOdSignature[1]);
+            break;
+        case kEplObdPartDev:
+            wOdCrc = EPL_MCO_GLB_VAR (m_awOdSignature[2]);
+            break;
+        default:
+            break;
+    }
+
+    return wOdCrc;
+
+}
+#endif
+
 //=========================================================================//
 //                                                                         //
 //          P R I V A T E   D E F I N I T I O N S                          //
@@ -3113,31 +3171,36 @@ void MEM*                   pDstData;
 CONST void*                 pDefault;
 tEplObdSize                 ObjSize;
 tEplKernel                  Ret;
+#if (EPL_OBD_USE_STORE_RESTORE != FALSE)
 tEplObdCbStoreParam MEM     CbStore;
+tEplKernel                  ArchiveState;
+#endif
+#if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+WORD                        wOdCrc = 0;
+#endif
 tEplObdVarEntry MEM*        pVarEntry = NULL;
 
     ASSERT (pObdEnty_p != NULL);
 
     Ret = kEplSuccessful;
 
+    // command of first action depends on direction to access
+    #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+    {
+    ArchiveState = kEplStoreInvalidState;
+
     // prepare structure for STORE RESTORE callback function
     CbStore.m_bCurrentOdPart = (BYTE) CurrentOdPart_p;
     CbStore.m_pData          = NULL;
     CbStore.m_ObjSize        = 0;
 
-    // command of first action depends on direction to access
-    #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
     if (Direction_p == kEplObdDirLoad)
     {
         CbStore.m_bCommand = (BYTE) kEplObdCommOpenRead;
 
         // call callback function for previous command
-        Ret = EplObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
+        ArchiveState = EplObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
             &CbStore);
-        if (Ret != kEplSuccessful)
-        {
-            goto Exit;
-        }
 
         // set command for index and subindex loop
         CbStore.m_bCommand = (BYTE) kEplObdCommReadObj;
@@ -3157,6 +3220,7 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
         // set command for index and subindex loop
         CbStore.m_bCommand = (BYTE) kEplObdCommWriteObj;
     }
+    }
     #endif // (EPL_OBD_USE_STORE_RESTORE != FALSE)
 
     // we should not restore the OD values here
@@ -3171,10 +3235,27 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
             nSubIndexCount = pObdEnty_p->m_uiCount;
             ASSERT ((pSubIndex != NULL) && (nSubIndexCount > 0));    // should never be NULL
 
+            #if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+            if (Direction_p == kEplObdDirInit)
+            {
+                wOdCrc = CALCULATE_CRC16 (wOdCrc, (BYTE GENERIC*) &pObdEnty_p->m_uiIndex, sizeof (pObdEnty_p->m_uiIndex));
+                wOdCrc = CALCULATE_CRC16 (wOdCrc, (BYTE GENERIC*) &pObdEnty_p->m_uiCount, sizeof (pObdEnty_p->m_uiCount));
+            }
+            #endif
+
             // walk through subindex table till all subinices were restored
             while (nSubIndexCount != 0)
             {
                 Access = (tEplObdAccess) pSubIndex->m_Access;
+
+                #if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+                if (Direction_p == kEplObdDirInit)
+                {
+                    wOdCrc = CALCULATE_CRC16 (wOdCrc, (BYTE GENERIC*) &pSubIndex->m_uiSubIndex, sizeof (pSubIndex->m_uiSubIndex));
+                    wOdCrc = CALCULATE_CRC16 (wOdCrc, (BYTE GENERIC*) &pSubIndex->m_Type, sizeof (pSubIndex->m_Type));
+                    wOdCrc = CALCULATE_CRC16 (wOdCrc, (BYTE GENERIC*) &pSubIndex->m_Access, sizeof (pSubIndex->m_Access));
+                }
+                #endif
 
                 // get pointer to current and default data
                 pDefault = EplObdGetObjectDefaultPtr (pSubIndex);
@@ -3288,6 +3369,13 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
                         // restore object data for init phase
                         EplObdCopyObjectData (pDstData, pDefault, ObjSize, pSubIndex->m_Type);
 
+                        #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
+                        if (ArchiveState != kEplSuccessful)
+                        {
+                            break;
+                        }
+                        #endif
+
                         // no break !! because callback function has to be called too.
 
                     // --------------------------------------------------------------------------
@@ -3307,7 +3395,7 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
                                 &CbStore);
                             if (Ret != kEplSuccessful)
                             {
-                                goto Exit;
+                                goto DoClose;
                             }
                         }
                         #endif // (EPL_OBD_USE_STORE_RESTORE != FALSE)
@@ -3360,6 +3448,26 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
         }
     }
 
+    #if (EPL_OBD_CALC_OD_SIGNATURE != FALSE)
+    if (Direction_p == kEplObdDirInit)
+    {
+        switch (CurrentOdPart_p)
+        {
+            case kEplObdPartGen:
+                EPL_MCO_GLB_VAR (m_awOdSignature[0]) = wOdCrc;
+                break;
+            case kEplObdPartMan:
+                EPL_MCO_GLB_VAR (m_awOdSignature[1]) = wOdCrc;
+                break;
+            case kEplObdPartDev:
+                EPL_MCO_GLB_VAR (m_awOdSignature[2]) = wOdCrc;
+                break;
+            default:
+                break;
+        }
+    }
+    #endif
+
     // -----------------------------------------------------------------------------------------
     // command of last action depends on direction to access
     if (Direction_p == kEplObdDirOBKCheck)
@@ -3370,7 +3478,8 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
     #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
     else
     {
-        if (Direction_p == kEplObdDirLoad)
+DoClose:
+        if ((Direction_p == kEplObdDirLoad) && (ArchiveState == kEplSuccessful))
         {
             CbStore.m_bCommand = (BYTE) kEplObdCommCloseRead;
         }
@@ -3388,7 +3497,7 @@ tEplObdVarEntry MEM*        pVarEntry = NULL;
         }
 
         // call callback function for last command
-        Ret = EplObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
+        ArchiveState = EplObdCallStoreCallback (EPL_MCO_INSTANCE_PTR_
             &CbStore);
     }
     #endif // (EPL_OBD_USE_STORE_RESTORE != FALSE)
@@ -3538,6 +3647,8 @@ tEplKernel Ret = kEplSuccessful;
 
 }
 #endif // (EPL_OBD_USE_STORE_RESTORE != FALSE)
+
+
 //---------------------------------------------------------------------------
 //
 // Function:    EplObdGetObjectDataPtrIntern()

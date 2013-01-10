@@ -196,6 +196,10 @@ EPLDLLEXPORT tEplKernel PUBLIC EplObdSearchVarEntry (EPL_MCO_DECL_INSTANCE_PTR_
     unsigned int            uiSubindex_p,
     tEplObdVarEntry MEM**   ppVarEntry_p);
 
+// ---------------------------------------------------------------------
+EPLDLLEXPORT WORD PUBLIC EplObdGetOdSignature (EPL_MCO_DECL_INSTANCE_PTR_
+    tEplObdPart OdPart_p);
+
 #endif // end of #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_OBDK)) != 0)
 
 #endif  // #ifndef _EPLOBDK_H_
