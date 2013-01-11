@@ -1964,7 +1964,7 @@ tEplApiEventArg     EventArg;
 #endif
 
             // update OD only if OD was not loaded from non-volatile memory
-            Ret = EplApiUpdateObd(ArchiveState == kEplSuccessful);
+            Ret = EplApiUpdateObd(ArchiveState != kEplSuccessful);
             if (Ret != kEplSuccessful)
             {
                 goto Exit;
