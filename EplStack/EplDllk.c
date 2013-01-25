@@ -1639,8 +1639,13 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                    0xFFFF);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_IDREQ].m_abFilterValue[14],
                    kEplMsgTypeSoa);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_IDREQ].m_abFilterMask[14],
+                   0xF7);
+#else
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_IDREQ].m_abFilterMask[14],
                    0xFF);
+#endif
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_IDREQ].m_abFilterValue[20],
                    kEplDllReqServiceIdent);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_IDREQ].m_abFilterMask[20],
@@ -1663,8 +1668,13 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                    0xFFFF);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_STATREQ].m_abFilterValue[14],
                    kEplMsgTypeSoa);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_STATREQ].m_abFilterMask[14],
+                   0xF7);
+#else
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_STATREQ].m_abFilterMask[14],
                    0xFF);
+#endif
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_STATREQ].m_abFilterValue[20],
                    kEplDllReqServiceStatus);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_STATREQ].m_abFilterMask[20],
@@ -1687,8 +1697,14 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                    0xFFFF);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NMTREQ].m_abFilterValue[14],
                    kEplMsgTypeSoa);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NMTREQ].m_abFilterMask[14],
+                   0xF7);
+#else
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NMTREQ].m_abFilterMask[14],
                    0xFF);
+#endif
+
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NMTREQ].m_abFilterValue[20],
                    kEplDllReqServiceNmtRequest);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NMTREQ].m_abFilterMask[20],
@@ -1712,8 +1728,13 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                    0xFFFF);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_SYNCREQ].m_abFilterValue[14],
                    kEplMsgTypeSoa);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_SYNCREQ].m_abFilterMask[14],
+                   0xF7);
+#else
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_SYNCREQ].m_abFilterMask[14],
                    0xFF);
+#endif
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_SYNCREQ].m_abFilterValue[20],
                    kEplDllReqServiceSync);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_SYNCREQ].m_abFilterMask[20],
@@ -1737,8 +1758,13 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                    0xFFFF);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NONEPL].m_abFilterValue[14],
                    kEplMsgTypeSoa);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NONEPL].m_abFilterMask[14],
+                   0xF7);
+#else
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NONEPL].m_abFilterMask[14],
                    0xFF);
+#endif
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NONEPL].m_abFilterValue[20],
                    kEplDllReqServiceUnspecified);
     AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_SOA_NONEPL].m_abFilterMask[20],
@@ -3304,6 +3330,21 @@ tEplErrorHandlerkEvent  DllEvent;
                             EplDllkInstance_g.m_DllState = kEplDllCsWaitSoc;
                             break;
 
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+                        case kEplNmtEventDllCeAInv:
+                            // check if multiplexed and PReq should have been received in this cycle
+                            // and if >= NMT_CS_READY_TO_OPERATE
+                            if ((EplDllkInstance_g.m_uiCycleCount == 0)
+                                && (NmtState_p >= kEplNmtCsReadyToOperate))
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_PREQ | EPL_DLL_ERR_CN_LOSS_SOA;
+                            }
+
+                            // enter DLL_CS_WAIT_SOC
+                            EplDllkInstance_g.m_DllState = kEplDllCsWaitSoc;
+                            break;
+#endif
+
                         case kEplNmtEventDllCeSoa:
                             // check if multiplexed and PReq should have been received in this cycle
                             // and if >= NMT_CS_READY_TO_OPERATE
@@ -3360,6 +3401,9 @@ tEplErrorHandlerkEvent  DllEvent;
                             // report DLL_CEV_LOSS_SOC
                             DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
 
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+                        case kEplNmtEventDllCeAInv:
+#endif
                         case kEplNmtEventDllCeAsnd:
                         default:
                             // remain in this state
@@ -3387,6 +3431,12 @@ tEplErrorHandlerkEvent  DllEvent;
                         case kEplNmtEventDllCePreq:
                             // report DLL_CEV_LOSS_SOC and DLL_CEV_LOSS_SOA
                             DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA | EPL_DLL_ERR_CN_LOSS_SOC;
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+                        case kEplNmtEventDllCeAInv:
+                            //  report EPL_DLL_ERR_CN_LOSS_SOA
+                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA;
+#endif
 
                         case kEplNmtEventDllCeSoa:
                             // enter DLL_CS_WAIT_SOC
@@ -4040,6 +4090,22 @@ TGT_DLLK_DECLARE_FLAGS
             break;
         }
 
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+        case kEplMsgTypeAInv:
+        {
+            // AInv frame
+            NmtEvent = kEplNmtEventDllCeAInv;
+
+            Ret = EplDllkProcessReceivedSoa(pRxBuffer_p, NmtState);
+            if (Ret != kEplSuccessful)
+            {
+                goto Exit;
+            }
+
+            break;
+        }
+#endif
+
         case kEplMsgTypeSoa:
         {
             // SoA frame
@@ -4082,7 +4148,7 @@ TGT_DLLK_DECLARE_FLAGS
             goto Exit;
         }
 
-        if ((NmtEvent != kEplNmtEventDllCeAsnd)
+        if (((NmtEvent != kEplNmtEventDllCeAsnd) && (NmtEvent != kEplNmtEventDllCeAInv))
             && ((NmtState <= kEplNmtCsPreOperational1) || (NmtEvent != kEplNmtEventDllCePres)))
         {   // NMT state machine is not interested in ASnd frames and PRes frames when not CsNotActive or CsPreOp1
             // inform NMT module
