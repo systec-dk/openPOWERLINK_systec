@@ -47,7 +47,6 @@
  PORT axi_powerlink_0_phyMii0_TxClk_pin = axi_powerlink_0_phyMii0_TxClk, DIR = I
  PORT axi_powerlink_0_phyMii0_TxDat_pin = axi_powerlink_0_phyMii0_TxDat, DIR = O, VEC = [3:0]
  PORT axi_powerlink_0_phyMii0_TxEn_pin = axi_powerlink_0_phyMii0_TxEn, DIR = O
- PORT axi_powerlink_0_phyMii0_TxEr_pin = axi_powerlink_0_phyMii0_TxEr, DIR = O
  PORT axi_powerlink_0_pio_portio_pin = axi_powerlink_0_pio_portio, DIR = IO, VEC = [31:0]
 
 
@@ -322,7 +321,6 @@ BEGIN axi_powerlink
  PORT phyMii0_TxClk = axi_powerlink_0_phyMii0_TxClk
  PORT phyMii0_TxDat = axi_powerlink_0_phyMii0_TxDat
  PORT phyMii0_TxEn = axi_powerlink_0_phyMii0_TxEn
- PORT phyMii0_TxEr = axi_powerlink_0_phyMii0_TxEr
  PORT mac_irq = axi_powerlink_0_mac_irq
  PORT tcp_irq = axi_powerlink_0_tcp_irq
  PORT pio_pconfig = 0b0100

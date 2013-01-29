@@ -351,14 +351,18 @@ NET "clk_50_0000MHzPLL1" TNM = "SLOW_CLK_GRP";
 
 ### PHY0 clock
 NET "axi_powerlink_0_phyMii0_RxClk_pin" TNM_NET = "PHY0_RXCLK_GRP";
+NET "axi_powerlink_0_phyMii0_RxClk_pin" MAXSKEW = 6 ns;
 TIMESPEC "TS_RXCLK0" = PERIOD "PHY0_RXCLK_GRP" 40 ns HIGH 20 ns;
 NET "axi_powerlink_0_phyMii0_TxClk_pin" TNM_NET = "PHY0_TXCLK_GRP";
+NET "axi_powerlink_0_phyMii0_TxClk_pin" MAXSKEW = 6 ns;
 TIMESPEC "TS_TXCLK0" = PERIOD "PHY0_TXCLK_GRP" 40 ns HIGH 20 ns;
 
 ### PHY1 clock
 NET "axi_powerlink_0_phyMii1_RxClk_pin" TNM_NET = "PHY1_RXCLK_GRP";
+NET "axi_powerlink_0_phyMii1_RxClk_pin" MAXSKEW = 6 ns;
 TIMESPEC "TS_RXCLK1" = PERIOD "PHY1_RXCLK_GRP" 40 ns HIGH 20 ns;
 NET "axi_powerlink_0_phyMii1_TxClk_pin" TNM_NET = "PHY1_TXCLK_GRP";
+NET "axi_powerlink_0_phyMii1_TxClk_pin" MAXSKEW = 6 ns;
 TIMESPEC "TS_TXCLK1" = PERIOD "PHY1_TXCLK_GRP" 40 ns HIGH 20 ns;
 
 #### ICAP clock
@@ -387,15 +391,15 @@ TIMESPEC TS_PHY1RX_AXI_TIG = FROM "PHY1_RXCLK_GRP" TO "SLOW_CLK_GRP" TIG;
 
 ## I/O
 ### PHY0
-#### T = 40 ns , tco = 10..30 ns => valid window of 10 ns before/after edge
-OFFSET = IN 10 ns VALID 10 ns BEFORE "axi_powerlink_0_phyMii0_RxClk_pin";
-#### T = 40 ns , tsu = 10 ns , th = 0 => T-tsu ns after edge
-OFFSET = OUT 30 ns AFTER "axi_powerlink_0_phyMii0_TxClk_pin";
+OFFSET = IN 30 ns VALID 20 ns AFTER "axi_powerlink_0_phyMii0_RxClk_pin";
+OFFSET = OUT 10 ns VALID 10 ns BEFORE "axi_powerlink_0_phyMii0_TxClk_pin";
 
 ### PHY1
-#### T = 40 ns , tco = 10..30 ns => valid window of 10 ns before/after edge
-OFFSET = IN 10 ns VALID 10 ns BEFORE "axi_powerlink_0_phyMii1_RxClk_pin";
-#### T = 40 ns , tsu = 10 ns , th = 0 => T-tsu ns after edge
-OFFSET = OUT 30 ns AFTER "axi_powerlink_0_phyMii1_TxClk_pin";
+OFFSET = IN 30 ns VALID 20 ns AFTER "axi_powerlink_0_phyMii1_RxClk_pin";
+OFFSET = OUT 10 ns VALID 10 ns BEFORE "axi_powerlink_0_phyMii1_TxClk_pin";
 ################################################################################
+
+# avoid phy interface ffs mapped into iobs
+INST "*/TX_BLOCK.fifo_dout_l*" IOB=FALSE;
+INST "*/TX_BLOCK.fifo_valid_l*" IOB=FALSE;
 
