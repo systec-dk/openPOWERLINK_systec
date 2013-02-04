@@ -10,7 +10,7 @@
 # contents      : Controls the build of the Xilinx examples
 ################################################################################
 
-VERSION = 0.3
+VERSION = 0.4
 
 include makefile.settings
 
@@ -158,32 +158,39 @@ header:
 	@echo ""
 	@echo "Write 'make all' to generate the bitstream and Direct I/O software example"
 	@echo ""
-	@echo "Write 'make application' to generate the Direct I/O software example"
+	@echo "Write 'make bsp' to generate the board support package"
+	@echo "Write 'make app' to generate the Direct I/O software example"
 	@echo "Write 'make bitstream' to generate the bitstream"
 	@echo ""
 	@echo "Write 'make download-all' to download the bitstream and the .elf file to the target"
 	@echo "Write 'make download-bits' to download the bitstream to the target"
 	@echo "Write 'make download-elf' to download the .elf file to the target"
 	@echo ""
-	@echo "Write 'make clean_sw' to clean the application"
+	@echo "Write 'make clean_bsp' to clean the board support package"
+	@echo "Write 'make clean_app' to clean the application"
+	@echo "Write 'make clean_sw' to clean the whole software"
+	@echo ""
 	@echo "Write 'make clean_hw' to clean the bitstream"
 	@echo "Write 'make clean_all' to clean the all generated files"
 	@echo ""
 	@echo "Change 'makefile.setting' to configure the build system"
 
 .PHONY: all
-all: bitstream application
+all: bitstream app
 
 ####################################################
 # A P P L I C A T I O N
 ####################################################
-.PHONY: application
-application: builddir ${EXECUTABLE}.elf ${EXECUTABLE}.size ${EXECUTABLE}.elfcheck ${EXECUTABLE}.srec
+.PHONY: app
+app: builddir ${EXECUTABLE}.elf ${EXECUTABLE}.size ${EXECUTABLE}.elfcheck ${EXECUTABLE}.srec
+
+.PHONY: bsp
+bsp: $(BSP_PATH)/$(PROCESSOR_NAME)
 
 $(BSP_PATH)/$(PROCESSOR_NAME) : $(HW_SPEC)/system.xml $(MSS_FILE)
 	@echo Invoking: libgen
 	libgen -hw $(HW_SPEC)/system.xml -lp $(IP_CORE_REPO) -pe $(PROCESSOR_NAME) -od $(BSP_PATH) -log libgen.log $(MSS_FILE)
-	@echo Finished building: library
+	@echo Finished building: board support package
 	@echo ' '
 
 .PHONY: builddir
@@ -245,12 +252,21 @@ clean: clean_sw
 .PHONY: clean_all
 clean_all: clean_sw clean_hw
 
-.PHONY: clean_sw
-clean_sw:
+.PHONY: clean_bsp
+clean_bsp:
+	-@echo "Cleaning board support package..."
+	-${RM} $(PROCESSOR_NAME)
+	-@echo ' '
+
+.PHONY: clean_app
+clean_app:
 	-@echo "Cleaning software parts..."
 	@touch $(EXECUTABLE)
-	-${RM} -rf $(EXECUTABLE).* $(OBJ) $(OBJD) $(PROCESSOR_NAME)
+	-${RM} $(EXECUTABLE).* $(OBJ) $(OBJD)
 	-@echo ' '
+
+.PHONY: clean_sw
+clean_sw: clean_bsp clean_app
 
 .PHONY: clean_hw
 clean_hw: $(XPS_DIR)/system.make
@@ -288,7 +304,7 @@ download-bits: $(XPS_DIR)/system.make
 	$(MAKE) -C $(XPS_DIR) -f system.make download
 
 .PHONY: download-elf
-download-elf: application
+download-elf: app
 	xmd -hw $(HW_SPEC)/system.xml -tcl download-elf.tcl
 
 -include $(OBJD)
