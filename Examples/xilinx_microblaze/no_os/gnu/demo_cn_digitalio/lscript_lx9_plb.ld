@@ -18,7 +18,7 @@ _HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x2BF20;
 MEMORY
 {
    pcp_ilmb_cntlr_pcp_dlmb_cntlr : ORIGIN = 0x00004000, LENGTH = 0x00002000
-   boot_ilmb_cntlr_boot_dlmb_cntlr : ORIGIN = 0x00000050, LENGTH = 0x00003FB0
+   boot_ilmb_cntlr_boot_dlmb_cntlr : ORIGIN = 0x00000050, LENGTH = 0x00000FB0
    MCB3_LPDDR_MPMC_BASEADDR : ORIGIN = 0x10000000, LENGTH = 0x04000000
 }
 
