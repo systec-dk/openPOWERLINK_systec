@@ -102,10 +102,10 @@
 #define BENCHMARK_MODULES       0xEE800043L
 #endif
 
-// Default defug level:
+// Default debug level:
 // Only debug traces of these modules will be compiled which flags are set in define DEF_DEBUG_LVL.
 #ifndef DEF_DEBUG_LVL
-#define DEF_DEBUG_LVL           0//0x40000000L //0xEC000000L
+#define DEF_DEBUG_LVL           0xEC000000L
 #endif
 //   EPL_DBGLVL_OBD         =   0x00000004L
 // * EPL_DBGLVL_ASSERT      =   0x20000000L
@@ -168,9 +168,8 @@
 // + SoC + SoA + MN PRes + NmtCmd + ASnd + IdentRes + StatusRes.
 //#define EDRV_MAX_TX_BUFFERS             5
 
-#define EDRV_AUTO_RESPONSE_DELAY         TRUE
-
-#define EPL_DLL_PRES_CHAINING_CN        TRUE
+// openMAC supports auto-response delay
+#define EDRV_AUTO_RESPONSE_DELAY        TRUE
 
 
 // =========================================================================
@@ -195,6 +194,9 @@
 
 // negative time shift of isochronous task in relation to SoC
 #define EPL_DLL_SOC_SYNC_SHIFT_US       150
+
+// CN supports PRes Chaining
+#define EPL_DLL_PRES_CHAINING_CN        TRUE
 
 // Disable deferred release of rx-buffers until Edrv for openMAC supports it
 #define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE    TRUE
