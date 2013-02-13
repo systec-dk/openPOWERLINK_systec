@@ -1,4 +1,4 @@
---Legal Notice: (C)2012 Altera Corporation. All rights reserved.  Your
+--Legal Notice: (C)2013 Altera Corporation. All rights reserved.  Your
 --use of Altera Corporation's design tools, logic functions and other
 --software and tools, and its AMPP partner logic functions, and any
 --output files any of the foregoing (including device programming or
@@ -466,19 +466,19 @@ entity niosII_openMac_clock_1 is
                  signal master_readdata : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
                  signal master_reset_n : IN STD_LOGIC;
                  signal master_waitrequest : IN STD_LOGIC;
-                 signal slave_address : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+                 signal slave_address : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
                  signal slave_byteenable : IN STD_LOGIC_VECTOR (3 DOWNTO 0);
                  signal slave_clk : IN STD_LOGIC;
-                 signal slave_nativeaddress : IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+                 signal slave_nativeaddress : IN STD_LOGIC_VECTOR (9 DOWNTO 0);
                  signal slave_read : IN STD_LOGIC;
                  signal slave_reset_n : IN STD_LOGIC;
                  signal slave_write : IN STD_LOGIC;
                  signal slave_writedata : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 
               -- outputs:
-                 signal master_address : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+                 signal master_address : OUT STD_LOGIC_VECTOR (11 DOWNTO 0);
                  signal master_byteenable : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
-                 signal master_nativeaddress : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+                 signal master_nativeaddress : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
                  signal master_read : OUT STD_LOGIC;
                  signal master_write : OUT STD_LOGIC;
                  signal master_writedata : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -571,9 +571,9 @@ end component niosII_openMac_clock_1_bit_pipe;
                 signal master_write_done :  STD_LOGIC;
                 signal master_write_done_sync :  STD_LOGIC;
                 signal master_write_done_token :  STD_LOGIC;
-                signal slave_address_d1 :  STD_LOGIC_VECTOR (9 DOWNTO 0);
+                signal slave_address_d1 :  STD_LOGIC_VECTOR (11 DOWNTO 0);
                 signal slave_byteenable_d1 :  STD_LOGIC_VECTOR (3 DOWNTO 0);
-                signal slave_nativeaddress_d1 :  STD_LOGIC_VECTOR (7 DOWNTO 0);
+                signal slave_nativeaddress_d1 :  STD_LOGIC_VECTOR (9 DOWNTO 0);
                 signal slave_read_request :  STD_LOGIC;
                 signal slave_read_request_sync :  STD_LOGIC;
                 signal slave_read_request_token :  STD_LOGIC;
@@ -768,7 +768,7 @@ begin
   process (slave_clk, slave_reset_n)
   begin
     if slave_reset_n = '0' then
-      slave_address_d1 <= std_logic_vector'("0000000000");
+      slave_address_d1 <= std_logic_vector'("000000000000");
     elsif slave_clk'event and slave_clk = '1' then
       slave_address_d1 <= slave_address;
     end if;
@@ -778,7 +778,7 @@ begin
   process (master_clk, master_reset_n)
   begin
     if master_reset_n = '0' then
-      master_address <= std_logic_vector'("0000000000");
+      master_address <= std_logic_vector'("000000000000");
     elsif master_clk'event and master_clk = '1' then
       master_address <= slave_address_d1;
     end if;
@@ -788,7 +788,7 @@ begin
   process (slave_clk, slave_reset_n)
   begin
     if slave_reset_n = '0' then
-      slave_nativeaddress_d1 <= std_logic_vector'("00000000");
+      slave_nativeaddress_d1 <= std_logic_vector'("0000000000");
     elsif slave_clk'event and slave_clk = '1' then
       slave_nativeaddress_d1 <= slave_nativeaddress;
     end if;
@@ -798,7 +798,7 @@ begin
   process (master_clk, master_reset_n)
   begin
     if master_reset_n = '0' then
-      master_nativeaddress <= std_logic_vector'("00000000");
+      master_nativeaddress <= std_logic_vector'("0000000000");
     elsif master_clk'event and master_clk = '1' then
       master_nativeaddress <= slave_nativeaddress_d1;
     end if;
