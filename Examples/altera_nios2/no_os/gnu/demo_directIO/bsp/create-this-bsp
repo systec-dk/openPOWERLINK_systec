@@ -2,11 +2,13 @@
 #
 # This script creates the standard newlibc/hal Board Support Package (BSP).
 
+TC_I_MEM=tc_i_mem_pcp
+
 BSP_TYPE=hal
 BSP_DIR=.
-NIOS2_BSP_ARGS="--set hal.sys_clk_timer system_timer"
+NIOS2_BSP_ARGS="--set hal.sys_clk_timer system_timer --cmd add_section_mapping .tc_i_mem_pcp $TC_I_MEM"
 # --set hal.make.bsp_cflags_debug none
-TC_I_MEM=tc_i_mem_pcp
+
 
 #NIOS2_BSP_ARGS="--set hal.max_file_descriptors 4 --set hal.enable_small_c_library true --set hal.sys_clk_timer none --set hal.timestamp_timer none --set hal.enable_exit false --set hal.enable_c_plus_plus false --set hal.enable_lightweight_device_driver_api true --set hal.enable_clean_exit false --set hal.enable_sim_optimize false --set hal.enable_reduced_device_drivers true  --set hal.make.bsp_cflags_optimization '-Os'"
 
@@ -51,10 +53,6 @@ $cmd || {
     echo "$cmd failed"
     exit 1
 }
-
-# Add memory section for TCM
-nios2-bsp-update-settings --settings $BSP_DIR/settings.bsp --cmd add_section_mapping .tc_i_mem_pcp $TC_I_MEM
-nios2-bsp-generate-files --settings $BSP_DIR/settings.bsp --bsp-dir $BSP_DIR
 
 if [ -z "$SKIP_MAKE" ]; then
 	echo "create-this-bsp: Running make"

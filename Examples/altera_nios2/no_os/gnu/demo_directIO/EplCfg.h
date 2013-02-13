@@ -102,10 +102,10 @@
 #define BENCHMARK_MODULES       0xEE800043L
 #endif
 
-// Default defug level:
+// Default debug level:
 // Only debug traces of these modules will be compiled which flags are set in define DEF_DEBUG_LVL.
 #ifndef DEF_DEBUG_LVL
-#define DEF_DEBUG_LVL           0x40000000L //0xEC000000L
+#define DEF_DEBUG_LVL           0xEC000000L
 #endif
 //   EPL_DBGLVL_OBD         =   0x00000004L
 // * EPL_DBGLVL_ASSERT      =   0x20000000L
@@ -148,7 +148,7 @@
 //#define EDRV_EARLY_RX_INT               TRUE
 
 // enables setting of several port pins for benchmarking purposes
-#define EDRV_BENCHMARK                  FALSE
+#define EDRV_BENCHMARK                  TRUE
 //#define EDRV_BENCHMARK                  TRUE // MCF_GPIO_PODR_PCIBR
 
 // Call Tx handler (i.e. EplDllCbFrameTransmitted()) already if DMA has finished,
@@ -248,28 +248,6 @@
 
 //#define EPL_API_PROCESS_IMAGE_SIZE_IN 0 //disable
 //#define EPL_API_PROCESS_IMAGE_SIZE_OUT 0 //disable
-
-// =========================================================================
-// defines for flash update function
-// =========================================================================
-#define CONFIG_FACTORY_IIB_FLASH_ADRS          0x00400000      ///< flash address of factory IIB
-#define CONFIG_USER_IIB_FLASH_ADRS             0x00410000      ///< flash address of user IIB
-#define CONFIG_USER_IMAGE_FLASH_ADRS           0x00200000      ///< flash address of user image
-#define CONFIG_USER_IIB_VERSION                2               ///< used IIB version
-
-// =========================================================================
-// defines for FPGA reconfiguration
-// =========================================================================
-#define CONFIG_DISABLE_WATCHDOG            ///< if defined, watchdog timer will be disabled
-#define CONFIG_USER_IMAGE_IN_FLASH         ///< this define enables user image reconfiguration
-
-// =========================================================================
-// defines for POWERLINK identification
-// =========================================================================
-#define CONFIG_IDENT_PRODUCT_CODE           49819
-#define CONFIG_IDENT_REVISION               1
-#define CONFIG_IDENT_VENDOR_ID              0x0100006C
-#define CONFIG_IDENT_SERIAL_NUMBER          0x12345678
 
 #endif //_EPLCFG_H_
 
