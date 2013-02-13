@@ -201,6 +201,23 @@
 // Disable deferred release of rx-buffers until Edrv for openMAC supports it
 #define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE    TRUE
 
+// Async buffer for NMT commands TX in bytes
+#define EPL_DLLCAL_BUFFER_SIZE_TX_NMT        4096
+
+// Async buffer for Asnd messages TX in bytes
+#define EPL_DLLCAL_BUFFER_SIZE_TX_GEN        8192
+
+// Async buffer for Sync Response TX in bytes
+#define EPL_DLLCAL_BUFFER_SIZE_TX_SYNC       4096
+
+// =========================================================================
+// Event kernel/user module defines
+// =========================================================================
+
+// kernel to user queue size
+#define EPL_EVENT_SIZE_SHB_KERNEL_TO_USER    4096
+
+
 
 // =========================================================================
 // OBD specific defines
