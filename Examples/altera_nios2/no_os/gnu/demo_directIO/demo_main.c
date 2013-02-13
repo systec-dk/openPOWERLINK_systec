@@ -144,7 +144,7 @@ int main (void)
 #endif
 
     PRINTF("\n\nDigital I/O interface is running...\n");
-    PRINTF("starting openPowerlink...\n\n");
+    PRINTF("starting openPOWERLINK ...\n\n");
 
     if((bNodeId = SysComp_getNodeId()) == 0)
     {
@@ -159,11 +159,11 @@ int main (void)
     {
         if (openPowerlink(bNodeId) != 0)
         {
-            PRINTF("openPowerlink was shut down because of an error\n");
+            PRINTF("openPOWERLINK was shut down because of an error\n");
             break;
         } else
         {
-            PRINTF("openPowerlink was shut down, restart...\n\n");
+            PRINTF("openPOWERLINK was shut down, restart...\n\n");
         }
         /* wait some time until we restart the stack */
         usleep(1000000);
@@ -498,14 +498,14 @@ static int openPowerlink(BYTE bNodeId_p)
     PRINTF("\nNode ID is set to: %d\n", EplApiInitParam.m_uiNodeId);
 
     /* initialize POWERLINK stack */
-    PRINTF("init POWERLINK stack:\n");
+    PRINTF("init openPOWERLINK stack:\n");
     EplRet = EplApiInitialize(&EplApiInitParam);
     if(EplRet != kEplSuccessful)
     {
-        PRINTF("init POWERLINK Stack... error 0x%X\n\n", EplRet);
+        PRINTF("init openPOWERLINK stack... error 0x%X\n\n", EplRet);
         goto Exit;
     }
-    PRINTF("init POWERLINK Stack...ok\n\n");
+    PRINTF("init openPOWERLINK stack...ok\n\n");
 
     /* link process variables used by CN to object dictionary */
     PRINTF("linking process vars:\n");
@@ -531,18 +531,18 @@ static int openPowerlink(BYTE bNodeId_p)
     PRINTF("linking process vars... ok\n\n");
 
     /* start the POWERLINK stack */
-    PRINTF("start EPL Stack...\n");
+    PRINTF("start openPOWERLINK stack...\n");
     EplRet = EplApiExecNmtCommand(kEplNmtEventSwReset);
     if (EplRet != kEplSuccessful)
     {
-        PRINTF("start EPL Stack... error\n\n");
+        PRINTF("start openPOWERLINK stack... error\n\n");
         goto ExitShutdown;
     }
 
     /* Start POWERLINK Stack */
-    PRINTF("start POWERLINK Stack... ok\n\n");
+    PRINTF("start openPOWERLINK stack... ok\n\n");
 
-    PRINTF("Digital I/O interface with openPowerlink is ready!\n\n");
+    PRINTF("Digital I/O interface with openPOWERLINK is ready!\n\n");
 
 #ifdef STATUS_LEDS_BASE
     SysComp_setPowerlinkStatus(0xff);
@@ -560,7 +560,7 @@ static int openPowerlink(BYTE bNodeId_p)
     }
 
 ExitShutdown:
-    PRINTF("Shutdown EPL Stack\n");
+    PRINTF("Shutdown openPOWERLINK stack\n");
     EplApiShutdown();       // shutdown node
 
 Exit:
