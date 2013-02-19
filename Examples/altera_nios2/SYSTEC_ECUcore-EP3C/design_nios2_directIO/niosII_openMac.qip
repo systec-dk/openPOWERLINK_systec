@@ -5,7 +5,7 @@ set_global_assignment -name SOURCE_FILE [file join $::quartus(qip_path) pcp_cpu.
 # tri_state_bridge_0
 # SRAM_0
 set_global_assignment -name TCL_FILE [file join $::quartus(qip_path) ECUcore-EP3C/AsyncSRAM_hw.tcl]
-# onchip_memory_0
+# tc_i_mem_pcp
 # jtag_uart_0
 # benchmark_pio
 # system_timer
@@ -56,5 +56,5 @@ set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) powerlink_
 # clk50
 # null
 set_global_assignment -name SDC_FILE [file join $::quartus(ip_rootpath) altera/sopc_builder_ip/altera_avalon_clock_adapter/altera_avalon_clock_adapter.sdc]
-set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 080027009C3A00000139FBF95C49 
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 080027009C3A0000013CD234BC9D 
  

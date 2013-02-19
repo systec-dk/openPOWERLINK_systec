@@ -81,7 +81,7 @@
 #define _DEV_GNUC_NIOS2_        0x0000001FL     // Altera Nios II GCC
 #define _DEV_GNUC_X86_          0x00000017L     // GNU for I386
 #define _DEV_GNUC_CF_           0x00000014L     // GNU for Coldfire
-#define _DEV_MSEVC_             0x00000012L     // Microsoft embedded Visual C/C++#define _DEV_GNUC_ARM7_         0x0000000EL     // GNU Compiler gcc for ARM7
+#define _DEV_MSEVC_             0x00000012L     // Microsoft embedded Visual C/C++
 #define _DEV_LINUX_GCC_         0x0000000AL     // Linux GNU Compiler gcc
 #define _DEV_MSVC32_            0x00000000L     // Microsoft Visual C/C++
 
@@ -101,8 +101,8 @@
 #define _DEV_GNU_I386_          (_DEV_BIT32_ | _DEV_GNUC_X86_                 | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_ | _DEV_ONLY_INT_MAIN_)
 #define _DEV_NIOS2_             (_DEV_BIT32_ | _DEV_GNUC_NIOS2_               | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_ | _DEV_ONLY_INT_MAIN_ | _DEV_ALIGNMENT_4_ )
 #define _DEV_VXWORKS_           (_DEV_BIT32_ | _DEV_LINUX_GCC_                | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_)
-#define _DEV_MICROBLAZE_        (_DEV_BIT32_ | _DEV_GNUC_MICROBLAZE   | _DEV_BIGEND_ | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_ | _DEV_ONLY_INT_MAIN_ | _DEV_ALIGNMENT_4_ )
-
+#define _DEV_MICROBLAZE_BIG_    (_DEV_BIT32_ | _DEV_GNUC_MICROBLAZE   | _DEV_BIGEND_ | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_ | _DEV_ONLY_INT_MAIN_ | _DEV_ALIGNMENT_4_ )
+#define _DEV_MICROBLAZE_LITTLE_ (_DEV_BIT32_ | _DEV_GNUC_MICROBLAZE   | _DEV_64BIT_SUPPORT_ | _DEV_COMMA_EXT_ | _DEV_ONLY_INT_MAIN_ | _DEV_ALIGNMENT_4_ )
 
 //---------------------------------------------------------------------------
 //  useful macros
@@ -253,7 +253,7 @@
             #define TRACE(...)
     #endif
 
-    #define UNUSED_PARAMETER(par)
+    #define UNUSED_PARAMETER(par)   (void)par
 
 // ------------------ GNUC for VxWorks ---------------------------------------
 #elif (TARGET_SYSTEM == _VXWORKS_)
@@ -294,7 +294,7 @@
         #define TRACE(...)
     #endif
 
-    #define UNUSED_PARAMETER(par)
+    #define UNUSED_PARAMETER(par)   (void)par
 
 // ------------------ GNU without OS ---------------------------------------
 #elif (TARGET_SYSTEM == _NO_OS_)
@@ -335,7 +335,7 @@
         #define TRACE(...)
     #endif
 
-    #define UNUSED_PARAMETER(par)
+    #define UNUSED_PARAMETER(par)   (void)par
 
     #if (DEV_SYSTEM == _DEV_NIOS2_)
         #if !defined(__OPTIMIZE__)
@@ -344,6 +344,13 @@
             #undef  INLINE_ENABLED
             #undef  INLINE_FUNCTION_DEF
         #endif
+
+        #include <section-nios2.h>
+    #endif
+
+    #if (DEV_SYSTEM == _DEV_MICROBLAZE_BIG_ \
+        || DEV_SYSTEM == _DEV_MICROBLAZE_LITTLE_)
+        #include <section-microblaze.h>
     #endif
 
 // ------------------ WIN32 ---------------------------------------------
@@ -399,7 +406,7 @@
         #define TRACE(...)
     #endif
 
-    #define UNUSED_PARAMETER(par) par
+    #define UNUSED_PARAMETER(par) (void)par
 
     // MS Visual C++ compiler supports function inlining
     #define INLINE_FUNCTION_DEF __forceinline
@@ -467,11 +474,13 @@
         #define TRACE(...)
     #endif
 
-    #define UNUSED_PARAMETER(par)
+    #define UNUSED_PARAMETER(par)   (void)par
 
     #define __func__ __FUNCTION__
 
 #endif
+
+#include <section-default.h>
 
 //---------------------------------------------------------------------------
 //  definitions of basic types
@@ -527,6 +536,39 @@
 
     #ifndef BOOL
         #define BOOL unsigned char
+    #endif
+
+    // --- bit sized types ---
+    #ifndef UINT8
+        #define UINT8 unsigned char
+    #endif
+
+    #ifndef UINT16
+        #define UINT16 unsigned short int
+    #endif
+
+    #ifndef UINT32
+        #define UINT32 unsigned int
+    #endif
+
+    #ifndef UINT64
+        #define UINT64 unsigned long long int
+    #endif
+
+    #ifndef INT8
+        #define INT8 char
+    #endif
+
+    #ifndef INT16
+        #define INT16 short int
+    #endif
+
+    #ifndef INT32
+        #define INT32 int
+    #endif
+
+    #ifndef INT64
+        #define INT64 long long int
     #endif
 
     // --- alias types ---

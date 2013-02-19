@@ -107,7 +107,7 @@
 #if defined(__NIOS2__)
 
 //POWERLINK IP-Core in "pcp_0" subsystem
-#if defined(PCP_0_POWERLINK_0_MAC_REG_BASE)
+#if defined(PCP_0_QSYS_POWERLINK_0_MAC_REG_BASE)
 #include "EdrvOpenMac_qsys.h"
 
 //POWERLINK IP-Core in SOPC
@@ -153,7 +153,7 @@
 #elif (EDRV_MAX_RX_BUFFERS == 0)
 #warning "Rx buffers set to zero -> set value by yourself!"
 #undef EDRV_MAX_RX_BUFFERS
-#define EDRV_MAX_RX_BUFFERS 6
+#define EDRV_MAX_RX_BUFFERS 16
 #endif
 
 #if (EDRV_AUTO_RESPONSE == FALSE)
@@ -259,7 +259,9 @@ typedef struct _tEdrvInstance
 
 
 // RX Hook function
-static int EdrvRxHook(void *arg, ometh_packet_typ  *pPacket, OMETH_BUF_FREE_FCT  *pFct);
+static int EdrvRxHook(void *arg,
+                      ometh_packet_typ  *pPacket,
+                      OMETH_BUF_FREE_FCT  *pFct)  SECTION_EDRVOPENMAC_RX_HOOK;
 
 static void EdrvCbSendAck(ometh_packet_typ *pPacket, void *arg, unsigned long time);
 
@@ -267,7 +269,7 @@ static void EdrvIrqHandler (void* pArg_p
 #ifndef ALT_ENHANCED_INTERRUPT_API_PRESENT
         , DWORD dwInt_p
 #endif
-        );
+        ) SECTION_EDRVOPENMAC_IRQ_HDL;
 
 
 
@@ -333,11 +335,11 @@ BYTE            abFilterMask[31],
 
     EdrvInstance_l.m_InitParam = *pEdrvInitParam_p;
 
-    ////////////////////
-    // initialize phy //
-    ////////////////////
-    omethMiiControl(EDRV_MII_BASE, MII_CTRL_RESET);
+    // the phys are reset by the initial hw state
+    //  If sw comes here again, no phy reset is done!
     EDRV_USLEEP(EDRV_PHY_RST_PULSE_US);
+
+    // activate phys and wait until ready
     omethMiiControl(EDRV_MII_BASE, MII_CTRL_ACTIVE);
     EDRV_USLEEP(EDRV_PHY_RST_READY_US);
 
@@ -1375,9 +1377,9 @@ tEplTgtTimeStamp    TimeStamp;
 #if XPAR_MICROBLAZE_USE_DCACHE
     /*
      * before handing over the received packet to the stack
-     * flush the packet's memory range
+     * invalidate the packet's memory range
      */
-    microblaze_flush_dcache_range((DWORD)pPacket, pPacket->length);
+    microblaze_invalidate_dcache_range((DWORD)pPacket, pPacket->length);
 #endif
 
     EdrvInstance_l.m_InitParam.m_pfnRxHandler(&rxBuffer); //pass frame to Powerlink Stack
