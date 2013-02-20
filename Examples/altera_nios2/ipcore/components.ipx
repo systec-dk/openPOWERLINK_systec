@@ -9,7 +9,7 @@
    name="powerlink"
    file="powerlink/powerlink_hw.tcl"
    displayName="POWERLINK"
-   version="0.2.7"
+   version="0.2.9"
    description="POWERLINK IP-core"
    tags="CONNECTION_TYPES=avalon,clock,conduit,interrupt /// INTERNAL_COMPONENT=false"
    categories="Interface Protocols/Ethernet"
@@ -18,6 +18,6 @@
   <documentUrl
      displayName="POWERLINK IP-Core Documentation"
      type="OTHER"
-     url="doc/POWERLINK-IP-Core_Altera.pdf" />
+     url="doc/01_POWERLINK-IP-Core_Altera.pdf" />
  </component>
 </library>
