@@ -123,7 +123,7 @@ package require -exact sopc 10.1
 
 set_module_property DESCRIPTION "POWERLINK IP-core"
 set_module_property NAME powerlink
-set_module_property VERSION 0.2.7
+set_module_property VERSION 0.2.9
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Ethernet"
 set_module_property AUTHOR "Michael Hogger and Joerg Zelenka"
@@ -134,7 +134,7 @@ set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE FALSE
 set_module_property ANALYZE_HDL TRUE
 set_module_property ICON_PATH "img/br.png"
-add_documentation_link "POWERLINK IP-Core Documentation" "doc/POWERLINK-IP-Core_Altera.pdf"
+add_documentation_link "POWERLINK IP-Core Documentation" "doc/01_POWERLINK-IP-Core_Altera.pdf"
 
 #files
 add_file "src/powerlink.vhd" {SYNTHESIS SIMULATION}
@@ -185,6 +185,8 @@ set_parameter_property iPdiRev_g HDL_PARAMETER true
 set_parameter_property iPdiRev_g ALLOWED_RANGES 0:65535
 set_parameter_property iPdiRev_g VISIBLE false
 set_parameter_property iPdiRev_g DERIVED TRUE
+set_parameter_property iPdiRev_g DISPLAY_NAME "PDI revision number"
+set_parameter_property iPdiRev_g DESCRIPTION "Version of the PDI layout."
 
 #PCP SYSTEM ID
 add_parameter pcpSysId INTEGER 1
@@ -321,12 +323,12 @@ set_parameter_property phyIF ALLOWED_RANGES {"RMII" "MII"}
 set_parameter_property phyIF DISPLAY_HINT radio
 set_parameter_property phyIF DESCRIPTION "The \"Ethernet Phy Interface\" depends on the used Ethernet Phy ICs on your PCB. Note: Prefer RMII (Reduced Media Independent Interface, slave mode) since the resource utilization within the FPGA is a minimum. MII (Media Independent Interface) introduces extra Logic Elements (LE)."
 
-add_parameter packetLoc STRING "TX and RX into DPRAM"
+add_parameter packetLoc STRING "TX and RX into embedded memory (M9K)"
 set_parameter_property packetLoc VISIBLE true
 set_parameter_property packetLoc DISPLAY_NAME "Packet Buffer Location"
-set_parameter_property packetLoc ALLOWED_RANGES {"TX and RX into DPRAM" "TX into DPRAM and RX over Avalon Master" "TX and RX over Avalon Master"}
+set_parameter_property packetLoc ALLOWED_RANGES {"TX and RX into embedded memory (M9K)" "TX into embedded memory (M9K) and RX over Avalon Master" "TX and RX over Avalon Master"}
 set_parameter_property packetLoc DISPLAY_HINT radio
-set_parameter_property packetLoc DESCRIPTION "The \"Packet Buffer Location\" is the most important setting for your POWERLINK Slave. \"TX and RX into DPRAM\" instantiates a dual ported RAM into the FPGA with the appropriate size of your settings. Prefer this choice if you have enough memory blocks (M9K) available. The setting \"TX into DPRAM and RX over Avalon Master\" places TX buffers of openMAC in the dual ported RAM, however, the RX buffers are stored in the heap of your Nios II system. Take this solution if you have a limited amount of memory blocks (M9K) and your heap is located in high-latency memory. The third selection \"TX and RX over Avalon Master\" locates TX and RX packets in your heap. Use this choice only if your heap is located in low-latency memory (SRAM 10 ns) and you are very restricted by memory block (M9K) availability."
+set_parameter_property packetLoc DESCRIPTION "The \"Packet Buffer Location\" is the most important setting for your POWERLINK Slave. \"TX and RX into embedded memory (M9K)\" instantiates a dual ported RAM into the FPGA with the appropriate size of your settings. Prefer this choice if you have enough memory blocks (M9K) available. The setting \"TX into embedded memory (M9K) and RX over Avalon Master\" places TX buffers of openMAC in the dual ported RAM, however, the RX buffers are stored in the heap of your Nios II system. Take this solution if you have a limited amount of memory blocks (M9K) and your heap is located in high-latency memory. The third selection \"TX and RX over Avalon Master\" locates TX and RX packets in your heap. Use this choice only if your heap is located in low-latency memory (SRAM 10 ns) and you are very restricted by memory block (M9K) availability."
 
 add_parameter validSet INTEGER "1"
 set_parameter_property validSet VISIBLE false
@@ -346,10 +348,10 @@ set_parameter_property macTxBuf UNITS bytes
 set_parameter_property macTxBuf DISPLAY_NAME "openMAC TX Buffer Size"
 set_parameter_property macTxBuf DESCRIPTION "If \"openMAC only\" is selected, the MAC TX buffer size has to be set manually. E.g. POWERLINK CN requires approx. 7000 bytes."
 
-add_parameter macRxBuf INTEGER 4
+add_parameter macRxBuf INTEGER 10
 set_parameter_property macRxBuf ALLOWED_RANGES 4:16
 set_parameter_property macRxBuf DISPLAY_NAME "openMAC Number RX Buffers (MTU = 1500 byte)"
-set_parameter_property macRxBuf DESCRIPTION "If \"openMAC only\" is selected, the number of MAC RX buffers has to be set manually (MTU = 1500 byte). E.g. POWERLINK CN requires 4 RX buffers (SoC, PReq, SoA and Asnd)."
+set_parameter_property macRxBuf DESCRIPTION "If \"openMAC only\" is selected, the number of MAC RX buffers has to be set manually (MTU = 1500 byte). E.g. POWERLINK CN requires 10 RX buffers (SoC, PReq, SoA and Asnd (7 times))."
 
 add_parameter hwSupportSyncIrq BOOLEAN FALSE
 set_parameter_property hwSupportSyncIrq VISIBLE true
@@ -601,7 +603,7 @@ set_parameter_property pioValLen_g DERIVED TRUE
 
 proc my_validation_callback {} {
 # REVISION NUMBERS #
-    set PDI_REV_VAL 3
+    set PDI_REV_VAL 4
     set PLK_REV_VAL \"[get_module_property VERSION]\"
 # REVISION NUMBERS #
     
@@ -641,10 +643,10 @@ proc my_validation_callback {} {
 		send_message info "Consider to use RMII to reduce resource usage!"
 	}
 	
-	if {$ploc == "TX and RX into DPRAM"} {
+	if {$ploc == "TX and RX into embedded memory (M9K)"} {
 		set_parameter_value useIntPacketBuf_g true
 		set_parameter_value useRxIntPacketBuf_g true
-	} elseif {$ploc == "TX into DPRAM and RX over Avalon Master" } {
+	} elseif {$ploc == "TX into embedded memory (M9K) and RX over Avalon Master" } {
 		set_parameter_value useIntPacketBuf_g true
 		set_parameter_value useRxIntPacketBuf_g false
 		send_message info "Connect the Avalon Master 'MAC_DMA' to the memory where Heap is located!"
@@ -661,16 +663,18 @@ proc my_validation_callback {} {
     	set macRxBurstSize [get_parameter_value macRxBurstSize]
         set pcpSysId [get_parameter_value pcpSysId]
         set_parameter_property plkCoreRev VISIBLE true
+        set_parameter_property iPdiRev_g  VISIBLE true
     } else {
         #no expert mode set them to one per default
         set macTxBurstSize 1
         set macRxBurstSize 1
         set pcpSysId 1
         set_parameter_property plkCoreRev VISIBLE false
+        set_parameter_property iPdiRev_g VISIBLE  false
     }
 	
 	#burst size setting allowed?!
-	if {$ploc == "TX and RX into DPRAM"} {
+	if {$ploc == "TX and RX into embedded memory (M9K)"} {
 		#no
 		set_parameter_property macTxBurstSize VISIBLE false
 		set_parameter_property macRxBurstSize VISIBLE false
@@ -681,7 +685,7 @@ proc my_validation_callback {} {
 	} else {
 		#yes!
 		
-		if {$ploc == "TX into DPRAM and RX over Avalon Master"} {
+		if {$ploc == "TX into embedded memory (M9K) and RX over Avalon Master"} {
 			set_parameter_property macTxBurstSize VISIBLE false
             if {$expert} {
 			    set_parameter_property macRxBurstSize VISIBLE true
@@ -825,6 +829,7 @@ proc my_validation_callback {} {
 	set_parameter_property hwSupportSyncIrq VISIBLE false
 	set_parameter_property enDmaObserver VISIBLE false
     set_parameter_property pcpSysId VISIBLE false
+    set_parameter_property iPdiRev_g VISIBLE  false
 	
 	set_parameter_property mac2phys VISIBLE true
     set_parameter_property macGen2ndSmi VISIBLE false
@@ -834,10 +839,10 @@ proc my_validation_callback {} {
 	
 	if {$configPowerlink == "openMAC only"} {
 		#no PDI, only openMAC
-		if {$ploc == "TX and RX into DPRAM"} {
+		if {$ploc == "TX and RX into embedded memory (M9K)"} {
 			set_parameter_property macTxBuf VISIBLE true
 			set_parameter_property macRxBuf VISIBLE true
-		} elseif {$ploc == "TX into DPRAM and RX over Avalon Master"} {
+		} elseif {$ploc == "TX into embedded memory (M9K) and RX over Avalon Master"} {
 			set_parameter_property macTxBuf VISIBLE true
             set_parameter_property macRxBuf VISIBLE true
 		} elseif {$ploc == "TX and RX over Avalon Master"} {
@@ -854,18 +859,22 @@ proc my_validation_callback {} {
 			set rpdo0size [expr 4 + 16]
 			set rpdo1size 0
 			set rpdo2size 0
-			set macRxBuffers 4
+			set macRxBuffers 3
 		} elseif {$rpdos == 2} {
 			set rpdo0size [expr 4 + 16]
 			set rpdo1size [expr 4 + 16]
 			set rpdo2size 0
-			set macRxBuffers 5
+			set macRxBuffers 4
 		} elseif {$rpdos == 3} {
 			set rpdo0size [expr 4 + 16]
 			set rpdo1size [expr 4 + 16]
 			set rpdo2size [expr 4 + 16]
-			set macRxBuffers 6
+			set macRxBuffers 5
 		}
+
+		# add additional buffers for asnd (masnd supports 7 multi asnd slots!)
+		incr macRxBuffers 7
+
 		#and fix tpdo size
 		set tpdo0size 4
 		
@@ -882,6 +891,7 @@ proc my_validation_callback {} {
 		set_parameter_property genLedGadget VISIBLE true
         if {$expert} {
             #in case of expert mode event hw support can be set
+            set_parameter_property iPdiRev_g VISIBLE true
 		    set_parameter_property genEvent VISIBLE true
             set_parameter_value genEvent_g $genEvent
             set_parameter_property pcpSysId VISIBLE true
@@ -909,18 +919,22 @@ proc my_validation_callback {} {
 			set_parameter_property rpdo0size VISIBLE true
 			set rpdo1size 0
 			set rpdo2size 0
-			set macRxBuffers 4
+			set macRxBuffers 3
 			set memRpdo [expr ($rpdo0size)*3]
 		} elseif {$rpdos == 2} {
 			set_parameter_property rpdo0size VISIBLE true
 			set rpdo2size 0
-			set macRxBuffers 5
+			set macRxBuffers 4
 			set memRpdo [expr ($rpdo0size + $rpdo1size)*3]
 		} elseif {$rpdos == 3} {
 			set_parameter_property rpdo0size VISIBLE true
-			set macRxBuffers 6
+			set macRxBuffers 5
 			set memRpdo [expr ($rpdo0size + $rpdo1size + $rpdo2size )*3]
 		}
+
+		# add additional buffers for asnd (masnd supports 7 multi asnd slots!)
+		incr macRxBuffers 7
+
 		set_parameter_property tpdo0size VISIBLE true
 		set memTpdo [expr ($tpdo0size)*3]
 		
@@ -1012,11 +1026,11 @@ proc my_validation_callback {} {
     set txBufSize   [expr ($txBufSize + 3) & ~3]
     set rxBufSize   [expr ($rxBufSize + 3) & ~3]
 	
-	if {$ploc == "TX and RX into DPRAM"} {
+	if {$ploc == "TX and RX into embedded memory (M9K)"} {
 		set macBufSize [expr $txBufSize + $rxBufSize]
 		set log2MacBufSize [expr int(ceil(log($macBufSize) / log(2.)))]
 		set enDmaObserver false
-	} elseif {$ploc == "TX into DPRAM and RX over Avalon Master" } {
+	} elseif {$ploc == "TX into embedded memory (M9K) and RX over Avalon Master" } {
 		set macBufSize $txBufSize
         if {$expert} {
             #expert may enable it manually
@@ -1204,9 +1218,9 @@ proc my_validation_callback {} {
 		set_module_assignment embeddedsw.CMacro.CONFIGAPENDIAN		1
 	}
 	
-	if {$ploc == "TX and RX into DPRAM"} {							#all packets stored in openMAC DPRAM
+	if {$ploc == "TX and RX into embedded memory (M9K)"} {			#all packets stored in openMAC DPRAM
 		set_module_assignment embeddedsw.CMacro.PKTLOC				0
-	} elseif {$ploc == "TX into DPRAM and RX over Avalon Master"} {	#Rx packets stored in heap
+	} elseif {$ploc == "TX into embedded memory (M9K) and RX over Avalon Master"} {	#Rx packets stored in heap
 		set_module_assignment embeddedsw.CMacro.PKTLOC				1
 	} elseif {$ploc == "TX and RX over Avalon Master"} {			#all packets stored in heap
 		set_module_assignment embeddedsw.CMacro.PKTLOC				2
@@ -1256,6 +1270,7 @@ add_display_item "Block Diagram" id0 icon img/block_diagram.png
 add_display_item "General Settings" expertMode PARAMETER
 add_display_item "General Settings" plkCoreRev PARAMETER
 add_display_item "General Settings" configPowerlink PARAMETER
+add_display_item "Process Data Interface Settings" iPdiRev_g  PARAMETER
 add_display_item "Process Data Interface Settings" configApInterface PARAMETER
 add_display_item "Process Data Interface Settings" configApParallelInterface PARAMETER
 add_display_item "Process Data Interface Settings" configApParOutSigs PARAMETER
@@ -1711,11 +1726,11 @@ if {$ClkRate50meg == 50000000} {
 	}
 	
 	#verify which packet location is set and disable/enable dma/dpr
-	if {[get_parameter_value packetLoc] == "TX and RX into DPRAM"} {
+	if {[get_parameter_value packetLoc] == "TX and RX into embedded memory (M9K)"} {
 		#use internal packet buffering
 		set_interface_property MAC_BUF ENABLED true
 		set_interface_property clkPkt ENABLED true
-	} elseif {[get_parameter_value packetLoc] == "TX into DPRAM and RX over Avalon Master"} {
+	} elseif {[get_parameter_value packetLoc] == "TX into embedded memory (M9K) and RX over Avalon Master"} {
 		#use internal packet buffering
 		set_interface_property MAC_BUF ENABLED true
 		set_interface_property clkPkt ENABLED true
@@ -1780,7 +1795,7 @@ if {$ClkRate50meg == 50000000} {
 	}
 	
 	#if the MAC DMA master only write data to memory (RX), then we can disable read and readdata
-	if {[get_parameter_value packetLoc] == "TX into DPRAM and RX over Avalon Master"} {
+	if {[get_parameter_value packetLoc] == "TX into embedded memory (M9K) and RX over Avalon Master"} {
 		set_port_property m_read termination true
 		set_port_property m_readdata termination true
 		set_port_property m_readdatavalid termination true
