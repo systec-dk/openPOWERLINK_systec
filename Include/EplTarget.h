@@ -148,6 +148,14 @@
         #define EplTgtEnableGlobalInterrupt ShbTgtEnableGlobalInterrupt
     #endif
 
+    #if (DEV_SYSTEM == _DEV_NIOS2_)
+        #include <EplSection-nios2.h>
+    #endif
+
+    #if (DEV_SYSTEM == _DEV_MICROBLAZE_BIG_ || DEV_SYSTEM == _DEV_MICROBLAZE_LITTLE_)
+        #include <EplSection-microblaze.h>
+    #endif
+
 
 #elif (TARGET_SYSTEM == _LINUX_)
 
@@ -189,6 +197,7 @@
 
 #endif
 
+#include <EplSection-default.h>
 
 #ifndef EPL_MEMCPY
     #define EPL_MEMCPY(dst,src,siz)     memcpy((dst),(src),(siz))
