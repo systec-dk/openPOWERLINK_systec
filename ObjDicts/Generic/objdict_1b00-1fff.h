@@ -85,7 +85,7 @@
 
 #if EPL_NMT_MAX_NODE_ID > 0
         // Object 1F81h: NMT_NodeAssignment_AU32
-        EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F81, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_NodeAssignment_AU32, 0)
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F81, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_NodeAssignment_AU32, 0)
 #endif
 
         // Object 1F82h: NMT_FeatureFlags_U32
@@ -100,7 +100,7 @@
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
         // Object 1F84h: NMT_MNDeviceTypeIdList_AU32
-        EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F84, 254, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_MNDeviceTypeIdList_AU32, 0)
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F84, 254, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_MNDeviceTypeIdList_AU32, 0)
 
         // Object 1F89h: NMT_BootTime_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1F89, 0x06, NULL)
@@ -120,7 +120,7 @@
         EPL_OBD_END_INDEX(0x1F8A)
 
         // Object 1F8Bh: NMT_MNPReqPayloadLimitList_AU16
-        EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F8B, 254, NULL, kEplObdTypUInt16, kEplObdAccSRW, tEplObdUnsigned16, NMT_MNPReqPayloadLimitList_AU16, 36)
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F8B, 254, NULL, kEplObdTypUInt16, kEplObdAccSRW, tEplObdUnsigned16, NMT_MNPReqPayloadLimitList_AU16, 36)
 #endif
 
         // Object 1F8Ch: NMT_CurrNMTState_U8
@@ -130,7 +130,7 @@
 
 #if EPL_NMT_MAX_NODE_ID > 0
         // Object 1F8Dh: NMT_PResPayloadLimitList_AU16
-        EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F8D, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt16, kEplObdAccSRW, tEplObdUnsigned16, NMT_PResPayloadLimitList_AU16, 36)
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F8D, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt16, kEplObdAccSRW, tEplObdUnsigned16, NMT_PResPayloadLimitList_AU16, 36)
 #endif
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
@@ -141,7 +141,7 @@
         EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F8F, 254, NULL, kEplObdTypUInt8, kEplObdAccR, tEplObdUnsigned8, NMT_MNNodeExpState_AU8, 0x1C)
 
         // Object 1F92h: NMT_MNCNPResTimeout_AU32 in [ns]
-        EPL_OBD_RAM_INDEX_RAM_ARRAY(0x1F92, 254, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_MNCNPResTimeout_AU32, 140000) // in [ns]
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F92, 254, NULL, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_MNCNPResTimeout_AU32, 140000) // in [ns]
 #endif
 
         // Object 1F93h: NMT_EPLNodeID_REC
