@@ -2129,15 +2129,29 @@ unsigned int		uiLocalNodeId;
 DWORD				dwNodeCfg;
 tEplObdSize			ObdSize;
 tEplNmtMnuNodeInfo*	pNodeInfo;
+BYTE                bCount;
 
     // $$$ d.k.: save current time for 0x1F89/2 MNTimeoutPreOp1_U32
+
+    // read number of nodes from object 0x1F81/0
+    ObdSize = sizeof (bCount);
+    Ret = EplObduReadEntry(0x1F81, 0, &bCount, &ObdSize);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+    if (bCount > tabentries(EplNmtMnuInstance_g.m_aNodeInfo))
+    {
+        bCount = tabentries(EplNmtMnuInstance_g.m_aNodeInfo);
+    }
 
     // start network scan
     EplNmtMnuInstance_g.m_uiMandatorySlaveCount = 0;
     EplNmtMnuInstance_g.m_uiSignalSlaveCount = 0;
     // check 0x1F81
     uiLocalNodeId = EplObduGetNodeId();
-    for (uiSubIndex = 1; uiSubIndex <= 254; uiSubIndex++)
+    pNodeInfo = EplNmtMnuInstance_g.m_aNodeInfo;
+    for (uiSubIndex = 1; uiSubIndex <= bCount; uiSubIndex++, pNodeInfo++)
     {
         ObdSize = 4;
         Ret = EplObduReadEntry(0x1F81, uiSubIndex, &dwNodeCfg, &ObdSize);
@@ -2147,8 +2161,6 @@ tEplNmtMnuNodeInfo*	pNodeInfo;
         }
         if (uiSubIndex != uiLocalNodeId)
         {
-			pNodeInfo = EPL_NMTMNU_GET_NODEINFO(uiSubIndex);
-
             // reset flags "not scanned" and "isochronous"
             pNodeInfo->m_wFlags &= ~(EPL_NMTMNU_NODE_FLAG_ISOCHRON | EPL_NMTMNU_NODE_FLAG_NOT_SCANNED);
 
@@ -2202,6 +2214,12 @@ tEplNmtMnuNodeInfo*	pNodeInfo;
                 Ret = EplNmtMnuAddNodeIsochronous(uiLocalNodeId);
             }
         }
+    }
+
+    for (; uiSubIndex <= tabentries(EplNmtMnuInstance_g.m_aNodeInfo);
+        uiSubIndex++, pNodeInfo++)
+    {   // clear node structure of unused entries
+        EPL_MEMSET(pNodeInfo, 0, sizeof (*pNodeInfo));
     }
 
 Exit:

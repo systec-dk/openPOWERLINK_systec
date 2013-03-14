@@ -789,6 +789,7 @@ unsigned int        uiPayloadLimitIndex;
 unsigned int        uiPayloadLimitSubIndex;
 tEplPdoChannelConf  PdoChannelConf;
 tEplPdoMappObject*  pMappObject;
+BYTE                bSubIndexCount = 0;
 
     // fetch PDO ID
     uiPdoId = uiMappParamIndex_p & EPL_PDOU_PDO_ID_MASK;
@@ -878,6 +879,19 @@ tEplPdoMappObject*  pMappObject;
         {
             uiPayloadLimitIndex = 0x1F8D;   // NMT_PResPayloadLimitList_AU16
             uiPayloadLimitSubIndex = bNodeId;
+            ObdSize = sizeof (bSubIndexCount);
+            Ret = EplObduReadEntry(uiPayloadLimitIndex, 0, &bSubIndexCount, &ObdSize);
+            if (Ret != kEplSuccessful)
+            {   // other fatal error occurred
+                *pdwAbortCode_p = EPL_SDOAC_GENERAL_ERROR;
+                goto Exit;
+            }
+            if (bSubIndexCount < uiPayloadLimitSubIndex)
+            {   // sub-index is not valid
+                *pdwAbortCode_p = EPL_SDOAC_GEN_PARAM_INCOMPATIBILITY;
+                Ret = kEplPdoLengthExceeded;
+                goto Exit;
+            }
         }
     }
     else
@@ -891,6 +905,19 @@ tEplPdoMappObject*  pMappObject;
         {
             uiPayloadLimitIndex = 0x1F8B;   // NMT_MNPReqPayloadLimitList_AU16
             uiPayloadLimitSubIndex = bNodeId;
+            ObdSize = sizeof (bSubIndexCount);
+            Ret = EplObduReadEntry(uiPayloadLimitIndex, 0, &bSubIndexCount, &ObdSize);
+            if (Ret != kEplSuccessful)
+            {   // other fatal error occurred
+                *pdwAbortCode_p = EPL_SDOAC_GENERAL_ERROR;
+                goto Exit;
+            }
+            if (bSubIndexCount < uiPayloadLimitSubIndex)
+            {   // sub-index is not valid
+                *pdwAbortCode_p = EPL_SDOAC_GEN_PARAM_INCOMPATIBILITY;
+                Ret = kEplPdoLengthExceeded;
+                goto Exit;
+            }
         }
     }
 
