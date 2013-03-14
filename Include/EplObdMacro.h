@@ -97,6 +97,8 @@
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)         static CONST tEplObdUnsigned8 ROM xDef##ind##_0x00_g = (cnt); \
                                                                                         static CONST dtyp ROM xDef##ind##_0x01_g = (def);
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)     static CONST tEplObdUnsigned8 ROM xDef##ind##_0x00_g = (cnt); \
+                                                                                        static CONST dtyp ROM xDef##ind##_0x01_g = (def);
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)      static CONST tEplObdUnsigned8 ROM xDef##ind##_0x00_g = (cnt); \
                                                                                         static CONST dtyp ROM xDef##ind##_0x01_g = (def);
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)   static CONST tEplObdUnsigned8 ROM xDef##ind##_0x00_g = (cnt);
@@ -135,6 +137,8 @@
         #define EPL_OBD_BEGIN_INDEX_RAM(ind,cnt,call)
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)         static dtyp         MEM axCur##ind##_g[cnt];
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)     static tEplObdUnsigned8 MEM xCur##ind##_0x00_g; \
+                                                                                        static dtyp         MEM axCur##ind##_g[cnt];
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)      static tEplObdVarEntry MEM aVarEntry##ind##_g[cnt];
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)   static tEplObdVarEntry MEM aVarEntry##ind##_g[cnt];
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)            static tEplObdUnsigned8 MEM xCur##ind##_0x00_g; \
@@ -170,6 +174,10 @@
         #define EPL_OBD_END_INDEX(ind)                                                  EPL_OBD_END_SUBINDEX()};
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)         static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
                                                                                         {0, kEplObdTypUInt8, kEplObdAccCR,          &xDef##ind##_0x00_g,   NULL}, \
+                                                                                        {1, typ,          (acc)|kEplObdAccArray, &xDef##ind##_0x01_g,   &axCur##ind##_g[0]}, \
+                                                                                        EPL_OBD_END_SUBINDEX()};
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)     static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
+                                                                                        {0, kEplObdTypUInt8, kEplObdAccRW,          &xDef##ind##_0x00_g,   &xCur##ind##_0x00_g}, \
                                                                                         {1, typ,          (acc)|kEplObdAccArray, &xDef##ind##_0x01_g,   &axCur##ind##_g[0]}, \
                                                                                         EPL_OBD_END_SUBINDEX()};
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)      static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
@@ -215,6 +223,7 @@
         #define EPL_OBD_BEGIN_INDEX_RAM(ind,cnt,call)                                   {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],cnt,(tEplObdCallback)call},
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)         {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],(cnt)+1,(tEplObdCallback)call},
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)     {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],(cnt)+1,(tEplObdCallback)call},
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)      {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],(cnt)+1,(tEplObdCallback)call},
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)   {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],(cnt)+1,(tEplObdCallback)call},
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)            {ind,(tEplObdSubEntryPtr)&aObdSubEntry##ind##Ram_g[0],(cnt)+1,(tEplObdCallback)call},
@@ -248,6 +257,7 @@
         #define EPL_OBD_BEGIN_INDEX_RAM(ind,cnt,call)
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)
@@ -282,6 +292,7 @@
         #define EPL_OBD_BEGIN_INDEX_RAM(ind,cnt,call)
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)
@@ -315,6 +326,7 @@
         #define EPL_OBD_BEGIN_INDEX_RAM(ind,cnt,call)
         #define EPL_OBD_END_INDEX(ind)
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
+        #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT(ind,cnt,call,typ,acc,dtyp,name)
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)
@@ -350,6 +362,7 @@
     #undef EPL_OBD_BEGIN_INDEX_RAM
     #undef EPL_OBD_END_INDEX
     #undef EPL_OBD_RAM_INDEX_RAM_ARRAY
+    #undef EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT
     #undef EPL_OBD_RAM_INDEX_RAM_VARARRAY
     #undef EPL_OBD_RAM_INDEX_RAM_VARARRAY_NOINIT
     #undef EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING
