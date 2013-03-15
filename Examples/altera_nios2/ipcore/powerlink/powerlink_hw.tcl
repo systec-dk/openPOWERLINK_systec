@@ -826,7 +826,6 @@ proc my_validation_callback {} {
 	set_parameter_property validSet VISIBLE false
 	set_parameter_property macTxBuf VISIBLE false
 	set_parameter_property macRxBuf VISIBLE false
-	set_parameter_property hwSupportSyncIrq VISIBLE false
 	set_parameter_property enDmaObserver VISIBLE false
     set_parameter_property pcpSysId VISIBLE false
     set_parameter_property iPdiRev_g VISIBLE  false
@@ -907,7 +906,6 @@ proc my_validation_callback {} {
         }
 		#AP can be big or little endian - allow choice
 		set_parameter_property configApEndian VISIBLE true
-		set_parameter_property hwSupportSyncIrq VISIBLE true
 		
 		#set the led gadget enable generic
 		set_parameter_value genLedGadget_g $ledGadgetEn
@@ -1150,6 +1148,10 @@ proc my_validation_callback {} {
 		} else {
 		}
 	} else {
+		if {$useLowJitterSync} {
+			set_parameter_value use2ndCmpTimer_g true
+		} else {
+		}
 	}
 	
 	#forward parameters to system.h
@@ -1270,6 +1272,7 @@ add_display_item "Block Diagram" id0 icon img/block_diagram.png
 add_display_item "General Settings" expertMode PARAMETER
 add_display_item "General Settings" plkCoreRev PARAMETER
 add_display_item "General Settings" configPowerlink PARAMETER
+add_display_item "General Settings" hwSupportSyncIrq PARAMETER
 add_display_item "Process Data Interface Settings" iPdiRev_g  PARAMETER
 add_display_item "Process Data Interface Settings" configApInterface PARAMETER
 add_display_item "Process Data Interface Settings" configApParallelInterface PARAMETER
@@ -1281,7 +1284,6 @@ add_display_item "Process Data Interface Settings" configApSpi_CPOL PARAMETER
 add_display_item "Process Data Interface Settings" configApSpi_CPHA PARAMETER
 add_display_item "Process Data Interface Settings" validSet PARAMETER
 add_display_item "Process Data Interface Settings" validAssertDuration PARAMETER
-add_display_item "Process Data Interface Settings" hwSupportSyncIrq PARAMETER
 add_display_item "Process Data Interface Settings" genLedGadget PARAMETER
 add_display_item "Process Data Interface Settings" genEvent PARAMETER
 add_display_item "Process Data Interface Settings" pcpSysId PARAMETER
@@ -1804,6 +1806,12 @@ if {$ClkRate50meg == 50000000} {
 	if {[get_parameter_value configPowerlink] == "openMAC only"} {
 		#don't need pcp_clk
 		set_interface_property pcp_clk ENABLED false
+		if {[get_parameter_value hwSupportSyncIrq]} {
+			set_interface_property AP_EX_IRQ ENABLED true
+			set_port_property ap_syncIrq_n termination true
+			set_port_property ap_asyncIrq_n termination true
+			set_port_property ap_asyncIrq termination true
+		}
 	} elseif {[get_parameter_value configPowerlink] == "Direct I/O CN"} {
 		#the Direct I/O CN requires:
 		# MAC stuff
@@ -1811,6 +1819,12 @@ if {$ClkRate50meg == 50000000} {
 		# Avalon SMP
 		set_interface_property SMP ENABLED true
 		set_interface_property SMP_PIO ENABLED true
+		if {[get_parameter_value hwSupportSyncIrq]} {
+			set_interface_property AP_EX_IRQ ENABLED true
+			set_port_property ap_syncIrq_n termination true
+			set_port_property ap_asyncIrq_n termination true
+			set_port_property ap_asyncIrq termination true
+		}
 	} else {
 		#CN with Processor Interface requires:
 		# MAC stuff

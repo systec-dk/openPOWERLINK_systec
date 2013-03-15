@@ -704,6 +704,15 @@ begin
 				tpdo_change_tog				=> tpdo_change_tog
 			);
 	end generate genPdiSpi;
+
+--PDI is disabled (either simple I/O or openMAC only)
+	genNotPdi : if not genPdi_g generate
+
+		-- directly forward toggle signal from 2nd CMP timer
+		ap_syncIrq <= irqToggle;
+		ap_syncIrq_n <= not irqToggle;
+
+	end generate genNotPdi;
 --
 ------------------------------------------------------------------------------------------------------------------------
 
