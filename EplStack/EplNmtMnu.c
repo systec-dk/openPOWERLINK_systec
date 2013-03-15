@@ -2730,34 +2730,30 @@ tEplTimerArg        TimerArg;
                 }
             }
 
-            if ((pNodeInfo->m_NodeState != kEplNmtMnuNodeStateResetConf)
-                && (pNodeInfo->m_NodeState != kEplNmtMnuNodeStateConfRestored))
+            // inform application
+            Ret = EplNmtMnuInstance_g.m_pfnCbNodeEvent(uiNodeId_p,
+                                                       kEplNmtNodeEventFound,
+                                                       NodeNmtState_p,
+                                                       EPL_E_NO_ERROR,
+                                                       (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_MANDATORY_CN) != 0);
+            if (Ret == kEplReject)
+            {   // interrupt boot process on user request
+                EPL_NMTMNU_DBG_POST_TRACE_VALUE(NodeEvent_p,
+                                                uiNodeId_p,
+                                                ((pNodeInfo->m_NodeState << 8)
+                                                 | Ret));
+
+                Ret = kEplSuccessful;
+                break;
+            }
+            else if (Ret != kEplSuccessful)
             {
-                // inform application
-                Ret = EplNmtMnuInstance_g.m_pfnCbNodeEvent(uiNodeId_p,
-                                                           kEplNmtNodeEventFound,
-                                                           NodeNmtState_p,
-                                                           EPL_E_NO_ERROR,
-                                                           (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_MANDATORY_CN) != 0);
-                if (Ret == kEplReject)
-                {   // interrupt boot process on user request
-                    EPL_NMTMNU_DBG_POST_TRACE_VALUE(NodeEvent_p,
-                                                    uiNodeId_p,
-                                                    ((pNodeInfo->m_NodeState << 8)
-                                                     | Ret));
+                EPL_NMTMNU_DBG_POST_TRACE_VALUE(NodeEvent_p,
+                                                uiNodeId_p,
+                                                ((pNodeInfo->m_NodeState << 8)
+                                                 | Ret));
 
-                    Ret = kEplSuccessful;
-                    break;
-                }
-                else if (Ret != kEplSuccessful)
-                {
-                    EPL_NMTMNU_DBG_POST_TRACE_VALUE(NodeEvent_p,
-                                                    uiNodeId_p,
-                                                    ((pNodeInfo->m_NodeState << 8)
-                                                     | Ret));
-
-                    break;
-                }
+                break;
             }
 
             // continue BootStep1
