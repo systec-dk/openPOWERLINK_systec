@@ -107,6 +107,8 @@ ENDIF (CFG_KERNEL_STACK)
 # additional Windows settings
 IF (WIN32)
     OPTION (CFG_X86_WINDOWS_DLL "Build Windows POWERLINK library as DLL" ON)
+    SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE} CACHE PATH "Library output path")
+    SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE} CACHE PATH "Executable output path")
 ENDIF (WIN32)
 
 ###############################################################################
