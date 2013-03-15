@@ -240,7 +240,7 @@ static tEplKernel PUBLIC  EplApiCbCfmEventCnResult(unsigned int uiNodeId_p, tEpl
 
 static tEplKernel PUBLIC EplApiCbReceivedAsnd(tEplFrameInfo *pFrameInfo_p);
 
-static tEplKernel EplApiCbEventPdoChange(tEplPdouEventPdoChange * pEventPdoChange_p);
+static tEplKernel PUBLIC EplApiCbEventPdoChange(tEplPdouEventPdoChange * pEventPdoChange_p);
 
 // OD initialization function (implemented in Objdict.c)
 //tEplKernel PUBLIC  EplObdInitRam (tEplObdInitParam MEM* pInitParam_p);
@@ -2912,7 +2912,7 @@ static tEplKernel PUBLIC EplApiCbReceivedAsnd
 // Returns:     tEplKernel
 //
 //---------------------------------------------------------------------------
-static tEplKernel EplApiCbEventPdoChange
+static tEplKernel PUBLIC EplApiCbEventPdoChange
 (
     tEplPdouEventPdoChange * pEventPdoChange_p
 )
