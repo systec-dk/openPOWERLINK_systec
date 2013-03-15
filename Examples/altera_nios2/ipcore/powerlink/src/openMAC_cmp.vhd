@@ -61,7 +61,8 @@ entity openMAC_cmp is
 	generic(
 		mac_time_width_g : integer := 32;
 		gen2ndCmpTimer_g : boolean := false;
-		pulseWidth2ndCmpTimer_g : integer := 9
+		pulseWidth2ndCmpTimer_g : integer := 9;
+		genPulse2ndCmpTimer_g : boolean := false
 	);
 	port(
 		clk : in std_logic;
@@ -93,8 +94,10 @@ begin
 			
 			if gen2ndCmpTimer_g = TRUE then
 				tog_enable <= '0'; tog_value <= (others => '0'); toggle_s <= '0';
-				tog_counter_value <= (others => '0');
-				tog_counter_preset <= (others => '0');
+				if genPulse2ndCmpTimer_g = TRUE then
+					tog_counter_value <= (others => '0');
+					tog_counter_preset <= (others => '0');
+				end if;
 			end if;
 			
 		elsif clk = '1' and clk'event then
@@ -107,11 +110,14 @@ begin
 			--tog
 			if tog_enable = '1' and mac_time = tog_value and gen2ndCmpTimer_g = TRUE then
 				toggle_s <= not toggle_s;
-				tog_counter_value <= tog_counter_preset;
+				if genPulse2ndCmpTimer_g = TRUE then
+					tog_counter_value <= tog_counter_preset;
+				end if;
 			end if;
 			if tog_enable = '1' and toggle_s = '1'
 			   and (not (tog_counter_value = conv_std_logic_vector(0, tog_counter_value'length)))
-			   and gen2ndCmpTimer_g = TRUE then
+			   and gen2ndCmpTimer_g = TRUE
+			   and genPulse2ndCmpTimer_g = TRUE then
 				tog_counter_value <= tog_counter_value - 1;
 				if tog_counter_value = conv_std_logic_vector(1, tog_counter_value'length) then
 					toggle_s <= '0';
@@ -133,7 +139,9 @@ begin
 					when "11" =>
 						if gen2ndCmpTimer_g = TRUE then
 							tog_enable <= din(0);
-							tog_counter_preset <= din(pulseWidth2ndCmpTimer_g downto 1);
+							if genPulse2ndCmpTimer_g = TRUE then
+								tog_counter_preset <= din(pulseWidth2ndCmpTimer_g downto 1);
+							end if;						
 						end if;						
 					when others =>
 						--go and get a coffee...

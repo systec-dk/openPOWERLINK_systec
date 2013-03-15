@@ -511,6 +511,16 @@ set_parameter_property use2ndCmpTimer_g HDL_PARAMETER true
 set_parameter_property use2ndCmpTimer_g VISIBLE false
 set_parameter_property use2ndCmpTimer_g DERIVED true
 
+add_parameter usePulse2ndCmpTimer_g BOOLEAN true
+set_parameter_property usePulse2ndCmpTimer_g HDL_PARAMETER true
+set_parameter_property usePulse2ndCmpTimer_g VISIBLE false
+set_parameter_property usePulse2ndCmpTimer_g DERIVED true
+
+add_parameter pulseWidth2ndCmpTimer_g INTEGER 9
+set_parameter_property pulseWidth2ndCmpTimer_g HDL_PARAMETER true
+set_parameter_property pulseWidth2ndCmpTimer_g VISIBLE false
+set_parameter_property pulseWidth2ndCmpTimer_g DERIVED TRUE
+
 add_parameter use2ndPhy_g BOOLEAN true
 set_parameter_property use2ndPhy_g HDL_PARAMETER true
 set_parameter_property use2ndPhy_g VISIBLE false
@@ -1140,6 +1150,7 @@ proc my_validation_callback {} {
 	#generate 2nd timer cmp if pdi and if set in sopc
 	# otherwise not (e.g. openMAC only, DirectIO or no selected)
 	set_parameter_value use2ndCmpTimer_g FALSE
+	set_parameter_value usePulse2ndCmpTimer_g FALSE
     set_parameter_value genTimeSync_g FALSE
 	if {$configPowerlink == "CN with Processor Interface"} {
 		if {$useLowJitterSync} {
@@ -1150,6 +1161,7 @@ proc my_validation_callback {} {
 	} else {
 		if {$useLowJitterSync} {
 			set_parameter_value use2ndCmpTimer_g true
+			set_parameter_value usePulse2ndCmpTimer_g true
 		} else {
 		}
 	}
