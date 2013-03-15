@@ -84,6 +84,18 @@
 // typedef
 //---------------------------------------------------------------------------
 
+typedef struct
+{
+    BOOL                m_fActivated;
+    BOOL                m_fTx;
+    unsigned int        m_uiNodeId;
+    unsigned int        m_uiPdoMappIndex;
+    unsigned int        m_uiMappObjectCount;
+} tEplPdouEventPdoChange;
+
+typedef tEplKernel (PUBLIC * tEplPdouCbEventPdoChange) (
+        tEplPdouEventPdoChange * pEventPdoChange_p);
+
 
 //---------------------------------------------------------------------------
 // function prototypes
@@ -101,6 +113,7 @@ EPLDLLEXPORT tEplKernel PUBLIC EplPdouCbObdAccess(tEplObdCbParam MEM* pParam_p);
 
 tEplKernel PUBLIC EplPdouCbNmtStateChange(tEplEventNmtStateChange NmtStateChange_p);
 
+tEplKernel EplPdouRegisterEventPdoChangeCb(tEplPdouCbEventPdoChange pfnCbEventPdoChange_p);
 
 #endif  // #ifndef _EPL_PDOU_H_
 
