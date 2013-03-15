@@ -240,6 +240,8 @@ static tEplKernel PUBLIC  EplApiCbCfmEventCnResult(unsigned int uiNodeId_p, tEpl
 
 static tEplKernel PUBLIC EplApiCbReceivedAsnd(tEplFrameInfo *pFrameInfo_p);
 
+static tEplKernel EplApiCbEventPdoChange(tEplPdouEventPdoChange * pEventPdoChange_p);
+
 // OD initialization function (implemented in Objdict.c)
 //tEplKernel PUBLIC  EplObdInitRam (tEplObdInitParam MEM* pInitParam_p);
 
@@ -425,6 +427,12 @@ tEplDllkInitParam   DllkInitParam;
     }
 
     Ret = EplPdouAddInstance();
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplPdouRegisterEventPdoChangeCb(EplApiCbEventPdoChange);
     if (Ret != kEplSuccessful)
     {
         goto Exit;
@@ -2888,6 +2896,38 @@ static tEplKernel PUBLIC EplApiCbReceivedAsnd
 
     // call user callback
     Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
+
+    return Ret;
+}
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiCbEventPdoChange
+//
+// Description: Callback to forward PDO change events to the application layer.
+//
+// Parameters:  pEventPdoChange_p   = Pointer to structure with information
+//                                    about the PDO change
+//
+// Returns:     tEplKernel
+//
+//---------------------------------------------------------------------------
+static tEplKernel EplApiCbEventPdoChange
+(
+    tEplPdouEventPdoChange * pEventPdoChange_p
+)
+{
+    tEplKernel          Ret = kEplSuccessful;
+    tEplApiEventArg     EventArg;
+
+    EventArg.m_PdoChange.m_fActivated           = pEventPdoChange_p->m_fActivated;
+    EventArg.m_PdoChange.m_fTx                  = pEventPdoChange_p->m_fTx;
+    EventArg.m_PdoChange.m_uiNodeId             = pEventPdoChange_p->m_uiNodeId;
+    EventArg.m_PdoChange.m_uiPdoMappIndex       = pEventPdoChange_p->m_uiPdoMappIndex;
+    EventArg.m_PdoChange.m_uiMappObjectCount    = pEventPdoChange_p->m_uiMappObjectCount;
+
+    // call user callback
+    Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(kEplApiEventPdoChange, &EventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
 
     return Ret;
 }

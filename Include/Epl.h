@@ -142,6 +142,15 @@ typedef struct
 }
 tEplApiEventRcvAsnd;
 
+typedef struct
+{
+    BOOL                m_fActivated;
+    BOOL                m_fTx;
+    unsigned int        m_uiNodeId;
+    unsigned int        m_uiPdoMappIndex;
+    unsigned int        m_uiMappObjectCount;
+} tEplApiEventPdoChange;
+
 typedef enum
 {
     kEplApiEventUserDef        = 0x00,    // m_pUserArg
@@ -158,6 +167,7 @@ typedef enum
     kEplApiEventCfmProgress    = 0x71,    // m_CfmProgress
     kEplApiEventCfmResult      = 0x72,    // m_CfmResult
     kEplApiEventReceivedAsnd   = 0x73,    // m_RcvAsnd
+    kEplApiEventPdoChange      = 0x74,    // m_PdoChange
 } tEplApiEventType;
 
 
@@ -175,6 +185,7 @@ typedef union
     tEplApiEventCfmResult   m_CfmResult;
     tEplErrHistoryEntry     m_ErrHistoryEntry;
     tEplApiEventRcvAsnd     m_RcvAsnd;
+    tEplApiEventPdoChange   m_PdoChange;
 } tEplApiEventArg;
 
 
