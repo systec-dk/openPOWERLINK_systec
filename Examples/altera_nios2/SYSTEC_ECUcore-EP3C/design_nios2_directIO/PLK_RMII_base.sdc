@@ -121,11 +121,15 @@ set phy_out_max	[expr $phy_tsu + $phy_tpcb]
 set phy_out_min	[expr $phy_th - $phy_tpcb]
 
 ## input
-set_input_delay -clock CLK50_virt -max $phy_in_max [get_ports {fETH?_ECRSDV_in vETH?_RXD_in[*]}]
-set_input_delay -clock CLK50_virt -min $phy_in_min [get_ports {fETH?_ECRSDV_in vETH?_RXD_in[*]}]
+set_input_delay -clock clk50 -reference_pin fETH0_TXC_CLK50_out -max $phy_in_max [get_ports {fETH0_ECRSDV_in vETH0_RXD_in[*]}]
+set_input_delay -clock clk50 -reference_pin fETH0_TXC_CLK50_out -min $phy_in_min [get_ports {fETH0_ECRSDV_in vETH0_RXD_in[*]}]
+set_input_delay -clock clk50 -reference_pin fETH1_TXC_CLK50_out -max $phy_in_max [get_ports {fETH1_ECRSDV_in vETH1_RXD_in[*]}]
+set_input_delay -clock clk50 -reference_pin fETH1_TXC_CLK50_out -min $phy_in_min [get_ports {fETH1_ECRSDV_in vETH1_RXD_in[*]}]
 ## output
-set_output_delay -clock CLK50_virt -max $phy_out_max [get_ports {fETH?_TXEN_out vETH?_TXD_out[*]}]
-set_output_delay -clock CLK50_virt -min $phy_out_min [get_ports {fETH?_TXEN_out vETH?_TXD_out[*]}]
+set_output_delay -clock clk50 -reference_pin fETH0_TXC_CLK50_out -max $phy_out_max [get_ports {fETH0_TXEN_out vETH0_TXD_out[*]}]
+set_output_delay -clock clk50 -reference_pin fETH0_TXC_CLK50_out -min $phy_out_min [get_ports {fETH0_TXEN_out vETH0_TXD_out[*]}]
+set_output_delay -clock clk50 -reference_pin fETH1_TXC_CLK50_out -max $phy_out_max [get_ports {fETH1_TXEN_out vETH1_TXD_out[*]}]
+set_output_delay -clock clk50 -reference_pin fETH1_TXC_CLK50_out -min $phy_out_min [get_ports {fETH1_TXEN_out vETH1_TXD_out[*]}]
 ## cut path
 set_false_path -from [get_registers *] -to [get_ports fnETH_RST_out]
 set_false_path -from [get_registers *] -to [get_ports fETH_MDC_out]
