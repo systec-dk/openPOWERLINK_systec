@@ -953,3 +953,126 @@ Fellow worker:    Daniel Krüger (d.k.)
 2012-10-15 V1.8.2   - [FIX] Remove PRes frame size check for node running as CN
                     (Michael Hogger)
 
+2012-11-07 V1.8.3   - [FIX] Add missing definitions for xilinx platform in global.h
+                    (Thomas Mair)
+
+2012-10-18 V1.8.3   - [TASK] Add trace macros for PDO module
+                    (Josef Baumgartner)
+
+2012-11-05 V1.8.3   - [TASK] Add bit-sized integer type macros
+                    (Josef Baumgartner)
+
+2012-10-23 V1.8.3   - [TASK] Implement macro UNUSED_PARAMETER()
+                    (Josef Baumgartner)
+
+2012-11-16 V1.8.3   - [FIX] Replace "winpcap" by "pcap library" in the CN console demo
+                    (Wolfgang Seiss)
+
+2013-02-21 V1.8.3   - [FEATURE] Move functions from interrupt context to internal memory
+                    (Thomas Mair)
+
+2013-02-20 V1.8.3   - [TASK] Revise MN asynchronous slot self-invitation
+                    (Joerg Zelenka)
+
+2012-11-23 V1.8.3   - [FIX] Xilinx demo: 'make clean_hw' target can be called twice
+                    (Thomas Mair)
+
+2012-11-26 V1.8.3   - [TASK] Add eclipse project files to xilinx example
+                    (Thomas Mair)
+
+2012-11-29 V1.8.3   - [FIX] Remove garbage at line 84 in global.h
+                    (Josef Baumgartner)
+
+2012-12-12 V1.8.3   - [FIX] Remove TxEr signal in lx150t directIO designs
+                    (Thomas Mair)
+
+2013-01-11 V1.8.3   - [TASK] introduced download-all command for Xilinx demo
+                    (Joerg Zelenka)
+
+2013-03-15 V1.8.3   - [FIX] EplNmtMnu: Always forward kEplNmtNodeEventFound to application
+                    (Daniel Krueger)
+
+2013-01-18 V1.8.3   - [FIX] timing issue with MII phy interface
+                    (Joerg Zelenka)
+
+2013-01-29 V1.8.3   - [FIX] Revise timing constraints of Xilinx examples
+                    (Joerg Zelenka)
+
+2013-02-04 V1.8.3   - [FEATURE] Rework xilinx makefile
+                    (Thomas Mair)
+
+2013-02-13 V1.8.3   - [TASK] Update Xilinx ipcore to version 0.2.9
+                    (Thomas Mair)
+
+2013-02-20 V1.8.3   - [TASK] Update Altera ipcore to version 0.2.9
+                    (Thomas Mair)
+
+2013-02-13 V1.8.3   - [TASK] Rework Xilinx board examples
+                    (Thomas Mair)
+
+2013-02-13 V1.8.3   - [TASK] Rework Altera board examples
+                    (Thomas Mair)
+
+2013-02-12 V1.8.3   - [FIX] Update EdrvOpenmac to ipcore version 0.2.9
+                    (Thomas Mair)
+
+2013-02-18 V1.8.3   - [FEATURE] Add Xilinx bootloader
+                    (Thomas Mair)
+
+2013-02-12 V1.8.3   - [TASK] Update Xilinx software example
+                    (Thomas Mair)
+
+2013-02-13 V1.8.3   - [TASK] Change Xilinx documentation
+                    (Thomas Mair)
+
+2013-02-13 V1.8.3   - [FIX] Rework Altera software example
+                    (Thomas Mair)
+
+2013-02-20 V1.8.3   - [FIX] Altera/Xilinx examples: Reduce size of stack internal queues
+                    (Thomas Mair)
+
+2012-11-22 V1.8.3   - [FIX] Compiler warning if MN support is disabled
+                    (Daniel Krueger)
+
+2013-03-15 V1.8.3   - Cmake on Windows: set ouput path
+                    (Daniel Krueger)
+
+2012-12-18 V1.8.3   - [FIX] Objdicts/CiA302-4_MN: Disable PDOs
+                    (Daniel Krueger)
+
+2013-03-15 V1.8.3   - [TASK] EplPdou: Add callback for PDO parameter changes
+                    - [TASK] EplApi: Add event for PDO changes
+                    (Daniel Krueger)
+
+2012-12-18 V1.8.3   - [TASK] demo_mn_console: Print out PDO change event
+                    (Daniel Krueger)
+
+2013-03-15 V1.8.3   - [FIX] EplApi: EplApiCbEventPdoChange needs PUBLIC attribute
+                    (Daniel Krueger)
+
+2013-01-04 V1.8.3   - [FEATURE] POWERLINK IP-Core: optionally export SYNC IRQ even if PDI is disabled
+                    - [FEATURE] POWERLINK IP-Core: 2nd CMP timer might generate pulse
+                    - [FEATURE] EplTimerSynck_OpenMac: Configure pulse width of sync/toggle int
+                    - [FIX] EplTimerSynck_OpenMac: Use mean cycle time for sync int generation
+                    - [FIX] EplTimerSynck_OpenMac: Rename public functions for ext. sync int
+                    - [FIX] EplTimerSynck.h: Add ext sync int function declarations
+                    - [FEATURE] POWERLINK IP-Core: Make pulse feature of 2nd CMP timer selectable
+                    (Daniel Krueger)
+
+2013-03-14 V1.8.3   - [FEATURE] OBD: Add new array macro with writeable sub-index 0
+                    - [FIX] Objdict.h: Make sub-index 0 of several arrays writeable acc. to spec
+                    - [FIX] Objdict.h: Add object 0x1F9B NMT_MultiplCycleAssign_AU8
+                    - [FIX] Respect sub-index count of objects 0x1F81, 0x1F8B and 0x1F8D
+                    (Daniel Krueger)
+
+2013-01-10 V1.8.3   - [FEATURE] Add CRC16 implementation
+                    - [FIX] OBD: Compiler error, because of wrong function name
+                    - [FEATURE] OBD: Calculate unique signature of OD structure
+                    - [FEATURE] Add new tEplKernel error codes for OD store/restore support
+                    - [FEATURE] Add target-specific OD store/restore implementation for filesystem
+                    - [FIX] OBD: remove unused enum constants and fix comment
+                    - [FEATURE] Implement OD store/restore support in API layer
+                    - [FIX] CiA401_CN object dictionary: enable storage attribute of PDOs
+                    - [FEATURE] Add support for OD store/restore in demo_cn_console
+                    (Daniel Krueger)
+
