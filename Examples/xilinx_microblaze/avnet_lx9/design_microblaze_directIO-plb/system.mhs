@@ -47,7 +47,6 @@
  PORT plb_powerlink_0_phyMii0_TxClk_pin = plb_powerlink_0_phyMii0_TxClk, DIR = I
  PORT plb_powerlink_0_phyMii0_TxDat_pin = plb_powerlink_0_phyMii0_TxDat, DIR = O, VEC = [3:0]
  PORT plb_powerlink_0_phyMii0_TxEn_pin = plb_powerlink_0_phyMii0_TxEn, DIR = O
- PORT plb_powerlink_0_phyMii0_TxEr_pin = plb_powerlink_0_phyMii0_TxEr, DIR = O
  PORT plb_powerlink_0_phy_SMIDat_pin = plb_powerlink_0_phy_SMIDat, DIR = IO
  PORT plb_powerlink_0_phy_SMIClk_pin = plb_powerlink_0_phy_SMIClk, DIR = O
  PORT plb_powerlink_0_phy_Rst_n_pin = plb_powerlink_0_phy_Rst_n, DIR = O
@@ -79,7 +78,7 @@ END
 
 BEGIN plb_powerlink
  PARAMETER INSTANCE = plb_powerlink_0
- PARAMETER HW_VER = 1.00.a
+ PARAMETER HW_VER = 0.29.a
  PARAMETER C_TX_INT_PKT = TRUE
  PARAMETER C_USE_RMII = FALSE
  PARAMETER C_USE_2ND_PHY = false
@@ -109,7 +108,6 @@ BEGIN plb_powerlink
  PORT phyMii0_TxClk = plb_powerlink_0_phyMii0_TxClk
  PORT phyMii0_TxDat = plb_powerlink_0_phyMii0_TxDat
  PORT phyMii0_TxEn = plb_powerlink_0_phyMii0_TxEn
- PORT phyMii0_TxEr = plb_powerlink_0_phyMii0_TxEr
  PORT phy_SMIDat = plb_powerlink_0_phy_SMIDat
  PORT phy_SMIClk = plb_powerlink_0_phy_SMIClk
  PORT phy_Rst_n = plb_powerlink_0_phy_Rst_n
@@ -136,17 +134,17 @@ BEGIN microblaze
  PARAMETER C_USE_HW_MUL = 0
  PARAMETER C_USE_MSR_INSTR = 0
  PARAMETER C_USE_PCMP_INSTR = 0
- PARAMETER C_AREA_OPTIMIZED = 0
+ PARAMETER C_AREA_OPTIMIZED = 1
  PARAMETER C_USE_ICACHE = 1
  PARAMETER C_USE_DCACHE = 1
  PARAMETER C_NUMBER_OF_WR_ADDR_BRK = 0
  PARAMETER C_NUMBER_OF_RD_ADDR_BRK = 0
  BUS_INTERFACE DPLB = pcp_plb
- BUS_INTERFACE DLMB = pcp_dlmb
- BUS_INTERFACE ILMB = pcp_ilmb
  BUS_INTERFACE IXCL = pcp_IXCL
  BUS_INTERFACE DXCL = pcp_DXCL
  BUS_INTERFACE DEBUG = mdm_0_MBDEBUG_0
+ BUS_INTERFACE DLMB = pcp_dlmb
+ BUS_INTERFACE ILMB = pcp_ilmb
  PORT MB_RESET = mb_reset
  PORT INTERRUPT = xps_intc_0_Irq
 END
@@ -230,7 +228,7 @@ BEGIN lmb_bram_if_cntlr
  PARAMETER INSTANCE = boot_dlmb_cntlr
  PARAMETER HW_VER = 3.00.b
  PARAMETER C_BASEADDR = 0x00000000
- PARAMETER C_HIGHADDR = 0x00003FFF
+ PARAMETER C_HIGHADDR = 0x00000FFF
  BUS_INTERFACE SLMB = pcp_dlmb
  BUS_INTERFACE BRAM_PORT = boot_dlmb_port
 END
@@ -239,7 +237,7 @@ BEGIN lmb_bram_if_cntlr
  PARAMETER INSTANCE = boot_ilmb_cntlr
  PARAMETER HW_VER = 3.00.b
  PARAMETER C_BASEADDR = 0x00000000
- PARAMETER C_HIGHADDR = 0x00003FFF
+ PARAMETER C_HIGHADDR = 0x00000FFF
  BUS_INTERFACE SLMB = pcp_ilmb
  BUS_INTERFACE BRAM_PORT = boot_ilmb_port
 END

@@ -2759,6 +2759,15 @@ tEplTimerArg        TimerArg;
                     break;
                 }
             }
+            else
+            {
+                // inform application
+                EplNmtMnuInstance_g.m_pfnCbNodeEvent(uiNodeId_p,
+                                                     kEplNmtNodeEventFound,
+                                                     NodeNmtState_p,
+                                                     EPL_E_NO_ERROR,
+                                                     (pNodeInfo->m_dwNodeCfg & EPL_NODEASSIGN_MANDATORY_CN) != 0);
+            }
 
             // continue BootStep1
         }

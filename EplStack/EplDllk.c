@@ -377,7 +377,7 @@ static tEplKernel EplDllkProcessFillTx(tEplDllAsyncReqPriority AsyncReqPriority_
 static tEplKernel EplDllkChangeState(tEplNmtEvent NmtEvent_p, tEplNmtState NmtState_p);
 
 // called from EdrvInterruptHandler()
-static tEdrvReleaseRxBuffer EplDllkCbFrameReceived(tEdrvRxBuffer * pRxBuffer_p);
+static tEdrvReleaseRxBuffer EplDllkCbFrameReceived(tEdrvRxBuffer * pRxBuffer_p) EPL_SECTION_DLLK_FRAME_RCVD_CB;
 
 static tEplKernel EplDllkProcessReceivedPreq(tEplFrameInfo* pFrameInfo_p, tEplNmtState NmtState_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
 static tEplKernel EplDllkProcessReceivedPres(tEplFrameInfo* pFrameInfo_p, tEplNmtState NmtState_p, tEplNmtEvent* pNmtEvent_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
@@ -2826,19 +2826,17 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
 
         // check if we are invited in SoA
         if (EplDllkInstance_g.m_auiLastTargetNodeId[EplDllkInstance_g.m_bSyncLastSoaReq] == EplDllkInstance_g.m_DllConfigParam.m_uiNodeId)
-        {
+        {   // Note: The Tx buffers exist / are ready!
+            //       This is checked in EplDllkUpdateFrameSoa()
             switch (EplDllkInstance_g.m_aLastReqServiceId[EplDllkInstance_g.m_bSyncLastSoaReq])
             {
                 case kEplDllReqServiceStatus:
                 {   // StatusRequest
                     pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_STATUSRES + EplDllkInstance_g.m_bCurTxBufferOffsetStatusRes];
-                    if (pTxBuffer->m_pbBuffer != NULL)
-                    {   // StatusRes does exist
-                        EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
-                        uiIndex++;
+                    EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
+                    uiIndex++;
 
-                        TGT_DBG_SIGNAL_TRACE_POINT(8);
-                    }
+                    TGT_DBG_SIGNAL_TRACE_POINT(8);
 
                     break;
                 }
@@ -2846,13 +2844,10 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
                 case kEplDllReqServiceIdent:
                 {   // IdentRequest
                     pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_IDENTRES + EplDllkInstance_g.m_bCurTxBufferOffsetIdentRes];
-                    if (pTxBuffer->m_pbBuffer != NULL)
-                    {   // IdentRes does exist
-                        EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
-                        uiIndex++;
+                    EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
+                    uiIndex++;
 
-                        TGT_DBG_SIGNAL_TRACE_POINT(7);
-                    }
+                    TGT_DBG_SIGNAL_TRACE_POINT(7);
 
                     break;
                 }
@@ -2860,16 +2855,9 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
                 case kEplDllReqServiceNmtRequest:
                 {   // NmtRequest
                     pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq];
-                    if (pTxBuffer->m_pbBuffer != NULL)
-                    {   // NmtRequest does exist
-                        // check if frame is not empty and not being filled
-                        if (pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
-                        {
-                            EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
-                            uiIndex++;
-                            EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq ^= 1;
-                        }
-                    }
+                    EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
+                    uiIndex++;
+                    EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq ^= 1;
 
                     break;
                 }
@@ -2877,16 +2865,9 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
                 case kEplDllReqServiceUnspecified:
                 {   // unspecified invite
                     pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl];
-                    if (pTxBuffer->m_pbBuffer != NULL)
-                    {   // non-EPL frame does exist
-                        // check if frame is not empty and not being filled
-                        if (pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
-                        {
-                            EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
-                            uiIndex++;
-                            EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl ^= 1;
-                        }
-                    }
+                    EplDllkInstance_g.m_ppTxBufferList[uiIndex] = pTxBuffer;
+                    uiIndex++;
+                    EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl ^= 1;
 
                     break;
                 }
@@ -7390,8 +7371,67 @@ tEplDllkNodeInfo*   pNodeInfo;
         if (EplDllkInstance_g.m_aLastReqServiceId[bCurReq_p] != kEplDllReqServiceNo)
         {   // asynchronous phase will be assigned to one node
             if (EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p] == EPL_C_ADR_INVALID)
-            {   // exchange invalid node ID with local node ID
+            {
+                int iSelectTxBuffer;
+                tEdrvTxBuffer* pTxBuffer;
+
+                // exchange invalid node ID with local node ID
                 EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p] = EplDllkInstance_g.m_DllConfigParam.m_uiNodeId;
+
+                // select the Tx buffer that should hold the async Tx message
+                switch(EplDllkInstance_g.m_aLastReqServiceId[bCurReq_p])
+                {
+                    case kEplDllReqServiceStatus:
+                    {
+                        iSelectTxBuffer = EPL_DLLK_TXFRAME_STATUSRES +
+                        EplDllkInstance_g.m_bCurTxBufferOffsetStatusRes;
+
+                        pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        break;
+                    }
+
+                    case kEplDllReqServiceIdent:
+                    {
+                        iSelectTxBuffer = EPL_DLLK_TXFRAME_IDENTRES +
+                        EplDllkInstance_g.m_bCurTxBufferOffsetIdentRes;
+
+                        pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        break;
+                    }
+
+                    case kEplDllReqServiceNmtRequest:
+                    {
+                        iSelectTxBuffer = EPL_DLLK_TXFRAME_NMTREQ +
+                        EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq;
+
+                        pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        break;
+                    }
+
+                    case kEplDllReqServiceUnspecified:
+                    {
+                        iSelectTxBuffer = EPL_DLLK_TXFRAME_NONEPL +
+                        EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl;
+
+                        pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        break;
+                    }
+
+                    default:
+                    {
+                        pTxBuffer = NULL;
+                        break;
+                    }
+                }
+
+                // if the async Tx buffer is not ready discard the request
+                if((pTxBuffer == NULL) || !(pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING))
+                {
+                    EplDllkInstance_g.m_aLastReqServiceId[bCurReq_p] = kEplDllReqServiceNo;
+                    EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p] = EPL_C_ADR_INVALID;
+                    goto Exit;
+                }
+
             }
 
             pNodeInfo = EplDllkGetNodeInfo(EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p]);
