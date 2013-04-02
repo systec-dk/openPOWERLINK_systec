@@ -85,10 +85,16 @@
 
 typedef struct
 {
-    unsigned long   m_ulCurTxFrameCountGen;
+    unsigned long   m_ulCurTxFrameCountGenAsnd;
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    unsigned long   m_ulCurTxFrameCountGenVeth;
+#endif
     unsigned long   m_ulCurTxFrameCountNmt;
     unsigned long   m_ulCurRxFrameCount;
-    unsigned long   m_ulMaxTxFrameCountGen;
+    unsigned long   m_ulMaxTxFrameCountGenAsnd;
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    unsigned long   m_ulMaxTxFrameCountGenVeth;
+#endif
     unsigned long   m_ulMaxTxFrameCountNmt;
     unsigned long   m_ulMaxRxFrameCount;
 
@@ -109,7 +115,7 @@ tEplKernel EplDllkCalAsyncGetTxFrame(void * pFrame_p, unsigned int * puiFrameSiz
 // only frames with registered AsndServiceIds are passed to CAL
 tEplKernel EplDllkCalAsyncFrameReceived(tEplFrameInfo * pFrameInfo_p);
 
-tEplKernel EplDllkCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPriority Priority_p);
+tEplKernel EplDllkCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPriority Priority_p, tEplDllAsyncBufferNumber Buffer_p);
 
 tEplKernel EplDllkCalAsyncClearBuffer(void);
 

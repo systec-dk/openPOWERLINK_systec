@@ -101,7 +101,7 @@ tEplKernel EplDlluCalRegAsndService(tEplDllAsndServiceId ServiceId_p,
                                     tEplDlluCbAsnd pfnDlluCbAsnd_p,
                                     tEplDllAsndFilter Filter_p);
 
-tEplKernel EplDlluCalAsyncSend(tEplFrameInfo * pFrameInfo, tEplDllAsyncReqPriority Priority_p);
+tEplKernel EplDlluCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPriority Priority_p);
 
 tEplKernel EplDlluCalProcess(tEplEvent * pEvent_p);
 
