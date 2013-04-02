@@ -93,12 +93,22 @@
 #define EPL_DLLCAL_BUFFER_SIZE_TX_NMT   32767
 #endif
 
-#ifndef EPL_DLLCAL_BUFFER_ID_TX_GEN
-#define EPL_DLLCAL_BUFFER_ID_TX_GEN     "EplSblDllCalTxGen"
+#ifndef EPL_DLLCAL_BUFFER_ID_TX_GEN_ASND
+#define EPL_DLLCAL_BUFFER_ID_TX_GEN_ASND     "EplSblDllCalTxGenAsnd"
 #endif
 
-#ifndef EPL_DLLCAL_BUFFER_SIZE_TX_GEN
-#define EPL_DLLCAL_BUFFER_SIZE_TX_GEN   32767
+#ifndef EPL_DLLCAL_BUFFER_SIZE_TX_GEN_ASND
+#define EPL_DLLCAL_BUFFER_SIZE_TX_GEN_ASND   32767
+#endif
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+  #ifndef EPL_DLLCAL_BUFFER_ID_TX_GEN_VETH
+  #define EPL_DLLCAL_BUFFER_ID_TX_GEN_VETH     "EplSblDllCalTxGenVeth"
+  #endif
+
+  #ifndef EPL_DLLCAL_BUFFER_SIZE_TX_GEN_VETH
+  #define EPL_DLLCAL_BUFFER_SIZE_TX_GEN_VETH   8192
+  #endif
 #endif
 
 #ifndef EPL_DLLCAL_BUFFER_ID_TX_SYNC
@@ -135,5 +145,4 @@ typedef struct
 
 
 #endif  // #ifndef _EPL_DLLKCAL_H_
-
 

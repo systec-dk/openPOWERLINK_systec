@@ -431,7 +431,7 @@ tEplKernel EplDlluCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPrio
 tEplKernel  Ret = kEplSuccessful;
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLK)) != 0)
-    Ret = EplDllkCalAsyncSend(pFrameInfo_p, Priority_p);
+    Ret = EplDllkCalAsyncSend(pFrameInfo_p, Priority_p, kEplDllAsyncBuffAsnd);
 #else
     Ret = kEplSuccessful;
 #endif
