@@ -2078,7 +2078,7 @@ SYSTEM niosII_openMac
                }
             }
          }
-         contents_info = "";
+         contents_info = "QUARTUS_PROJECT_DIR/tc_i_mem_pcp.hex 1365160266 ";
       }
       SIMULATION 
       {
@@ -4444,7 +4444,7 @@ SYSTEM niosII_openMac
       class = "no_legacy_module";
       class_version = "7.08101";
       gtf_class_name = "powerlink";
-      gtf_class_version = "0.2.9";
+      gtf_class_version = "0.3.0";
       SYSTEM_BUILDER_INFO 
       {
          Do_Not_Generate = "1";
@@ -4466,13 +4466,17 @@ SYSTEM niosII_openMac
       WIZARD_SCRIPT_ARGUMENTS 
       {
          CONFIG = "0";
-         CONFIGAPENDIAN = "0";
          DMAOBSERV = "TRUE";
          EVENT = "TRUE";
          LEDGADGET = "TRUE";
          MACBUFSIZE = "6896";
          MACRXBUFFERS = "16";
          MACRXBUFSIZE = "0";
+         MACRXQUEUE1SIZE = "0";
+         MACRXQUEUE2SIZE = "0";
+         MACRXQUEUE3SIZE = "0";
+         MACRXQUEUE4SIZE = "0";
+         MACRXQUEUE5SIZE = "0";
          MACTXBUFFERS = "12";
          MACTXBUFSIZE = "6896";
          PCPSYSID = "1";
@@ -4487,7 +4491,7 @@ SYSTEM niosII_openMac
          PDITPDOS = "1";
          PHYCNT = "2";
          PKTLOC = "1";
-         PLKCOREREV = "\"0.2.9\"";
+         PLKCOREREV = "\"0.3.0\"";
          TIMESYNCHW = "FALSE";
       }
    }
@@ -5197,7 +5201,7 @@ SYSTEM niosII_openMac
          Has_Clock = "1";
          View 
          {
-            Settings_Summary = "System ID (at last Generate):<br> <b>00000001</b>    (unique ID tag) <br> <b>511A4756</b> (timestamp: Tue Feb 12, 2013 @2:44 PM)";
+            Settings_Summary = "System ID (at last Generate):<br> <b>00000001</b>    (unique ID tag) <br> <b>515EB081</b> (timestamp: Fri Apr 5, 2013 @1:07 PM)";
             MESSAGES 
             {
             }
@@ -5206,7 +5210,7 @@ SYSTEM niosII_openMac
       WIZARD_SCRIPT_ARGUMENTS 
       {
          id = "1u";
-         timestamp = "1360676694u";
+         timestamp = "1365160065u";
          regenerate_values = "0";
          MAKE 
          {
@@ -5215,7 +5219,7 @@ SYSTEM niosII_openMac
                verifysysid 
                {
                   All_Depends_On = "0";
-                  Command = "nios2-download $(JTAG_CABLE)                                --sidp=0x00000998 --id=1 --timestamp=1360676694";
+                  Command = "nios2-download $(JTAG_CABLE)                                --sidp=0x00000998 --id=1 --timestamp=1365160065";
                   Is_Phony = "1";
                   Target_File = "dummy_verifysysid_file";
                }
