@@ -355,8 +355,8 @@ set_parameter_property macRxBuf DESCRIPTION "If \"openMAC only\" is selected, th
 
 add_parameter hwSupportSyncIrq BOOLEAN FALSE
 set_parameter_property hwSupportSyncIrq VISIBLE true
-set_parameter_property hwSupportSyncIrq DISPLAY_NAME "Use low-jitter SYNC IRQ with SoC timestamps for AP synchronization"
-set_parameter_property hwSupportSyncIrq DESCRIPTION "The Application Processor (AP) is synchronized to the POWERLINK cycles. In order to reduce FPGA-resource consumption you can disable the low-jitter SYNC interrupt if your application does not require low-jitter synchronization."
+set_parameter_property hwSupportSyncIrq DISPLAY_NAME "Enable second timer for synchronous interrupt on SoC reception"
+set_parameter_property hwSupportSyncIrq DESCRIPTION "This option triggers an edge or pulse on SoC reception which enables the synchronization of an external task to the POWERLINK cycle."
 
 add_parameter mac2phys BOOLEAN TRUE
 set_parameter_property mac2phys VISIBLE true
@@ -836,6 +836,7 @@ proc my_validation_callback {} {
 	set_parameter_property validSet VISIBLE false
 	set_parameter_property macTxBuf VISIBLE false
 	set_parameter_property macRxBuf VISIBLE false
+    set_parameter_property hwSupportSyncIrq VISIBLE false
 	set_parameter_property enDmaObserver VISIBLE false
     set_parameter_property pcpSysId VISIBLE false
     set_parameter_property iPdiRev_g VISIBLE  false
@@ -860,6 +861,7 @@ proc my_validation_callback {} {
 			send_message error "error 0x02"
 		}
 		
+        set_parameter_property hwSupportSyncIrq VISIBLE true
 		set_parameter_property rpdoNum VISIBLE false
 		set_parameter_property tpdoNum VISIBLE false
 	} elseif {$configPowerlink == "Direct I/O CN"} {
@@ -916,6 +918,7 @@ proc my_validation_callback {} {
         }
 		#AP can be big or little endian - allow choice
 		set_parameter_property configApEndian VISIBLE true
+        set_parameter_property hwSupportSyncIrq VISIBLE true
 		
 		#set the led gadget enable generic
 		set_parameter_value genLedGadget_g $ledGadgetEn
