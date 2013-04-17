@@ -9,7 +9,7 @@
    name="powerlink"
    file="powerlink/powerlink_hw.tcl"
    displayName="POWERLINK"
-   version="0.2.9"
+   version="0.3.0"
    description="POWERLINK IP-core"
    tags="CONNECTION_TYPES=avalon,clock,conduit,interrupt /// INTERNAL_COMPONENT=false"
    categories="Interface Protocols/Ethernet"
