@@ -1895,7 +1895,7 @@ Exit:
 static tEplKernel PUBLIC EplApiCbNmtStateChange(tEplEventNmtStateChange NmtStateChange_p)
 {
 tEplKernel          Ret = kEplSuccessful;
-tEplKernel          ArchiveState = kEplSuccessful;
+tEplKernel          ArchiveState = kEplStoreInvalidState;
 BYTE                bNmtState;
 tEplApiEventArg     EventArg;
 
