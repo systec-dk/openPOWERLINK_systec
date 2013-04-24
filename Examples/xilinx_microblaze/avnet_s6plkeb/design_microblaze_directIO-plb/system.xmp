@@ -3,9 +3,10 @@ XmpVersion: 13.2
 VerMgmt: 13.2
 IntStyle: default
 Flow: ise
+ModuleSearchPath: pcores
 MHS File: system.mhs
 Architecture: spartan6
-Device: xc6slx9
+Device: xc6slx16
 Package: csg324
 SpeedGrade: -2
 UserCmd1: 
@@ -23,11 +24,11 @@ ExternalMemSim: 0
 UcfFile: data/system.ucf
 EnableParTimingError: 1
 ShowLicenseDialog: 1
-LockAddr: MCB3_LPDDR,C_MPMC_BASEADDR
-LockAddr: pcp_ilmb_cntlr,C_BASEADDR
-LockAddr: pcp_dlmb_cntlr,C_BASEADDR
+LockAddr: SRAM256Kx32,C_MEM0_BASEADDR
 LockAddr: boot_ilmb_cntlr,C_BASEADDR
 LockAddr: boot_dlmb_cntlr,C_BASEADDR
+LockAddr: pcp_ilmb_cntlr,C_BASEADDR
+LockAddr: pcp_dlmb_cntlr,C_BASEADDR
 Processor: pcp
 ElfImp: 
 ElfSim: 
