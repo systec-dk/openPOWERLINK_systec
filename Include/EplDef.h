@@ -146,6 +146,10 @@
 #define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE   FALSE
 #endif
 
+#ifndef EPL_DLL_SOCTIME_FORWARD
+#define EPL_DLL_SOCTIME_FORWARD    FALSE
+#endif
+
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0 )
     // MN should support generic Asnd frames, thus the maximum ID
     // is set to a large value
