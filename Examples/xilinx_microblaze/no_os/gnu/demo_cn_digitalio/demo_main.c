@@ -76,7 +76,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // instances then the function name of each object dictionary has to differ.
 tEplKernel PUBLIC  EplObdInitRam (tEplObdInitParam MEM* pInitParam_p);
 
-tEplKernel PUBLIC AppCbSync(void) EPL_SECTION_MAIN_APP_CB_SYNC;
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+ tEplKernel PUBLIC AppCbSync(tEplSocTimeStamp SocTimeStamp_p) EPL_SECTION_MAIN_APP_CB_SYNC;
+#else
+ tEplKernel PUBLIC AppCbSync(void) EPL_SECTION_MAIN_APP_CB_SYNC;
+#endif
+
 tEplKernel PUBLIC AppCbEvent(
     tEplApiEventType        EventType_p,
     tEplApiEventArg*        pEventArg_p,
@@ -392,7 +397,11 @@ This function sets the outputs, reads the inputs and runs the control loop.
 \retval              otherwise                   post error event to API layer
 */
 //------------------------------------------------------------------------------
-tEplKernel PUBLIC AppCbSync(void)
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+ tEplKernel PUBLIC AppCbSync(tEplSocTimeStamp SocTimeStamp_p)
+#else
+ tEplKernel PUBLIC AppCbSync(void)
+#endif
 {
     tEplKernel        EplRet = kEplSuccessful;
     register int      iCnt;

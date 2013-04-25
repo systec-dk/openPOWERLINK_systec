@@ -332,6 +332,10 @@ typedef struct
     DWORD               m_dwPrcPResFallBackTimeout;
 #endif
 
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+    tEplSocTimeStamp    m_SocTimeStamp;         // timestamps of last SoC frame
+#endif
+
 } tEplDllkInstance;
 
 
@@ -2652,7 +2656,11 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
 
     if (EplDllkInstance_g.m_pfnCbSync != NULL)
     {
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+        Ret = EplDllkInstance_g.m_pfnCbSync(EplDllkInstance_g.m_SocTimeStamp);
+#else
         Ret = EplDllkInstance_g.m_pfnCbSync();
+#endif
         if (Ret == kEplReject)
         {
             fReadyFlag = FALSE;
@@ -4607,6 +4615,11 @@ Exit:
 static tEplKernel EplDllkProcessReceivedSoc(tEdrvRxBuffer* pRxBuffer_p, tEplNmtState NmtState_p)
 {
 tEplKernel      Ret = kEplSuccessful;
+
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+tEplFrame* pFrame;
+#endif
+
 #if EPL_DLL_PRES_READY_AFTER_SOC != FALSE
 tEdrvTxBuffer*  pTxBuffer = NULL;
 #endif
@@ -4660,6 +4673,28 @@ tEdrvTxBuffer*  pTxBuffer = NULL;
             EplDllkInstance_g.m_uiCycleCount = (EplDllkInstance_g.m_uiCycleCount + 1) % EplDllkInstance_g.m_DllConfigParam.m_uiMultiplCycleCnt;
         }
     }
+
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+    // Save timestamps of SoC frame
+    pFrame = (tEplFrame *) pRxBuffer_p->m_pbBuffer;
+
+    if (EplDllkInstance_g.m_SocTimeStamp.m_fSocRelTimeValid == FALSE)
+    {
+        // from the first change in the SoC time stamp it is considered valid
+        if (EplDllkInstance_g.m_SocTimeStamp.m_qwRelTime != AmiGetQword64FromLe(&(pFrame->m_Data.m_Soc.m_le_RelativeTime)))
+        {
+            EplDllkInstance_g.m_SocTimeStamp.m_fSocRelTimeValid = TRUE;
+        }
+    }
+
+    // save Soc Relative Time
+    EplDllkInstance_g.m_SocTimeStamp.m_qwRelTime = AmiGetQword64FromLe(&(pFrame->m_Data.m_Soc.m_le_RelativeTime));
+
+    EplDllkInstance_g.m_SocTimeStamp.m_netTime.m_dwSec =
+            AmiGetDwordFromLe(&(pFrame->m_Data.m_Soc.m_le_NetTime.m_dwSec));
+    EplDllkInstance_g.m_SocTimeStamp.m_netTime.m_dwNanoSec =
+            AmiGetDwordFromLe(&(pFrame->m_Data.m_Soc.m_le_NetTime.m_dwNanoSec));
+#endif
 
     // reprogram timer
 #if EPL_TIMER_USE_HIGHRES != FALSE

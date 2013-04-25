@@ -210,6 +210,9 @@
 // Async buffer for Sync Response TX in bytes
 #define EPL_DLLCAL_BUFFER_SIZE_TX_SYNC       4096
 
+// Enable forwarding of SoC timestamps
+#define EPL_DLL_SOCTIME_FORWARD         TRUE
+
 // =========================================================================
 // Event kernel/user module defines
 // =========================================================================
