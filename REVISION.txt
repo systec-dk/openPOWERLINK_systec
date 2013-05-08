@@ -1076,3 +1076,10 @@ Fellow worker:    Daniel Krüger (d.k.)
                     - [FEATURE] Add support for OD store/restore in demo_cn_console
                     (Daniel Krueger)
 
+2013-03-14 V1.8.3   - [FIX] Xilinx: Correct IP-Core version number
+                    (Thomas Mair)
+
+2013-03-16 V1.8.3   - [FEATURE] Port 2nd compare timer pulse feature to IP-Core for Xilinx FPGAs
+                    - [FIX] Change visibility of 2nd compare timer pulse feature in IP-Core for Altera FPGAs
+                    (Thomas Mair)
+
