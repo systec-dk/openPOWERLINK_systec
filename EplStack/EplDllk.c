@@ -4808,7 +4808,9 @@ static tEplKernel EplDllkProcessReceivedSoa(tEdrvRxBuffer* pRxBuffer_p, tEplNmtS
 {
 tEplKernel      Ret = kEplSuccessful;
 tEplFrame*      pFrame;
+#if (EDRV_AUTO_RESPONSE == FALSE)
 tEdrvTxBuffer*  pTxBuffer = NULL;
+#endif
 tEplDllReqServiceId     ReqServiceId;
 unsigned int    uiNodeId;
 BYTE            bFlag1;
@@ -4819,8 +4821,6 @@ BYTE            bFlag1;
     {   // MN is active -> wrong msg type
         goto Exit;
     }
-
-    pTxBuffer = NULL;
 
     if ((NmtState_p & EPL_NMT_SUPERSTATE_MASK) != EPL_NMT_CS_EPLMODE)
     {   // do not respond, if NMT state is < PreOp1 (i.e. not EPL_MODE)
