@@ -869,12 +869,11 @@ tEplKernel EplDllkCalAsyncClearBuffer(void)
 {
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_USE_SHAREDBUFF != FALSE
-tShbError   ShbError;
 
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxNmt, 1000, NULL);
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxNmt, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, 1000, NULL);
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, 1000, NULL);
 #endif
 
 #else
@@ -944,12 +943,11 @@ tEplKernel EplDllkCalGetStatistics(tEplDllkCalStatistics ** ppStatistics)
 {
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_USE_SHAREDBUFF != FALSE
-tShbError   ShbError;
 
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountNmt);
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenAsnd);
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountNmt);
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenAsnd);
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenVeth);
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenVeth);
 #endif
 //    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceRx, &EplDllkCalInstance_g.m_Statistics.m_ulCurRxFrameCount);
 

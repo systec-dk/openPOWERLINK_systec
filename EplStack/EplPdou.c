@@ -646,6 +646,8 @@ BYTE                abChannelIdToPdoIdTx[EPL_D_PDO_TPDOChannels_U16];
 unsigned int        uiCountChannelIdTx;
 DWORD               dwAbortCode = 0;
 
+    EPL_MEMSET(abChannelIdToPdoIdTx, 0, sizeof(abChannelIdToPdoIdTx));
+
     // check number of PDOs and allocate memory for them
     Ret = EplPdouAlloc(abChannelIdToPdoIdRx, &uiCountChannelIdRx, abChannelIdToPdoIdTx, &uiCountChannelIdTx);
     if (Ret != kEplSuccessful)
