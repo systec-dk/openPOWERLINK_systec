@@ -182,16 +182,16 @@
             EPL_OBD_SUBINDEX_RAM_VAR(0x1F99, 0x00, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, NMT_CNBasicEthernetTimeout_U32, 5000000)  // in [us]
         EPL_OBD_END_INDEX(0x1F99)
 
-#if EPL_NMT_MAX_NODE_ID > 0
-        // Object 1F9Bh: NMT_MultiplCycleAssign_AU8
-        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F9B, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NMT_MultiplCycleAssign_AU8, 0)
-#endif
-
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
         // Object 1F9Ah: NMT_HostName_VS
         EPL_OBD_BEGIN_INDEX_RAM(0x1F9A, 0x01, NULL)
            EPL_OBD_SUBINDEX_RAM_VSTRING(0x1F9A, 0x00, kEplObdAccR, host_name, 33, "")
         EPL_OBD_END_INDEX(0x1F9A)
+#endif
+
+#if EPL_NMT_MAX_NODE_ID > 0
+        // Object 1F9Bh: NMT_MultiplCycleAssign_AU8
+        EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(0x1F9B, EPL_NMT_MAX_NODE_ID, NULL, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NMT_MultiplCycleAssign_AU8, 0)
 #endif
 
         // Object 1F9Eh: NMT_ResetCmd_U8
