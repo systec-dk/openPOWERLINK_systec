@@ -74,7 +74,7 @@
     </ProfileHeader>
     <ProfileBody
       xsi:type="ProfileBody_Device_Powerlink"
-      fileName="00000000_POWERLINK_CiA401.xdd"
+      fileName="00000000_POWERLINK_CiA401_CN_Os.xdd"
       fileCreator="Bernecker+Rainer Industrie-Elektronik Ges.m.b.H."
       fileCreationDate="2011-04-01"
       fileCreationTime="10:00:00+02:00"
@@ -122,7 +122,7 @@
     </ProfileHeader>
     <ProfileBody
       xsi:type="ProfileBody_CommunicationNetwork_Powerlink"
-      fileName="00000000_POWERLINK_CiA401.xdd"
+      fileName="00000000_POWERLINK_CiA401_CN_Os.xdd"
       fileCreator="Bernecker+Rainer Industrie-Elektronik Ges.m.b.H."
       fileCreationDate="2011-04-01"
       fileCreationTime="10:00:00+02:00"
