@@ -226,9 +226,8 @@
 #define EPL_OBD_USE_KERNEL                TRUE
 
 // switch this define to TRUE if Epl should compare object range
-// automaticly
-#define EPL_OBD_CHECK_OBJECT_RANGE          FALSE
-//#define EPL_OBD_CHECK_OBJECT_RANGE          TRUE
+// automatically
+#define EPL_OBD_CHECK_OBJECT_RANGE          TRUE
 
 // set this define to TRUE if there are strings or domains in OD, which
 // may be changed in object size and/or object data pointer by its object

@@ -85,7 +85,7 @@
             EPL_OBD_SUBINDEX_RAM_OSTRING(0x1030, 0x05, kEplObdAccR,  InterfacePhysAddress_OSTR, 0x06)
             EPL_OBD_SUBINDEX_RAM_VSTRING(0x1030, 0x06, kEplObdAccR,  InterfaceName_VSTR, 0x20 ,"Interface 1")
             EPL_OBD_SUBINDEX_RAM_VAR(0x1030, 0x07, kEplObdTypUInt8, kEplObdAccR, tEplObdUnsigned8, InterfaceOperStatus_U8, 0x1)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1030, 0x08, kEplObdTypUInt8, kEplObdAccRW, tEplObdUnsigned8, InterfaceAdminState_U8, 0x1)
+            EPL_OBD_SUBINDEX_RAM_VAR_RG(0x1030, 0x08, kEplObdTypUInt8, kEplObdAccGRW, tEplObdUnsigned8, InterfaceAdminState_U8, 0x01, 0x00, 0x01)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1030, 0x09, kEplObdTypBool, kEplObdAccRW, tEplObdBoolean, Valid_BOOL, 0x1)
         EPL_OBD_END_INDEX(0x1030)
 
