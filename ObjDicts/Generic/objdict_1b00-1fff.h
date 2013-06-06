@@ -68,6 +68,13 @@
             EPL_OBD_SUBINDEX_RAM_VAR(0x1E40, 0x04, kEplObdTypUInt16, kEplObdAccR, tEplObdUnsigned16, ReasmMaxSize_U16, 50000)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1E40, 0x05, kEplObdTypUInt32, kEplObdAccSRW, tEplObdUnsigned32, DefaultGateway_IPAD, 0xC0A864FE)
         EPL_OBD_END_INDEX(0x1E40)
+
+        // Object 1E4Ah: NWL_IpGroup_REC
+        EPL_OBD_BEGIN_INDEX_RAM(0x1E4A, 0x03, NULL)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1E4A, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x02)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1E4A, 0x01, kEplObdTypBool, kEplObdAccR, tEplObdBoolean, Forwarding_BOOL, 0x00)
+            EPL_OBD_SUBINDEX_RAM_VAR(0x1E4A, 0x02, kEplObdTypUInt16, kEplObdAccRW, tEplObdUnsigned16, DefaultTTL_U16, 64)
+        EPL_OBD_END_INDEX(0x1E4A)
 #endif
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_CFM)) != 0)
