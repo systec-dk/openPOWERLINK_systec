@@ -3035,6 +3035,10 @@ unsigned int    uiFilterEntry;
             {
                 pTxFrame = (tEplFrame *) pTxBuffer->m_pbBuffer;
                 Ret = EplDllkCheckFrame(pTxFrame, uiFrameSize);
+                if(Ret != kEplSuccessful)
+                {
+                    goto Exit;
+                }
 
                 // set buffer valid
                 pTxBuffer->m_uiTxMsgLen = uiFrameSize;
@@ -3044,7 +3048,10 @@ unsigned int    uiFilterEntry;
                 {
                     // update Tx buffer in Edrv
                     Ret = EdrvUpdateTxMsgBuffer(pTxBuffer);
-
+                    if(Ret != kEplSuccessful)
+                    {
+                        goto Exit;
+                    }
                     // enable corresponding Rx filter
                     EplDllkInstance_g.m_aFilter[uiFilterEntry].m_fEnable = TRUE;
                     Ret = EdrvChangeFilter(EplDllkInstance_g.m_aFilter,
