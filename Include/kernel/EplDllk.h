@@ -75,6 +75,8 @@
 #include "EplDll.h"
 #include "EplEvent.h"
 
+#include "edrv.h"
+
 //---------------------------------------------------------------------------
 // const defines
 //---------------------------------------------------------------------------
@@ -84,7 +86,7 @@
 // typedef
 //---------------------------------------------------------------------------
 
-typedef tEplKernel (* tEplDllkCbAsync) (tEplFrameInfo * pFrameInfo_p);
+typedef tEplKernel (* tEplDllkCbAsync) (tEplFrameInfo * pFrameInfo_p, tEdrvReleaseRxBuffer*   pReleaseRxBuffer_p);
 
 typedef struct
 {

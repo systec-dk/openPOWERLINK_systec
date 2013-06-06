@@ -3987,7 +3987,7 @@ TGT_DLLK_DECLARE_FLAGS
         //TRACE("EplDllkCbFrameReceived: pfnCbAsync=0x%p SrcMAC=0x%llx\n", EplDllkInstance_g.m_pfnCbAsync, AmiGetQword48FromBe(pFrame->m_be_abSrcMac));
         if (EplDllkInstance_g.m_pfnCbAsync != NULL)
         {   // handler for async frames is registered
-            EplDllkInstance_g.m_pfnCbAsync(&FrameInfo);
+            Ret = EplDllkInstance_g.m_pfnCbAsync(&FrameInfo, &ReleaseRxBuffer);
         }
 
         goto Exit;
