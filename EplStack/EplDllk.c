@@ -72,6 +72,7 @@
 #include "kernel/EplDllkCal.h"
 #include "kernel/EplEventk.h"
 #include "kernel/EplErrorHandlerk.h"
+#include "kernel/EplDllkFilter.h"
 #include "EplNmt.h"
 #include "edrv.h"
 #include "Benchmark.h"
@@ -194,29 +195,6 @@
                                     // on MN: 7 + MaxPReq of regular CNs + 1 Diag + 1 Router
 #else
   #define EPL_DLLK_TXFRAME_COUNT    (EPL_DLLK_TXFRAME_PRES + 2)
-#endif
-
-
-#define EPL_DLLK_FILTER_PREQ          0
-#define EPL_DLLK_FILTER_SOA_IDREQ     1
-#define EPL_DLLK_FILTER_SOA_STATREQ   2
-#define EPL_DLLK_FILTER_SOA_NMTREQ    3
-#if EPL_DLL_PRES_CHAINING_CN != FALSE
-  #define EPL_DLLK_FILTER_SOA_SYNCREQ 4
-  #define EPL_DLLK_FILTER_SOA_NONEPL  5
-#else
-  #define EPL_DLLK_FILTER_SOA_NONEPL  4
-#endif
-
-#define EPL_DLLK_FILTER_SOA           (EPL_DLLK_FILTER_SOA_NONEPL + 1)
-#define EPL_DLLK_FILTER_SOC           (EPL_DLLK_FILTER_SOA + 1)
-#define EPL_DLLK_FILTER_ASND          (EPL_DLLK_FILTER_SOC + 1)
-#define EPL_DLLK_FILTER_PRES          (EPL_DLLK_FILTER_ASND + 1)
-
-#if EPL_DLL_PRES_FILTER_COUNT < 0
-  #define EPL_DLLK_FILTER_COUNT       (EPL_DLLK_FILTER_PRES + 1)
-#else
-  #define EPL_DLLK_FILTER_COUNT       (EPL_DLLK_FILTER_PRES + EPL_DLL_PRES_FILTER_COUNT)
 #endif
 
 #define EPL_DLLK_SOAREQ_COUNT       3
@@ -1935,7 +1913,7 @@ tEplDllkNodeInfo*   pIntNodeInfo;
         }
 
 #else
-        for (uiHandle = EPL_DLLK_FILTER_PRES; uiHandle < EPL_DLLK_FILTER_COUNT; uiHandle++)
+        for (uiHandle = EPL_DLLK_FILTER_PRES; uiHandle < (EPL_DLLK_FILTER_PRES + EPL_DLL_PRES_FILTER_COUNT); uiHandle++)
         {
             AmiSetQword48ToBe(&EplDllkInstance_g.m_aFilter[uiHandle].m_abFilterValue[0],
                               EPL_C_DLL_MULTICAST_PRES);
@@ -1967,13 +1945,36 @@ tEplDllkNodeInfo*   pIntNodeInfo;
                 EplDllkInstance_g.m_aFilter[uiHandle].m_fEnable = TRUE;
 
                 uiHandle++;
-                if (uiHandle >= EPL_DLLK_FILTER_COUNT)
+                if (uiHandle >= (EPL_DLLK_FILTER_PRES + EPL_DLL_PRES_FILTER_COUNT))
                 {
                     break;
                 }
             }
         }
 #endif
+#endif
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    //Add veth filter for Unicast address
+    EPL_MEMSET(EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_UNICAST].m_abFilterMask, 0xFF, 6);
+
+    EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_UNICAST].m_pTxBuffer = NULL;  // No auto response
+
+    EPL_MEMCPY(EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_UNICAST].m_abFilterValue,
+            &EplDllkInstance_g.m_be_abLocalMac[0], 6);
+
+    EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_UNICAST].m_fEnable = TRUE;
+
+    //Add veth filter for Broadcast address
+    EPL_MEMSET(EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_abFilterMask, 0xFF, 6);
+
+    EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_pTxBuffer = NULL;  // No auto response
+
+    EPL_MEMCPY(EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_abFilterValue,
+            EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_abFilterMask,
+            sizeof(EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_abFilterValue));
+
+    EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_VETH_BROADCAST].m_fEnable = TRUE;
 #endif
 
 #if (EPL_DLL_PROCESS_SYNC == EPL_DLL_PROCESS_SYNC_ON_TIMER)
