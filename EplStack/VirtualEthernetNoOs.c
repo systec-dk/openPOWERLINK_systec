@@ -118,39 +118,6 @@ typedef struct _tVEthInstance
 //---------------------------------------------------------------------------
 static tVEthInstance VEthInstance_g;
 
-#ifdef EPL_VETH_SEND_TEST
-//Data from veth pinging 192.168.100.240
-/*
- * Frame 22 (42 bytes on wire, 42 bytes captured)
-Ethernet II, Src: Compex_61:e1:5e (00:80:48:61:e1:5e), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
-    Destination: Broadcast (ff:ff:ff:ff:ff:ff)
-    Source: Compex_61:e1:5e (00:80:48:61:e1:5e)
-    Type: ARP (0x0806)
-Address Resolution Protocol (request)
-    Hardware type: Ethernet (0x0001)
-    Protocol type: IP (0x0800)
-    Hardware size: 6
-    Protocol size: 4
-    Opcode: request (0x0001)
-    Sender MAC address: Compex_61:e1:5e (00:80:48:61:e1:5e)
-    Sender IP address: 192.168.100.240 (192.168.100.240)
-    Target MAC address: 00:00:00_00:00:00 (00:00:00:00:00:00)
-    Target IP address: 192.168.100.1 (192.168.100.1)
-*/
-static BYTE abNonEplData[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0x0, 0x80, 0x48, 0x61, 0xe1, 0x5e,
-        0x8, 0x6,
-        0x0, 0x1,
-        0x8, 0x0,
-        0x6,
-        0x4,
-        0x0, 0x1,
-        0x0, 0x12, 0x34, 0x56, 0x78, 0x9a,
-        0xc0, 0xa8, 0x64, 0xf0,
-        0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-        0xc0, 0xa8, 0x64, 0x1 };
-#endif //VETH_SEND_TEST
-
 
 //---------------------------------------------------------------------------
 // local function prototypes
@@ -287,34 +254,6 @@ tEplKernel PUBLIC VEthSetDefaultGateway(DWORD dwDefaultGateway_p)
 
     return Ret;
 }
-
-#ifdef EPL_VETH_SEND_TEST
-//---------------------------------------------------------------------------
-//
-// Function:        VEthApiSendTest
-//
-// Description:     Send a ARP test frame to the master which responds
-//
-// Parameters:      void
-//
-// Returns:         kEplInvalidParam - maximum MTU is reached
-//                  kEplDllAsyncTxBuffer - internal buffer is full
-//                  kEplInvalidOperation - Send not allowed in this state
-//                  kEplSuccessful - message sent successfully
-//
-// State:
-//
-//---------------------------------------------------------------------------
-tEplKernel PUBLIC VEthApiSendTest(void)
-{
-tEplKernel  Ret = kEplSuccessful;
-
-    //transmit test frame
-    Ret = VEthApiXmit(abNonEplData,  sizeof(abNonEplData));
-
-    return Ret;
-}
-#endif //EPL_VETH_SEND_TEST
 
 //---------------------------------------------------------------------------
 //
