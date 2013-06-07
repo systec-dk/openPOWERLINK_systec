@@ -81,9 +81,6 @@ typedef void (* tEplVethCbNetAddr) ( DWORD dwIpAddr_p, DWORD dwSubNetMask_p, WOR
 //---------------------------------------------------------------------------
 // function prototypes
 //---------------------------------------------------------------------------
-#ifdef EPL_VETH_SEND_TEST
-  tEplKernel PUBLIC VEthApiSendTest(void);
-#endif //EPL_VETH_SEND_TEST
 tEplKernel PUBLIC VEthApiXmit(BYTE *pData_p, WORD wDataSize);
 tEplKernel PUBLIC VEthApiCheckAndForwardRxFrame(BYTE **ppEthData_p, WORD *wEthDataSize_p);
 tEplKernel PUBLIC VEthApiReleaseRxFrame(void);
