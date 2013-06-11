@@ -2704,8 +2704,8 @@ BYTE*           pbPayload;
                             // calc size
                             uiSizeOfFrame += pSdoComCon_p->m_uiTransSize;
                             // correct intern counter
-                            pSdoComCon_p->m_uiTransSize = 0;
                             pSdoComCon_p->m_uiTransferredByte += pSdoComCon_p->m_uiTransSize;
+                            pSdoComCon_p->m_uiTransSize = 0;
 
                         }
                     }
