@@ -1779,11 +1779,12 @@ unsigned int        uiFreeEntries;
                     // Request Ack or Error Ack
                     case 3:
                     {
-                        // -> change to state kEplAsySdoStateConnected
-                        pAsySdoSeqCon->m_SdoState = kEplAsySdoStateConnected;
-
                         if(pRecFrame_p->m_le_bRecSeqNumCon == pAsySdoSeqCon->m_bRecSeqNum )
-                        {   // ack request
+                        {
+                            // -> change to state kEplAsySdoStateConnected
+                            pAsySdoSeqCon->m_SdoState = kEplAsySdoStateConnected;
+
+                            // ack request
                             // -> send ack
                             // save sequence numbers
                             pAsySdoSeqCon->m_bRecSeqNum = AmiGetByteFromLe(&pRecFrame_p->m_le_bRecSeqNumCon);
@@ -1820,7 +1821,7 @@ unsigned int        uiFreeEntries;
                         }
                         else
                         {
-                            // error ack
+                            // Error Ack -> stay in state kEplAsySdoStateWaitAck
                             // resend frames from history
 
                             // read frame from history
