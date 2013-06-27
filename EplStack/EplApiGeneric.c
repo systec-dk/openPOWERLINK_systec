@@ -1971,7 +1971,7 @@ tEplApiEventArg     EventArg;
             }
 
 #if (EPL_OBD_USE_LOAD_CONCISEDCF != FALSE)
-            if (ArchiveState == kEplSuccessful)
+            if (ArchiveState != kEplSuccessful)
             {
                 if (EplApiInstance_g.m_pbCdc != NULL)
                 {
