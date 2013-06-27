@@ -6237,6 +6237,14 @@ EPL_OBD_BEGIN ()
 
         EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA203, (252), NULL, kEplObdTypUInt32, kEplObdAccVPR, tEplObdUnsigned32, PI_Input_U32, 0)
 
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA400, (252), NULL, kEplObdTypInt64, kEplObdAccVPR, tEplObdInteger64, PI_Input_I64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA401, (252), NULL, kEplObdTypInt64, kEplObdAccVPR, tEplObdInteger64, PI_Input_I64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA440, (252), NULL, kEplObdTypUInt64, kEplObdAccVPR, tEplObdUnsigned64, PI_Input_U64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA441, (252), NULL, kEplObdTypUInt64, kEplObdAccVPR, tEplObdUnsigned64, PI_Input_U64, 0)
+
 
         // static output process image (from network point of view)
 
@@ -6351,6 +6359,14 @@ EPL_OBD_BEGIN ()
         EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA682, (252), NULL, kEplObdTypUInt32, kEplObdAccVPRW, tEplObdUnsigned32, PI_Output_U32, 0)
 
         EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA683, (252), NULL, kEplObdTypUInt32, kEplObdAccVPRW, tEplObdUnsigned32, PI_Output_U32, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA880, (252), NULL, kEplObdTypInt64, kEplObdAccVPRW, tEplObdInteger64, PI_Output_I64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA881, (252), NULL, kEplObdTypInt64, kEplObdAccVPRW, tEplObdInteger64, PI_Output_I64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA8C0, (252), NULL, kEplObdTypUInt64, kEplObdAccVPRW, tEplObdUnsigned64, PI_Output_U64, 0)
+
+        EPL_OBD_RAM_INDEX_RAM_VARARRAY (0xA8C1, (252), NULL, kEplObdTypUInt64, kEplObdAccVPRW, tEplObdUnsigned64, PI_Output_U64, 0)
 
     EPL_OBD_END_PART ()
 
