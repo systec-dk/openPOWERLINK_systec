@@ -313,7 +313,10 @@ tEplIdentResponse*  pIdentResponse = NULL;
 BOOL                fDoUpdate = FALSE;
 
     if ((NodeEvent_p != kEplNmtNodeEventCheckConf)
-        && (NodeEvent_p != kEplNmtNodeEventUpdateConf))
+        && (NodeEvent_p != kEplNmtNodeEventUpdateConf)
+        && (NodeEvent_p != kEplNmtNodeEventFound)
+        && ((NodeEvent_p != kEplNmtNodeEventNmtState)
+            || (NmtState_p != kEplNmtCsNotActive)))
     {
         goto Exit;
     }
@@ -344,6 +347,13 @@ BOOL                fDoUpdate = FALSE;
             goto Exit;
         }
 
+    }
+
+    if ((NodeEvent_p == kEplNmtNodeEventFound)
+        || ((NodeEvent_p == kEplNmtNodeEventNmtState)
+            && (NmtState_p == kEplNmtCsNotActive)))
+    {   // just close SDO connection in case of IdentResponse or loss of connection
+        goto Exit;
     }
 
     pNodeInfo->m_uiCurDataSize = 0;
