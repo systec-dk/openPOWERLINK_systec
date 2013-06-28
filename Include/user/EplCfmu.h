@@ -111,7 +111,7 @@ tEplKernel EplCfmuAddInstance(tEplCfmCbEventCnProgress pfnCbEventCnProgress_p, t
 
 tEplKernel EplCfmuDelInstance(void);
 
-tEplKernel EplCfmuProcessNodeEvent(unsigned int uiNodeId_p, tEplNmtNodeEvent NodeEvent_p);
+tEplKernel EplCfmuProcessNodeEvent(unsigned int uiNodeId_p, tEplNmtNodeEvent NodeEvent_p, tEplNmtState NmtState_p);
 
 BOOL EplCfmuIsSdoRunning(unsigned int uiNodeId_p);
 

@@ -301,7 +301,7 @@ tEplCfmuNodeInfo*   pNodeInfo;
 //
 //-------------------------------------------------------------------------------------
 
-tEplKernel EplCfmuProcessNodeEvent(unsigned int uiNodeId_p, tEplNmtNodeEvent NodeEvent_p)
+tEplKernel EplCfmuProcessNodeEvent(unsigned int uiNodeId_p, tEplNmtNodeEvent NodeEvent_p, tEplNmtState NmtState_p)
 {
 tEplKernel          Ret = kEplSuccessful;
 static DWORD        dw_le_Signature;
