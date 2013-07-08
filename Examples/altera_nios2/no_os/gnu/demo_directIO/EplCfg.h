@@ -129,6 +129,7 @@
                                 | EPL_MODULE_NMTU \
                                 | EPL_MODULE_LEDU \
                                 | EPL_MODULE_VETH \
+                                | EPL_MODULE_MASND \
                                 )
 
 // =========================================================================
