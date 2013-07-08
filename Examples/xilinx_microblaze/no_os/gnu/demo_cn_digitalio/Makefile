@@ -102,6 +102,8 @@ ${TARGET_DIR}/xilinx_irq.c \
 ${TARGET_DIR}/xilinx_usleep.c \
 ${STACK_ROOT}/SharedBuff/SharedBuff.c \
 ${STACK_ROOT}/SharedBuff/ShbIpc-NoOS.c \
+${STACK_ROOT}/EplStack/VirtualEthernetNoOs.c \
+${STACK_ROOT}/EplStack/VirtualEthernetNoOsTest.c \
 ${APP_DIR}/systemComponents.c
 
 LIBRARIES = libxil.a

@@ -208,6 +208,16 @@
 			<locationURI>STACK_LOC/EplStack/amibe.c</locationURI>
 		</link>
 		<link>
+			<name>EplStack/VirtualEthernetNoOs.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/VirtualEthernetNoOs.c</locationURI>
+		</link>
+		<link>
+			<name>EplStack/VirtualEthernetNoOsTest.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/VirtualEthernetNoOsTest.c</locationURI>
+		</link>
+		<link>
 			<name>ObjDicts/CiA401_CN</name>
 			<type>2</type>
 			<locationURI>STACK_LOC/ObjDicts/CiA401_CN</locationURI>

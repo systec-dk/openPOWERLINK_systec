@@ -128,6 +128,7 @@
                                 | EPL_MODULE_NMTK \
                                 | EPL_MODULE_NMTU \
                                 | EPL_MODULE_LEDU \
+                                | EPL_MODULE_VETH \
                                 )
 
 // =========================================================================
@@ -255,6 +256,18 @@
 //#define EPL_MAX_SDO_COM_CON         100
 //#define EPL_SDO_MAX_CONNECTION_UDP  50
 
+// =========================================================================
+// Virtual Ethernet module specific defines
+// =========================================================================
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+
+// number of rx buffers in queue for deferred release
+#define EPL_VETH_NUM_RX_BUFFERS    VETH_NUM_RX_BUFFERS
+
+// enable send routine for test frames
+//#define EPL_VETH_SEND_TEST
+
+#endif
 
 // =========================================================================
 // API Layer specific defines
