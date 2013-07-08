@@ -138,6 +138,7 @@ SET(MODULE_SOURCE_FILES
     ${POWERLINK_SOURCE_DIR}/EplStack/EplIdentu.c
     ${POWERLINK_SOURCE_DIR}/EplStack/EplStatusu.c
     ${POWERLINK_SOURCE_DIR}/EplStack/EplPdok.c
+    ${POWERLINK_SOURCE_DIR}/EplStack/EplPdokCopyEndian.c
     ${POWERLINK_SOURCE_DIR}/EplStack/EplPdokCal.c
     ${POWERLINK_SOURCE_DIR}/EplStack/EplPdou.c
     ${POWERLINK_SOURCE_DIR}/EplStack/EplPdouCal.c
