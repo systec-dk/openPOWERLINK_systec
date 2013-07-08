@@ -182,6 +182,11 @@
 			<locationURI>STACK_LOC/EplStack/EplSdoComu.c</locationURI>
 		</link>
 		<link>
+			<name>EplStack/EplPdokCopyEndian.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/EplPdokCopyEndian.c</locationURI>
+		</link>
+		<link>
 			<name>EplStack/EplTimeruGeneric.c</name>
 			<type>1</type>
 			<locationURI>STACK_LOC/EplStack/EplTimeruGeneric.c</locationURI>
