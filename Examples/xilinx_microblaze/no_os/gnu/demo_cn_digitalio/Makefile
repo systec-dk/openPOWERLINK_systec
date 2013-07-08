@@ -148,11 +148,11 @@ ifeq ($(BOARD_NAME),lx150t)
 	PCUBLAZE_PARAMS= --format bin
 	PCUBLAZE_FILES= --outfile ${FLASH_IMAGE_NAME}_sw.bin
 endif
-ifeq ($(BOARD_NAME),lx9)
+ifeq ($(BOARD_NAME),s6plkeb)
 	FLASH_IMAGE_NAME_DUAL= flash_image
-	PROM_SCRIPT= program_prom_lx9.cmd
+	PROM_SCRIPT= program_prom_s6plkeb.cmd
 	PROMGEN_FLAGS= -w -p mcs -c FF
-	PROMGEN_TYPE= -s 16384 -u 0000
+	PROMGEN_TYPE= -s 8192 -u 0000
 	PROMGEN_PREFIX= -spi
 	PCUBLAZE_PARAMS= --format mcs --swap off
 	PCUBLAZE_FILES= --promfile ${FLASH_IMAGE_NAME_DUAL}.mcs --outfile ${FLASH_IMAGE_NAME_DUAL}.mcs
@@ -192,15 +192,15 @@ header:
 	@echo "Write 'make download-bits' to download the bitstream to the target"
 	@echo "Write 'make download-elf' to download the .elf file to the target"
 	@echo ""
-	@echo "Write 'make clean_bsp' to clean the board support package"
-	@echo "Write 'make clean_app' to clean the application"
-	@echo "Write 'make clean_sw' to clean the whole software"
+	@echo "Write 'make clean-bsp' to clean the board support package"
+	@echo "Write 'make clean-app' to clean the application"
+	@echo "Write 'make clean-sw' to clean the whole software"
 	@echo ""
-	@echo "Write 'make clean_hw' to clean the bitstream"
-	@echo "Write 'make clean_all' to clean the all generated files"
+	@echo "Write 'make clean-hw' to clean the bitstream"
+	@echo "Write 'make clean-all' to clean the all generated files"
 	@echo ""
-	@echo "Write 'make gen_flash' to generate the .mcs flash image"
-	@echo "Write 'make prog_flash' to program the .mcs image to the flash"
+	@echo "Write 'make gen-flash' to generate the .mcs flash image"
+	@echo "Write 'make prog-flash' to program the .mcs image to the flash"
 	@echo ""
 	@echo "Change 'makefile.setting' to configure the build system"
 
@@ -276,8 +276,8 @@ ${EXECUTABLE}.mem: ${EXECUTABLE}.elf
 # F L A S H  R U L E S
 ####################################################
 
-.PHONY: gen_flash
-gen_flash : app ${FLASH_IMAGE_NAME_DUAL}.mcs
+.PHONY: gen-flash
+gen-flash : app ${FLASH_IMAGE_NAME_DUAL}.mcs
 
 $(BOOTLOADER_PATH)/$(BOOT_BUILD_DIR)/$(BOOTLOADER_NAME).elf : $(BOOTLOADER_PATH)/Makefile
 	@echo Invoking: bootloader build system
@@ -305,8 +305,8 @@ ${FLASH_IMAGE_NAME_DUAL}.mcs : ${EXECUTABLE}.mem $(BITSTREAM).bit
 	@echo Finished generating: $@
 	@echo ' '
 
-.PHONY: prog_flash
-prog_flash : gen_flash
+.PHONY: prog-flash
+prog-flash : gen-flash
 	@echo Invoking: Xilinx iMPACT
 	impact -batch $(SCRIPT_DIR)/$(PROM_SCRIPT)
 	@echo Finished programming: ${FLASH_IMAGE_NAME_DUAL}.mcs
@@ -316,37 +316,37 @@ prog_flash : gen_flash
 # C L E A N
 ####################################################
 .PHONY: clean
-clean: clean_sw
+clean: clean-sw
 
-.PHONY: clean_all
-clean_all: clean_sw clean_hw
+.PHONY: clean-all
+clean-all: clean-sw clean-hw
 
-.PHONY: clean_bsp
-clean_bsp:
+.PHONY: clean-bsp
+clean-bsp:
 	-@echo "Cleaning board support package..."
 	-${RM} $(PROCESSOR_NAME)
 	-@echo ' '
 
-.PHONY: clean_app
-clean_app:
+.PHONY: clean-app
+clean-app:
 	-@echo "Cleaning software parts..."
 	@touch $(EXECUTABLE)
 	-${RM} $(EXECUTABLE).* $(OBJ) $(OBJD)
 	-@echo ' '
 
-.PHONY: clean_bootloader
-clean_bootloader:
+.PHONY: clean-bootloader
+clean-bootloader:
 	-@echo "Cleaning bootloader..."
 	@touch ${FLASH_IMAGE_NAME}
 	-${RM} ${FLASH_IMAGE_NAME}* $(BITSTREAM).bit
 	-$(MAKE) -C $(BOOTLOADER_PATH) clean
 	-@echo ' '
 
-.PHONY: clean_sw
-clean_sw: clean_bsp clean_app clean_bootloader
+.PHONY: clean-sw
+clean-sw: clean-bsp clean-app clean-bootloader
 
-.PHONY: clean_hw
-clean_hw: $(XPS_DIR)/system.make
+.PHONY: clean-hw
+clean-hw: $(XPS_DIR)/system.make
 	-@echo "Cleaning bitstream parts..."
 	$(MAKE) -C $(XPS_DIR) -f system.make clean
 	-${RM} $(XPS_DIR)/system.make $(HW_SPEC)
@@ -358,7 +358,7 @@ clean_hw: $(XPS_DIR)/system.make
 ####################################################
 
 $(XPS_DIR)/system.make :
-	$(MAKE) -C $(XPS_DIR) bitstream
+	$(MAKE) -C $(XPS_DIR) all
 
 $(XPS_DIR)/implementation/system.bit :
 	$(MAKE) -C $(XPS_DIR) -f system.make bits
