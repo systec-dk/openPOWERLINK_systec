@@ -212,6 +212,16 @@
 			<location>STACK_ROOT/EplStack/EplTimeruGeneric.c</location>
 		</link>
 		<link>
+			<name>EplStack/VirtualEthernetNoOs.c</name>
+			<type>1</type>
+			<location>STACK_ROOT/EplStack/VirtualEthernetNoOs.c</location>
+		</link>
+		<link>
+			<name>EplStack/VirtualEthernetNoOsTest.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/VirtualEthernetNoOsTest.c</locationURI>
+		</link>
+		<link>
 			<name>ObjDicts\CiA401_CN</name>
 			<type>2</type>
 			<location>STACK_ROOT/ObjDicts/CiA401_CN</location>

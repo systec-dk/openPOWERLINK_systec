@@ -50,6 +50,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //------------------------------------------------------------------------------
 // const defines
 //------------------------------------------------------------------------------
+
+#define VETH_NUM_RX_BUFFERS_PLK_EXT     5    ///< number of veth rx buffers when packets are external
+
 #ifdef POWERLINK_0_SMP_BASE
 #define LATCHED_IOPORT_BASE   (void*) POWERLINK_0_SMP_BASE
 #define LATCHED_IOPORT_CFG    (void*) (LATCHED_IOPORT_BASE + 4)
@@ -73,6 +76,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TPDO_CHANNELS_MAX     POWERLINK_0_PDI_PCP_PDITPDOS ///< Max Number of TxPDO's of this CN
 #define RPDO_CHANNELS_MAX     POWERLINK_0_PDI_PCP_PDIRPDOS ///< Max Number of RxPDO's of this CN
 #endif
+
+#if (POWERLINK_0_MAC_REG_MACRXQUEUE1SIZE != 0)
+  #define VETH_NUM_RX_BUFFERS POWERLINK_0_MAC_REG_MACRXQUEUE1SIZE
+#else
+  #define VETH_NUM_RX_BUFFERS VETH_NUM_RX_BUFFERS_PLK_EXT
+#endif //POWERLINK_0_MAC_REG_MACRXQUEUE1SIZE
 
 #ifdef STATUS_LED_PIO_BASE
 #define STATUS_LEDS_BASE STATUS_LED_PIO_BASE

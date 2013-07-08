@@ -47,6 +47,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Cmp_Lcd.h"
 #endif
 
+#ifdef EPL_VETH_SEND_TEST
+  #include "VirtualEthernetNoOsTest.h"
+#endif
 
 //============================================================================//
 //            G L O B A L   D E F I N I T I O N S                             //
@@ -552,6 +555,10 @@ static int openPowerlink(BYTE bNodeId_p)
         goto ExitShutdown;
     }
 
+#ifdef EPL_VETH_SEND_TEST
+    VEthTestApiInitialize(NULL);
+#endif
+
     /* Start POWERLINK Stack */
     PRINTF("start openPOWERLINK stack... ok\n\n");
 
@@ -570,6 +577,12 @@ static int openPowerlink(BYTE bNodeId_p)
         {
             break;
         }
+
+#ifdef EPL_VETH_SEND_TEST
+        VEthTestApiSend();
+
+        VethTestApiProcess();
+#endif
     }
 
 ExitShutdown:

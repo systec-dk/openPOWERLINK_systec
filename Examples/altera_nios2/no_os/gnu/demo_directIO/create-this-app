@@ -100,6 +100,8 @@ ${MAINPATH}/EplStack/EplSdoComu.c ${MAINPATH}/EplStack/EplSdoAsySequ.c ${MAINPAT
 ${MAINPATH}/EplStack/EplTimeruGeneric.c \
 ${MAINPATH}/EplStack/EplErrorHandlerk.c \
 ${MAINPATH}/EplStack/EplApiGeneric.c \
+${MAINPATH}/EplStack/VirtualEthernetNoOs.c \
+${MAINPATH}/EplStack/VirtualEthernetNoOsTest.c \
 ${MAINPATH}/ObjDicts/CiA401_CN/Objdict.c \
 ${MAINPATH}/EplStack/amiarm.c \
 ${MAINPATH}/Target/altera_nios2/no_os/gnu/generic/ShbTarget_Nios2.c \
