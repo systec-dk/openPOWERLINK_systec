@@ -45,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.h"
 #include "system.h"
 
+#include <unistd.h>
+
 //------------------------------------------------------------------------------
 // const defines
 //------------------------------------------------------------------------------

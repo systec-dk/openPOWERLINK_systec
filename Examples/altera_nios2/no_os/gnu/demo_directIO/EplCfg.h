@@ -70,7 +70,7 @@
 
 #include "EplInc.h"
 
-
+#include "systemComponents.h"
 
 // =========================================================================
 // generic defines which for whole EPL Stack
@@ -129,11 +129,6 @@
                                 | EPL_MODULE_NMTU \
                                 | EPL_MODULE_LEDU \
                                 )
-
-/*                                | EPL_MODULE_PDOU \ */
-
-
-
 
 // =========================================================================
 // EPL ethernet driver (Edrv) specific defines
