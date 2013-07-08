@@ -16,14 +16,15 @@ STACK_ROOT=../../../../..
 
 ##################################
 #Path to the XPS project
+#XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_lx150t/design_microblaze_directIO-axi
 #XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_lx150t/design_microblaze_directIO-plb
-XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_lx150t/design_microblaze_directIO-axi
-#XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_lx9/design_microblaze_directIO-plb
 #XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_lx9/design_microblaze_directIO-axi
+XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_s6plkeb/design_microblaze_directIO-axi
+#XPS_DIR=$(STACK_ROOT)/Examples/xilinx_microblaze/avnet_s6plkeb/design_microblaze_directIO-plb
 
 ##################################
-# Board name: [lx150t, lx9]
-BOARD_NAME=lx150t
+# Board name: [lx150t, lx9, s6plkeb]
+BOARD_NAME=s6plkeb
 
 ##################################
 # Bus interface: [plb, axi]
@@ -39,10 +40,8 @@ PROCESSOR_NAME=pcp
 # Processor endian: [ -mlittle-endian (axi bus), -mbig-endian (plb bus)]
 # Hardware multiplier: [ -mno-xl-soft-mul = available, -mxl-soft-mul = not available ]
 # Hardware divider: [ -mno-xl-soft-div = available, -mxl-soft-div = not available ]
-# Barel shifter: [ -mno-xl-barrel-shift = available, -mxl-barrel-shift = not available ]
+# Barel shifter: [ -mxl-barrel-shift = available, -mno-xl-barrel-shift = not available ]
 # Pattern compare instructions: [-mno-xl-pattern-compare = don't use them, -mxl-pattern-compare = use them ]
-########
-# Bootstrap option: [-xl-mode-bootstrap = needed when a bootloader is used]
 PROC_FEATURES=-mcpu=v8.20.a -mno-xl-pattern-compare -mxl-soft-mul -mxl-soft-div
 
 ##################################

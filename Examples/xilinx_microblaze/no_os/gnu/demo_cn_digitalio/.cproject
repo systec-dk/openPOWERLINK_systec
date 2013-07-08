@@ -507,54 +507,54 @@
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="clean_hw" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="clean-hw" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
-						<buildTarget>clean_hw</buildTarget>
+						<buildTarget>clean-hw</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="clean_bsp" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="clean-bsp" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
-						<buildTarget>clean_bsp</buildTarget>
+						<buildTarget>clean-bsp</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="clean_app" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="clea-app" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
-						<buildTarget>clean_app</buildTarget>
+						<buildTarget>clean-app</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="clean_sw" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="clean-sw" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
-						<buildTarget>clean_sw</buildTarget>
+						<buildTarget>clean-sw</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="clean_bootloader" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="clean-bootloader" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
 						<buildArguments/>
-						<buildTarget>clean_bootloader</buildTarget>
+						<buildTarget>clean-bootloader</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="gen_flash" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="gen-flash" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
 						<buildArguments/>
-						<buildTarget>gen_flash</buildTarget>
+						<buildTarget>gen-flash</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>
 					</target>
-					<target name="prog_flash" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+					<target name="prog-flash" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 						<buildCommand>make</buildCommand>
 						<buildArguments/>
-						<buildTarget>prog_flash</buildTarget>
+						<buildTarget>prog-flash</buildTarget>
 						<stopOnError>true</stopOnError>
 						<useDefaultCommand>true</useDefaultCommand>
 						<runAllBuilders>true</runAllBuilders>

@@ -45,6 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.h"
 #include "xparameters.h"
 
+#include "xilinx_usleep.h"
 
 //------------------------------------------------------------------------------
 // const defines
