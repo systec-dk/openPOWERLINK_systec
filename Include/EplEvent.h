@@ -191,7 +191,7 @@ typedef enum
                                         // arg is pointer to pointer of tEplGw309AsciiRequest
     kEplEventTypeNmtMnuNodeAdded       = 0x24, // node was added to isochronous phase by DLL
                                         // arg is pointer to unsigned int containing the node-ID
-
+    kEplEventTypeReleaseRxFrame = 0x25, // arg is pointer to the buffer to release
 } tEplEventType;
 
 

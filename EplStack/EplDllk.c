@@ -365,7 +365,7 @@ static tEplKernel EplDllkProcessReceivedPreq(tEplFrameInfo* pFrameInfo_p, tEplNm
 static tEplKernel EplDllkProcessReceivedPres(tEplFrameInfo* pFrameInfo_p, tEplNmtState NmtState_p, tEplNmtEvent* pNmtEvent_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
 static tEplKernel EplDllkProcessReceivedSoc(tEdrvRxBuffer* pRxBuffer_p, tEplNmtState NmtState_p);
 static tEplKernel EplDllkProcessReceivedSoa(tEdrvRxBuffer* pRxBuffer_p, tEplNmtState NmtState_p);
-static tEplKernel EplDllkProcessReceivedAsnd(tEplFrameInfo* pFrameInfo_p, tEdrvRxBuffer* pRxBuffer_p, tEplNmtState NmtState_p);
+static tEplKernel EplDllkProcessReceivedAsnd(tEplFrameInfo* pFrameInfo_p, tEdrvRxBuffer* pRxBuffer_p, tEplNmtState NmtState_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
 
 // called from EdrvInterruptHandler()
 static void EplDllkCbTransmittedNmtReq(tEdrvTxBuffer * pTxBuffer_p);
@@ -1095,7 +1095,8 @@ tEplKernel  Ret = kEplSuccessful;
 // State:
 //
 //---------------------------------------------------------------------------
-#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE == FALSE
+#if (EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE) || \
+(EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE)
 tEplKernel EplDllkReleaseRxFrame(tEplFrame* pFrame_p, unsigned int uiFrameSize_p)
 {
 tEplKernel      Ret;
@@ -4125,7 +4126,7 @@ TGT_DLLK_DECLARE_FLAGS
             // ASnd frame
             NmtEvent = kEplNmtEventDllCeAsnd;
 
-            Ret = EplDllkProcessReceivedAsnd(&FrameInfo, pRxBuffer_p, NmtState);
+            Ret = EplDllkProcessReceivedAsnd(&FrameInfo, pRxBuffer_p, NmtState, &ReleaseRxBuffer);
             if (Ret != kEplSuccessful)
             {
                 goto Exit;
@@ -4156,6 +4157,7 @@ TGT_DLLK_DECLARE_FLAGS
             Event.m_EventType = kEplEventTypeNmtEvent;
             Event.m_uiSize = sizeof (NmtEvent);
             Event.m_pArg = &NmtEvent;
+
             Ret = EplEventkPost(&Event);
         }
     }
@@ -5140,7 +5142,8 @@ Exit:
 
 static tEplKernel EplDllkProcessReceivedAsnd(tEplFrameInfo* pFrameInfo_p,
                                              tEdrvRxBuffer* pRxBuffer_p,
-                                             tEplNmtState   NmtState_p)
+                                             tEplNmtState   NmtState_p,
+                                             tEdrvReleaseRxBuffer* pReleaseRxBuffer_p)
 {
 tEplKernel      Ret = kEplSuccessful;
 tEplFrame*      pFrame;
@@ -5267,7 +5270,12 @@ unsigned int    uiNodeId;
         {   // ASnd service ID is registered
             // forward frame via async receive FIFO to userspace
             Ret = EplDllkCalAsyncFrameReceived(pFrameInfo_p);
-            if (Ret != kEplSuccessful)
+            if (Ret == kEplReject)
+            {
+                *pReleaseRxBuffer_p = kEdrvReleaseRxBufferLater;
+                Ret = kEplSuccessful;
+            }
+            else if (Ret != kEplSuccessful)
             {
                 goto Exit;
             }
@@ -5281,7 +5289,12 @@ unsigned int    uiNodeId;
             {   // ASnd frame is intended for us
                 // forward frame via async receive FIFO to userspace
                 Ret = EplDllkCalAsyncFrameReceived(pFrameInfo_p);
-                if (Ret != kEplSuccessful)
+                if (Ret == kEplReject)
+                {
+                    *pReleaseRxBuffer_p = kEdrvReleaseRxBufferLater;
+                    Ret = kEplSuccessful;
+                }
+                else if (Ret != kEplSuccessful)
                 {
                     goto Exit;
                 }

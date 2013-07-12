@@ -244,7 +244,7 @@ tEplKernel      Ret = kEplSuccessful;
 
         case kEplEventTypePdoRx:  // RPDO received
         {
-#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE == FALSE
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE
         tEplFrameInfo*  pFrameInfo;
 
             pFrameInfo = (tEplFrameInfo *) pEvent_p->m_pArg;
@@ -303,7 +303,7 @@ tEplEvent       Event;
 
     Event.m_EventSink = kEplEventSinkPdokCal;
     Event.m_EventType = kEplEventTypePdoRx;
-#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE == FALSE
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE
     Event.m_uiSize    = sizeof(tEplFrameInfo);
     Event.m_pArg      = pFrameInfo_p;
 #else
@@ -312,7 +312,7 @@ tEplEvent       Event;
     Event.m_pArg = pFrameInfo_p->m_pFrame;
 #endif
     Ret = EplEventkPost(&Event);
-#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE == FALSE
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE
     if (Ret == kEplSuccessful)
     {
         Ret = kEplReject; // Reject release of rx buffer
