@@ -167,6 +167,7 @@ static tEplDlluCalInstance     EplDlluCalInstance_g;
 //---------------------------------------------------------------------------
 
 static tEplKernel EplDlluCalSetAsndServiceIdFilter(tEplDllAsndServiceId ServiceId_p, tEplDllAsndFilter Filter_p);
+static tEplKernel EplDlluCalPostRxAsndFrame(tEplFrameInfo   *pFrameInfo_p);
 
 //=========================================================================//
 //                                                                         //
@@ -268,34 +269,31 @@ tShbError       ShbError;
 tEplKernel EplDlluCalProcess(tEplEvent * pEvent_p)
 {
 tEplKernel      Ret = kEplSuccessful;
-tEplMsgType     MsgType;
-unsigned int    uiAsndServiceId;
-tEplFrameInfo   FrameInfo;
+tEplFrameInfo   *pFrameInfo = NULL;
 
-    if (pEvent_p->m_EventType == kEplEventTypeAsndRx)
+    switch(pEvent_p->m_EventType)
     {
-        FrameInfo.m_pFrame = (tEplFrame*) pEvent_p->m_pArg;
-        FrameInfo.m_uiFrameSize = pEvent_p->m_uiSize;
-
-        MsgType = (tEplMsgType)AmiGetByteFromLe(&FrameInfo.m_pFrame->m_le_bMessageType);
-        if (MsgType != kEplMsgTypeAsnd)
+        case kEplEventTypeAsndRx:
         {
-            Ret = kEplInvalidOperation;
+            #if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND != FALSE
+                tEplFrameInfo   FrameInfo;
+
+                FrameInfo.m_pFrame = (tEplFrame*) pEvent_p->m_pArg;
+                FrameInfo.m_uiFrameSize = pEvent_p->m_uiSize;
+                pFrameInfo = &FrameInfo;
+            #else
+                pFrameInfo = (tEplFrameInfo*) pEvent_p->m_pArg;
+            #endif
+
+            Ret = EplDlluCalPostRxAsndFrame(pFrameInfo);
+
+            break;
+        }
+        default:
+        {
+            Ret = kEplInvalidEvent;
             goto Exit;
         }
-
-        uiAsndServiceId = (unsigned int) AmiGetByteFromLe(&FrameInfo.m_pFrame->m_Data.m_Asnd.m_le_bServiceId);
-        if (uiAsndServiceId < EPL_DLL_MAX_ASND_SERVICE_ID)
-        {   // ASnd service ID is valid
-            if (EplDlluCalInstance_g.m_apfnDlluCbAsnd[uiAsndServiceId] != NULL)
-            {   // handler was registered
-                Ret = EplDlluCalInstance_g.m_apfnDlluCbAsnd[uiAsndServiceId](&FrameInfo);
-            }
-        }
-    }
-    else
-    {
-        Ret = kEplInvalidEvent;
     }
 
 Exit:
@@ -697,6 +695,66 @@ tEplDllCalAsndServiceIdFilter   ServFilter;
     Event.m_uiSize = sizeof (ServFilter);
 
     Ret = EplEventuPost(&Event);
+
+    return Ret;
+}
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplDlluCalPostRxAsndFrame()
+//
+// Description: forward Asnd frame to desired user space module
+//
+// Parameters:  pFrameInfo_p            = pointer to the Asnd frame
+//
+// Returns:     tEplKernel              = error code
+//
+//
+// State:
+//
+//---------------------------------------------------------------------------
+static tEplKernel EplDlluCalPostRxAsndFrame(tEplFrameInfo   *pFrameInfo_p)
+{
+    tEplMsgType     MsgType;
+    unsigned int    uiAsndServiceId;
+    tEplKernel      Ret = kEplSuccessful;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+    tEplKernel      EventRet;
+    tEplEvent       Event;
+#endif
+
+    MsgType = (tEplMsgType)AmiGetByteFromLe(&pFrameInfo_p->m_pFrame->m_le_bMessageType);
+    if (MsgType != kEplMsgTypeAsnd)
+    {
+        Ret = kEplInvalidOperation;
+        goto Exit;
+    }
+
+    uiAsndServiceId = (unsigned int) AmiGetByteFromLe(&pFrameInfo_p->m_pFrame->m_Data.m_Asnd.m_le_bServiceId);
+    if (uiAsndServiceId < EPL_DLL_MAX_ASND_SERVICE_ID)
+    {   // ASnd service ID is valid
+        if (EplDlluCalInstance_g.m_apfnDlluCbAsnd[uiAsndServiceId] != NULL)
+        {   // handler was registered
+            Ret = EplDlluCalInstance_g.m_apfnDlluCbAsnd[uiAsndServiceId](pFrameInfo_p);
+        }
+    }
+
+Exit:
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+
+    // call free function for Asnd frame
+    Event.m_EventSink = kEplEventSinkDllkCal;
+    Event.m_EventType = kEplEventTypeReleaseRxFrame;
+    Event.m_uiSize    = sizeof(tEplFrameInfo);
+    Event.m_pArg      = pFrameInfo_p;
+
+    EventRet = EplEventuPost(&Event);
+
+    if(EventRet != kEplSuccessful)
+    {
+        Ret = EventRet;
+    }
+#endif
 
     return Ret;
 }

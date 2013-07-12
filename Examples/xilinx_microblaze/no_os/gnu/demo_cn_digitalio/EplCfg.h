@@ -195,8 +195,11 @@
 // CN supports PRes Chaining
 #define EPL_DLL_PRES_CHAINING_CN        TRUE
 
-// Disable deferred release of rx-buffers until Edrv for openMAC supports it
-#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE    TRUE
+// Disable late release for isochronous frames (preq, pres)
+#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS    TRUE
+
+// Disable late release for asynchronous frames (asnd)
+#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND           FALSE
 
 // Async buffer for NMT commands TX in bytes
 #define EPL_DLLCAL_BUFFER_SIZE_TX_NMT        4096
@@ -245,7 +248,14 @@
 // if TRUE the high resolution timer module will be used
 #define EPL_TIMER_USE_HIGHRES           FALSE
 
+// =========================================================================
+// Asnd module specific defines
+// =========================================================================
 
+// set number of frames to be queues for defered asnd release
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+  #define EPL_ASND_NUM_RX_BUFFERS         6
+#endif
 
 // =========================================================================
 // SDO module specific defines

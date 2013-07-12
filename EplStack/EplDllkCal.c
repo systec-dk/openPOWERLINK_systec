@@ -437,6 +437,18 @@ tEplKernel      Ret = kEplSuccessful;
             break;
         }
 
+        case kEplEventTypeReleaseRxFrame:
+        {
+#if (EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE) || \
+    (EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE)
+            tEplFrameInfo*   pFrameInfo;
+
+            pFrameInfo = (tEplFrameInfo *)pEvent_p->m_pArg;
+            Ret = EplDllkReleaseRxFrame(pFrameInfo->m_pFrame, pFrameInfo->m_uiFrameSize);
+#endif
+            break;
+        }
+
         default:
         {
             Ret = kEplInvalidEvent;
@@ -688,8 +700,13 @@ tEplEvent   Event;
 
     Event.m_EventSink = kEplEventSinkDlluCal;
     Event.m_EventType = kEplEventTypeAsndRx;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND != FALSE
     Event.m_pArg = pFrameInfo_p->m_pFrame;
     Event.m_uiSize = pFrameInfo_p->m_uiFrameSize;
+#else
+    Event.m_uiSize    = sizeof(tEplFrameInfo);
+    Event.m_pArg      = pFrameInfo_p;
+#endif
 
     Ret = EplEventkPost(&Event);
     if (Ret != kEplSuccessful)
@@ -699,6 +716,9 @@ tEplEvent   Event;
     else
     {
         EplDllkCalInstance_g.m_Statistics.m_ulMaxRxFrameCount++;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+        Ret = kEplReject;    // Signal dllk to release buffer later
+#endif
     }
 
     return Ret;
