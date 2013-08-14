@@ -573,7 +573,7 @@ tEplApiProcessImageCopyJobInt   IntCopyJob;
 #elif (TARGET_SYSTEM == _WIN32_)
     if (EplApiProcessImageInstance_g.m_dwCurrentThreadId == GetCurrentThreadId())
 #elif (TARGET_SYSTEM == _VXWORKS_)
-    if (EplApiProcessImageInstance_g.m_currentThreadId == taskIdSelf())    	
+    if (EplApiProcessImageInstance_g.m_currentThreadId == taskIdSelf())
 #else
 #error "OS currently not supported by EplApiProcessImage!"
 #endif
@@ -1018,13 +1018,20 @@ void*           pVirtUserPart;
             }
 
             ulSize = min ((PAGE_SIZE - ulOffset), pPart->m_uiSize - ulLength);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
             pVirtUserPart = kmap_atomic(ppPage[nIndex], KM_USER0);
+#else
+            pVirtUserPart = kmap_atomic(ppPage[nIndex]);
+#endif
 
             EPL_MEMCPY(pPIVar,
                 pVirtUserPart + ulOffset,
                 ulSize);
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
             kunmap_atomic(pVirtUserPart, KM_USER0);
+#else
+            kunmap_atomic(pVirtUserPart);
+#endif
 
             pPIVar += ulSize;
             ulLength += ulSize;
@@ -1063,14 +1070,21 @@ void*           pVirtUserPart;
             }
 
             ulSize = min ((PAGE_SIZE - ulOffset), pPart->m_uiSize - ulLength);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
             pVirtUserPart = kmap_atomic(ppPage[nIndex], KM_USER0);
+#else
+            pVirtUserPart = kmap_atomic(ppPage[nIndex]);
+#endif
 
             EPL_MEMCPY(pVirtUserPart + ulOffset,
                 pPIVar,
                 ulSize);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
             kunmap_atomic(pVirtUserPart, KM_USER0);
-
+#else
+            kunmap_atomic(pVirtUserPart);
+#endif
             pPIVar += ulSize;
             ulLength += ulSize;
             ulOffset = 0;
@@ -1244,8 +1258,8 @@ tEplKernel      Ret = kEplSuccessful;
     }
 #elif (TARGET_SYSTEM == _VXWORKS_)
     semDelete(pCopyJob_p->m_Event.m_semCompletion);
-    
-#else    
+
+#else
 #error "OS currently not supported by EplApiProcessImage!"
 #endif
 
