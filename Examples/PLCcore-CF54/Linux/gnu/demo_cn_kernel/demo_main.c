@@ -333,7 +333,7 @@ tEplObdSize         ObdSize;
     EplApiInitParam.m_dwSerialNumber = -1;            // NMT_IdentityObject_REC.SerialNo_U32
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway = 0;
-    EPL_MEMCPY(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
+    strncpy(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
 
     // currently unset parameters left at default value 0
     //EplApiInitParam.m_qwVendorSpecificExt1;

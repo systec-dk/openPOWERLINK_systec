@@ -200,7 +200,7 @@ EplApi::EplApi(MainWindow *pMainWindow_p, unsigned int uiNodeId_p, QString devNa
 
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway = 0;
-    EPL_MEMCPY(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
+    strncpy((char *)EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
     EplApiInitParam.m_uiSyncNodeId = EPL_C_ADR_SYNC_ON_SOA;
     EplApiInitParam.m_fSyncOnPrcNode = FALSE;
 

@@ -268,7 +268,7 @@ int openPowerlinkInit (char *pszEthName, unsigned int uiDevNumber)
     EplApiInitParam.m_dwSerialNumber = (DWORD) ~0UL;    // NMT_IdentityObject_REC.SerialNo_U32
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway = 0;
-    EPL_MEMCPY(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
+    strncpy(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
     EplApiInitParam.m_uiSyncNodeId = EPL_C_ADR_SYNC_ON_SOA; // for fSyncOnPrcNode==TRUE, this means last PRC node
     EplApiInitParam.m_fSyncOnPrcNode = TRUE;
 

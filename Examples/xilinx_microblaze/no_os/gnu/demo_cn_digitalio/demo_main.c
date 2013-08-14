@@ -508,7 +508,7 @@ static int openPowerlink(BYTE bNodeId_p)
     EplApiInitParam.m_pfnCbEvent = AppCbEvent;
     EplApiInitParam.m_pfnCbSync  = AppCbSync;
     EplApiInitParam.m_pfnObdInitRam = EplObdInitRam;
-    EPL_MEMCPY(EplApiInitParam.m_sHostname, abHostname,
+    strncpy(EplApiInitParam.m_sHostname, abHostname,
                sizeof(EplApiInitParam.m_sHostname));
 
     PRINTF("\nNode ID is set to: 0x%x\n", EplApiInitParam.m_uiNodeId);
