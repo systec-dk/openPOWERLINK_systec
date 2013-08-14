@@ -294,7 +294,7 @@ static unsigned int     uiSampleNo;
         EplDllkCalGetStatistics(&pDllkCalStats);
 
         nSize += snprintf (pcBuffer_p + nSize, nBufferSize_p - nSize,
-                           "CurAsyncTxGen=%lu CurAsyncTxNmt=%lu CurAsyncRx=%lu\nMaxAsyncTxGen=%lu MaxAsyncTxNmt=%lu MaxAsyncRx=%lu\n", pDllkCalStats->m_ulCurTxFrameCountGen, pDllkCalStats->m_ulCurTxFrameCountNmt, pDllkCalStats->m_ulCurRxFrameCount, pDllkCalStats->m_ulMaxTxFrameCountGen, pDllkCalStats->m_ulMaxTxFrameCountNmt, pDllkCalStats->m_ulMaxRxFrameCount);
+                           "CurAsyncTxGen=%lu CurAsyncTxNmt=%lu CurAsyncRx=%lu\nMaxAsyncTxGen=%lu MaxAsyncTxNmt=%lu MaxAsyncRx=%lu\n", pDllkCalStats->m_ulCurTxFrameCountGenAsnd, pDllkCalStats->m_ulCurTxFrameCountNmt, pDllkCalStats->m_ulCurRxFrameCount, pDllkCalStats->m_ulMaxTxFrameCountGenAsnd, pDllkCalStats->m_ulMaxTxFrameCountNmt, pDllkCalStats->m_ulMaxRxFrameCount);
 #endif
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
