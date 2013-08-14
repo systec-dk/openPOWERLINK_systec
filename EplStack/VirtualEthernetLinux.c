@@ -142,7 +142,7 @@ static int VEthClose(struct net_device *pNetDevice_p);
 static int VEthXmit(struct sk_buff *pSkb_p, struct net_device *pNetDevice_p);
 static struct net_device_stats* VEthGetStats(struct net_device *pNetDevice_p);
 static void VEthTimeout(struct net_device *pNetDevice_p);
-static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p);
+static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
 
 
 //=========================================================================//
