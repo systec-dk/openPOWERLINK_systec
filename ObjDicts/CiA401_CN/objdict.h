@@ -15,21 +15,21 @@ EPL_OBD_BEGIN ()
         // Object 1400h: PDO_RxCommParam_00h_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1400, 0x03, EplPdouCbObdAccess)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1400, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x02)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1400, 0x01, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NodeID_U8, 0x00)
+            EPL_OBD_SUBINDEX_RAM_VAR_RG(0x1400, 0x01, kEplObdTypUInt8, kEplObdAccSGRW, tEplObdUnsigned8, NodeID_U8, 0x00, 0, 254)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1400, 0x02, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, MappingVersion_U8, 0x00)
         EPL_OBD_END_INDEX(0x1400)
 
         // Object 1401h: PDO_RxCommParam_01h_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1401, 0x03, EplPdouCbObdAccess)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1401, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x02)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1401, 0x01, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NodeID_U8, 0x00)
+            EPL_OBD_SUBINDEX_RAM_VAR_RG(0x1401, 0x01, kEplObdTypUInt8, kEplObdAccSGRW, tEplObdUnsigned8, NodeID_U8, 0x00, 0, 254)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1401, 0x02, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, MappingVersion_U8, 0x00)
         EPL_OBD_END_INDEX(0x1401)
 
         // Object 1402h: PDO_RxCommParam_02h_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1402, 0x03, EplPdouCbObdAccess)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1402, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x02)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1402, 0x01, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NodeID_U8, 0x00)
+            EPL_OBD_SUBINDEX_RAM_VAR_RG(0x1402, 0x01, kEplObdTypUInt8, kEplObdAccSGRW, tEplObdUnsigned8, NodeID_U8, 0x00, 0, 254)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1402, 0x02, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, MappingVersion_U8, 0x00)
         EPL_OBD_END_INDEX(0x1402)
 
@@ -126,7 +126,7 @@ EPL_OBD_BEGIN ()
         // Object 1800h: PDO_TxCommParam_00h_REC
         EPL_OBD_BEGIN_INDEX_RAM(0x1800, 0x03, EplPdouCbObdAccess)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1800, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x02)
-            EPL_OBD_SUBINDEX_RAM_VAR(0x1800, 0x01, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, NodeID_U8, 0x00)
+            EPL_OBD_SUBINDEX_RAM_VAR_RG(0x1800, 0x01, kEplObdTypUInt8, kEplObdAccSGRW, tEplObdUnsigned8, NodeID_U8, 0x00 , 0, 254)
             EPL_OBD_SUBINDEX_RAM_VAR(0x1800, 0x02, kEplObdTypUInt8, kEplObdAccSRW, tEplObdUnsigned8, MappingVersion_U8, 0x00)
         EPL_OBD_END_INDEX(0x1800)
 
@@ -199,7 +199,7 @@ EPL_OBD_BEGIN ()
             EPL_OBD_SUBINDEX_RAM_USERDEF(0x6401, 0x01, kEplObdTypInt16, kEplObdAccVPR, tEplObdInteger16, AnalogueInput, 0x0000)
             EPL_OBD_SUBINDEX_RAM_USERDEF(0x6401, 0x02, kEplObdTypInt16, kEplObdAccVPR, tEplObdInteger16, AnalogueInput, 0x0000)
         EPL_OBD_END_INDEX(0x6401)
-		
+
 		// AnalogueInput_00h_AI32
         EPL_OBD_BEGIN_INDEX_RAM(0x6402, 0x02, NULL)
             EPL_OBD_SUBINDEX_RAM_VAR(0x6402, 0x00, kEplObdTypUInt8, kEplObdAccConst, tEplObdUnsigned8, NumberOfEntries, 0x01)
