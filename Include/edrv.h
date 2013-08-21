@@ -73,7 +73,7 @@
 
 #include "EplInc.h"
 #include "EplFrame.h"
-
+#include "EplTimer.h"
 //---------------------------------------------------------------------------
 // const defines
 //---------------------------------------------------------------------------
@@ -117,6 +117,10 @@
 #define EDRV_CYCLIC_SAMPLE_NUM                  501
 #endif
 
+#ifndef EDRV_USE_TTTX
+#define EDRV_USE_TTTX                    FALSE
+#endif
+
 
 //---------------------------------------------------------------------------
 // types
@@ -137,6 +141,8 @@ typedef void (*tEdrvTxHandler) (tEdrvTxBuffer * pTxBuffer_p);
 typedef tEplKernel (* tEdrvCyclicCbSync) (void);
 typedef tEplKernel (* tEdrvCyclicCbError) (tEplKernel ErrorCode_p, tEdrvTxBuffer * pTxBuffer_p);
 
+typedef void (PUBLIC * tEplHighResCallback) (tEplTimerHdl* pTimerHdl_p);
+
 
 // position of a buffer in an ethernet-frame
 typedef enum
@@ -153,6 +159,7 @@ struct _tEdrvTxBuffer
     unsigned int    m_uiTxMsgLen;           // IN: length of message to be send (set for each transmit call)
     DWORD           m_dwTimeOffsetNs;       // IN: delay to a previous frame after which this frame will be transmitted
     DWORD           m_dwTimeOffsetAbsTk;    // IN: absolute time when frame will be transmitted (in MAC ticks)
+    QWORD           m_qwLaunchTime;
     tEdrvTxHandler  m_pfnTxHandler;         // IN: special Tx callback function
     // ----------------------
     union
@@ -262,8 +269,14 @@ tEplKernel EdrvChangeFilter(tEdrvFilter*    pFilter_p,
                             unsigned int    uiCount_p,
                             unsigned int    uiEntryChanged_p,
                             unsigned int    uiChangeFlags_p);
-
-
+#if EDRV_USE_TTTX != FALSE
+tEplKernel EdrvGetMacClock(QWORD* pqwCurtime_p);
+void       EdrvSetCyclicFrequency(DWORD dwOffset);
+tEplKernel EdrvStartTimer(tEplTimerHdl* pTimerHdl_p,DWORD dwOffset);
+tEplKernel EdrvStopTimer(tEplTimerHdl* pTimerHdl_p);
+tEplKernel EdrvEnableTimer(tEplTimerHdl* pTimerHdl_p);
+tEplKernel EdrvRegisterHighResCallback(tEplHighResCallback pfnHighResCb_p);
+#endif
 int EdrvGetDiagnostics(char* pszBuffer_p, int iSize_p);
 
 // EdrvCyclic module

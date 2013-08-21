@@ -201,7 +201,12 @@ EplApi::EplApi(MainWindow *pMainWindow_p, unsigned int uiNodeId_p, QString devNa
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway = 0;
     strncpy((char *)EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
+
+#if EDRV_USE_TTTX != FALSE
+    EplApiInitParam.m_uiSyncNodeId = EPL_C_ADR_SYNC_ON_SOC;
+#else
     EplApiInitParam.m_uiSyncNodeId = EPL_C_ADR_SYNC_ON_SOA;
+#endif
     EplApiInitParam.m_fSyncOnPrcNode = FALSE;
 
     // set callback functions

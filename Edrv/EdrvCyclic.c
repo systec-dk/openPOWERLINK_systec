@@ -103,6 +103,10 @@
 #endif
 #endif
 
+#if EDRV_USE_TTTX != FALSE
+#define EDRV_SHIFT       150000ULL
+#endif
+
 
 //---------------------------------------------------------------------------
 // local types
@@ -120,6 +124,10 @@ typedef struct
     tEplTimerHdl        m_TimerHdlSlot;
     tEdrvCyclicCbSync   m_pfnCbSync;
     tEdrvCyclicCbError  m_pfnCbError;
+#if EDRV_USE_TTTX != FALSE
+    unsigned long long  m_ullNextCycleTime;
+    BOOL                m_fNextCycleValid;
+#endif
 
 #if EDRV_CYCLIC_USE_DIAGNOSTICS != FALSE
     unsigned int        m_uiSampleNo;
@@ -410,6 +418,10 @@ tEplKernel      Ret = kEplSuccessful;
         0L,
         TRUE);
 
+#if EDRV_USE_TTTX != FALSE
+    EdrvCyclicInstance_l.m_fNextCycleValid = FALSE;
+#endif
+
 #if EDRV_CYCLIC_USE_DIAGNOSTICS != FALSE
     EdrvCyclicInstance_l.m_ullLastSlotTimeStamp = 0;
 #endif
@@ -439,7 +451,9 @@ tEplKernel EdrvCyclicStopCycle (void)
 tEplKernel      Ret = kEplSuccessful;
 
     Ret = EplTimerHighReskDeleteTimer(&EdrvCyclicInstance_l.m_TimerHdlCycle);
+#if EDRV_USE_TTTX == FALSE
     Ret = EplTimerHighReskDeleteTimer(&EdrvCyclicInstance_l.m_TimerHdlSlot);
+#endif
 
 #if EDRV_CYCLIC_USE_DIAGNOSTICS != FALSE
     EdrvCyclicInstance_l.m_ullStartCycleTimeStamp = 0;
@@ -688,6 +702,9 @@ Exit:
             Ret = EdrvCyclicInstance_l.m_pfnCbError(Ret, NULL);
         }
     }
+#if EDRV_USE_TTTX != FALSE
+    EdrvCyclicInstance_l.m_ullNextCycleTime += (EdrvCyclicInstance_l.m_dwCycleLenUs * 1000ULL);
+#endif
     return Ret;
 }
 
@@ -762,8 +779,73 @@ Exit:
 
 static tEplKernel EdrvCyclicProcessTxBufferList(void)
 {
-tEplKernel      Ret = kEplSuccessful;
-tEdrvTxBuffer*  pTxBuffer;
+    tEplKernel          Ret = kEplSuccessful;
+    tEdrvTxBuffer*      pTxBuffer;
+    BOOL                bFirstPacket = TRUE;
+#if EDRV_USE_TTTX != FALSE
+    unsigned long long  ullLaunchTime;
+    QWORD               qwCycleMin,qwCycleMax;
+    QWORD               qwCurrMacTime = 0;
+
+    EdrvGetMacClock(&qwCurrMacTime);
+#endif
+
+#if EDRV_USE_TTTX != FALSE
+    if(!EdrvCyclicInstance_l.m_fNextCycleValid)
+    {
+        EdrvCyclicInstance_l.m_ullNextCycleTime = qwCurrMacTime + EDRV_SHIFT;
+        ullLaunchTime = EdrvCyclicInstance_l.m_ullNextCycleTime;
+        EdrvCyclicInstance_l.m_fNextCycleValid = TRUE;
+    }
+    else
+    {
+        ullLaunchTime = EdrvCyclicInstance_l.m_ullNextCycleTime;
+
+        if(qwCurrMacTime > (ullLaunchTime))
+        {
+            Ret = kEplEdrvTxListNotFinishedYet;
+            goto Exit;
+        }
+    }
+
+    qwCycleMin = ullLaunchTime;
+    qwCycleMax = ullLaunchTime + (EdrvCyclicInstance_l.m_dwCycleLenUs * 1000ULL);
+
+    while ((pTxBuffer = EdrvCyclicInstance_l.m_paTxBufferList[EdrvCyclicInstance_l.m_uiCurTxBufferEntry]) != NULL)
+    {
+        if(pTxBuffer == NULL)
+        {
+            Ret = kEplEdrvBufNotExisting;
+            goto Exit;
+        }
+
+        if(bFirstPacket)
+        {
+            pTxBuffer->m_qwLaunchTime = ullLaunchTime ;
+            bFirstPacket = FALSE;
+        }
+        else
+        {
+            ullLaunchTime = ullLaunchTime + (QWORD)pTxBuffer->m_dwTimeOffsetNs;
+            pTxBuffer->m_qwLaunchTime = ullLaunchTime;
+        }
+
+        if((pTxBuffer->m_qwLaunchTime - qwCycleMin) >  (qwCycleMax - qwCycleMin))
+        {
+            Ret = kEplEdrvTxListNotFinishedYet;
+            goto Exit;
+        }
+
+        Ret = EdrvSendTxMsg(pTxBuffer);
+        if (Ret != kEplSuccessful)
+        {
+            goto Exit;
+        }
+
+        pTxBuffer->m_qwLaunchTime = 0;
+        EdrvCyclicInstance_l.m_uiCurTxBufferEntry++;
+	}
+#else
 
     while ((pTxBuffer = EdrvCyclicInstance_l.m_paTxBufferList[EdrvCyclicInstance_l.m_uiCurTxBufferEntry]) != NULL)
     {
@@ -788,6 +870,8 @@ tEdrvTxBuffer*  pTxBuffer;
 
         EdrvCyclicInstance_l.m_uiCurTxBufferEntry++;
     }
+
+#endif
 
 Exit:
     if (Ret != kEplSuccessful)
