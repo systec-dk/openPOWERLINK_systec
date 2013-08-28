@@ -192,6 +192,10 @@ typedef enum
     kEplEventTypeNmtMnuNodeAdded       = 0x24, // node was added to isochronous phase by DLL
                                         // arg is pointer to unsigned int containing the node-ID
     kEplEventTypeReleaseRxFrame = 0x25, // arg is pointer to the buffer to release
+    kEplEventTypeReceivedPres   = 0x30, // received a PRes frame, used to forward frames to conformance test
+                                        // arg is pointer to tEplEventReceivedPres
+    kEplEventTypeRequPresFw     = 0x31, // request forwarding of a PRes frame to API layer (for conformance test)
+                                        // arg is pointer to tEplEventReceivedPres
 } tEplEventType;
 
 

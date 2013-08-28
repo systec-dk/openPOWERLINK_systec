@@ -77,6 +77,8 @@
 #include "edrv.h"
 #include "Benchmark.h"
 
+#include <stddef.h>
+
 //#if EPL_TIMER_USE_HIGHRES != FALSE
 #include "kernel/EplTimerHighResk.h"
 //#endif
@@ -234,6 +236,11 @@ typedef enum
 
 } tEplDllState;
 
+typedef struct
+{
+    BYTE    FwRequ;                 // Forward request, incremented by call from app
+    BYTE    FwResp;                 // Forward response, incremented by Dllk layer
+} tEplDllkPresFw;
 
 typedef struct
 {
@@ -313,7 +320,7 @@ typedef struct
 #if EPL_DLL_SOCTIME_FORWARD != FALSE
     tEplSocTimeStamp    m_SocTimeStamp;         // timestamps of last SoC frame
 #endif
-
+    tEplDllkPresFw      m_aPresForward[EPL_NMT_MAX_NODE_ID];     // Used to forward Pres frames to application layer
 } tEplDllkInstance;
 
 
@@ -482,6 +489,8 @@ static tEplKernel PUBLIC EplDllkCbCnPResFallBackTimeout(void);
 
 #endif
 
+// Request forwarding of Pres frames
+static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p );
 
 //=========================================================================//
 //                                                                         //
@@ -791,6 +800,14 @@ tEplNmtState    NmtState;
             break;
         }
 #endif
+
+        case kEplEventTypeRequPresFw:
+
+            Ret = EplDllkRequestPresForward( *((unsigned int *)pEvent_p->m_pArg) );
+
+            break;
+
+
         default:
         {
             Ret = kEplInvalidEvent;
@@ -4342,6 +4359,7 @@ static tEplKernel EplDllkProcessReceivedPres(   tEplFrameInfo*          pFrameIn
 tEplKernel      Ret = kEplSuccessful;
 tEplFrame*      pFrame;
 unsigned int    uiNodeId;
+tEplDllkPresFw  *pPresFw;
 
 #if EPL_NMT_MAX_NODE_ID > 0
 tEplDllkNodeInfo*   pIntNodeInfo = NULL;
@@ -4351,6 +4369,36 @@ tEplDllkNodeInfo*   pIntNodeInfo = NULL;
 
     // PRes frame
     uiNodeId = AmiGetByteFromLe(&pFrame->m_le_bSrcNodeId);
+
+    // Check if PRes frame should be forwarded to API layer
+    pPresFw = &EplDllkInstance_g.m_aPresForward[ uiNodeId ];
+    if( pPresFw->FwRequ != pPresFw->FwResp )
+    {
+        tEplEvent               Event;
+        tEplDllkEventRcvPres    PresEvent;
+
+        PresEvent.m_uiNodeId    = uiNodeId;
+        PresEvent.m_uiFrameSize = pFrameInfo_p->m_uiFrameSize;
+
+        EPL_MEMSET(&PresEvent, 0x00, sizeof(PresEvent) );
+
+        // If Presp frames are received which are larger than the buffer, they are cut off
+        // (the application will most probably just be interested in the frame-header anyway).
+        EPL_MEMCPY(&PresEvent.m_FrameBuf, pFrame, min(sizeof(PresEvent.m_FrameBuf), pFrameInfo_p->m_uiFrameSize));
+
+        Event.m_EventSink = kEplEventSinkApi;
+        Event.m_EventType = kEplEventTypeReceivedPres;
+        Event.m_uiSize = sizeof (PresEvent);
+        Event.m_pArg = &PresEvent;
+
+        Ret = EplEventkPost(&Event);
+        if (Ret != kEplSuccessful)
+        {
+            goto Exit;
+        }
+
+        pPresFw->FwResp ++;
+    }
 
 #if EPL_DLL_PRES_CHAINING_CN != FALSE
     if ((EplDllkInstance_g.m_fPrcEnabled != FALSE) &&
@@ -8029,6 +8077,38 @@ Exit:
 #endif
 
 #endif // #if EPL_DLL_PRES_CHAINING_CN != FALSE
+
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplDllkRequestPresForward
+//
+// Description: Request forwarding of a PRes frame
+//
+// Parameters:  uiNodeId
+//
+// Returns:     tEplKernel              = error code
+//
+//
+// State:
+//
+//---------------------------------------------------------------------------
+
+static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p )
+{
+    tEplKernel      Ret = kEplSuccessful;
+
+    if( uiNode_p < EPL_NMT_MAX_NODE_ID )
+    {
+        EplDllkInstance_g.m_aPresForward[ uiNode_p ].FwRequ ++;
+    }
+    else
+    {
+        Ret = kEplInvalidNodeId;
+    }
+
+    return  Ret;
+}
 
 #endif // #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLK)) != 0)
 // EOF
