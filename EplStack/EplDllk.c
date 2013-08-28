@@ -2740,8 +2740,8 @@ unsigned int    uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetCyc
         pTxFrame = (tEplFrame *) pTxBuffer->m_pbBuffer;
 
         // Set SoC relative time
-        AmiSetQword64ToLe( &pTxFrame->m_Data.m_Soc.m_le_RelativeTime,	EplDllkInstance_g.m_qwRelativeTime );
-        EplDllkInstance_g.m_qwRelativeTime	+= EplDllkInstance_g.m_DllConfigParam.m_dwCycleLen;
+        AmiSetQword64ToLe( &pTxFrame->m_Data.m_Soc.m_le_RelativeTime,    EplDllkInstance_g.m_qwRelativeTime );
+        EplDllkInstance_g.m_qwRelativeTime    += EplDllkInstance_g.m_DllConfigParam.m_dwCycleLen;
 
         if (EplDllkInstance_g.m_ppTxBufferList == NULL)
         {
