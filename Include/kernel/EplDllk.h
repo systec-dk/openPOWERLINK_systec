@@ -135,6 +135,15 @@ typedef tEplKernel (* tEplDllkCbProcessRpdo) (tEplFrameInfo * pFrameInfo_p);
 
 typedef tEplKernel (* tEplDllkCbProcessTpdo) (tEplFrameInfo * pFrameInfo_p, BOOL fReadyFlag_p);
 
+// structure for kEplEventReceivedFrame
+typedef struct
+{
+    unsigned int    m_uiNodeId;
+    BYTE            m_FrameBuf[300];    // Frames larger than this size will be cut off, 300 is an arbitrary chosen value
+    unsigned int    m_uiFrameSize;
+
+} tEplDllkEventRcvPres;
+
 
 //---------------------------------------------------------------------------
 // function prototypes

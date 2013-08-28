@@ -1130,6 +1130,29 @@ tEplKernel PUBLIC EplApiSetAsndForward
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiTriggerPresForward
+//
+// Description: Trigger forwarding of a Pres frame from DLL -> API
+//
+// Parameters:  uiNodeId_p              Node number requested CN
+//
+// Returns:     tEplKernel              = error code
+//
+//
+// State:
+//
+//---------------------------------------------------------------------------
+EPLDLLEXPORT tEplKernel PUBLIC EplApiTriggerPresForward(unsigned int uiNodeId_p)
+{
+    // Ignore unused parameters
+    (void)  uiNodeId_p;
+
+    // This feature is currently not supported in the Linux kernel space configuration
+    return  kEplInvalidOperation;
+}
+
 //=========================================================================//
 //                                                                         //
 //          P R I V A T E   F U N C T I O N S                              //

@@ -1836,6 +1836,37 @@ Exit:
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiTriggerPresForward
+//
+// Description: Trigger forwarding of a Pres frame from DLL -> API
+//
+// Parameters:  uiNodeId_p              Node number requested CN
+//
+// Returns:     tEplKernel              = error code
+//
+//
+// State:
+//
+//---------------------------------------------------------------------------
+
+EPLDLLEXPORT tEplKernel PUBLIC EplApiTriggerPresForward(unsigned int uiNodeId_p)
+{
+    tEplKernel  Ret = kEplSuccessful;
+    tEplEvent   Event;
+
+    Event.m_EventSink               = kEplEventSinkDllk;
+    Event.m_NetTime.m_dwNanoSec     = 0;
+    Event.m_NetTime.m_dwSec         = 0;
+    Event.m_EventType               = kEplEventTypeRequPresFw;
+    Event.m_pArg                    = &uiNodeId_p;
+    Event.m_uiSize                  = sizeof(uiNodeId_p);
+
+    Ret = EplEventuPost(&Event);
+
+    return Ret;
+}
 
 
 //=========================================================================//
@@ -1926,6 +1957,27 @@ tEplApiEventType    EventType;
 
             EventType = kEplApiEventUserDef;
             ApiEventArg.m_pUserArg = *(void**)pEplEvent_p->m_pArg;
+
+            // call user callback
+            Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
+            break;
+        }
+
+        case kEplEventTypeReceivedPres:
+        {
+            tEplApiEventArg         ApiEventArg;
+            tEplApiEventRcvPres     *pApiData;
+            tEplDllkEventRcvPres    *pDllData;
+
+
+            pApiData    = &ApiEventArg.m_ReceivedPres;
+            pDllData   = (tEplDllkEventRcvPres *) pEplEvent_p->m_pArg;
+
+            pApiData->m_uiNodeId    = pDllData->m_uiNodeId;
+            pApiData->m_uiFrameSize = pDllData->m_uiFrameSize;
+            pApiData->m_pFrame      = (tEplFrame *) &pDllData->m_FrameBuf;
+
+            EventType = kEplApiEventReceivedPres;
 
             // call user callback
             Ret = EplApiInstance_g.m_InitParam.m_pfnCbEvent(EventType, &ApiEventArg, EplApiInstance_g.m_InitParam.m_pEventUserArg);
