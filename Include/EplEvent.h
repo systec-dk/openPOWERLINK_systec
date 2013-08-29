@@ -191,7 +191,11 @@ typedef enum
                                         // arg is pointer to pointer of tEplGw309AsciiRequest
     kEplEventTypeNmtMnuNodeAdded       = 0x24, // node was added to isochronous phase by DLL
                                         // arg is pointer to unsigned int containing the node-ID
-
+    kEplEventTypeReleaseRxFrame = 0x25, // arg is pointer to the buffer to release
+    kEplEventTypeReceivedPres   = 0x30, // received a PRes frame, used to forward frames to conformance test
+                                        // arg is pointer to tEplEventReceivedPres
+    kEplEventTypeRequPresFw     = 0x31, // request forwarding of a PRes frame to API layer (for conformance test)
+                                        // arg is pointer to tEplEventReceivedPres
 } tEplEventType;
 
 
@@ -311,7 +315,11 @@ typedef struct
 
 
 // callback function to get informed about sync event
+#if EPL_DLL_SOCTIME_FORWARD == TRUE
+typedef tEplKernel (PUBLIC* tEplSyncCb) (tEplSocTimeStamp SocTimeStamp);
+#else
 typedef tEplKernel (PUBLIC* tEplSyncCb) (void);
+#endif
 
 // callback function for generic events
 typedef tEplKernel (PUBLIC* tEplProcessEventCb) (tEplEvent* pEplEvent_p);

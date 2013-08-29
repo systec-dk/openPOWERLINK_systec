@@ -146,8 +146,9 @@ typedef enum
     kEplNmtEventDllCePreq           =   0x08,
     kEplNmtEventDllCePres           =   0x09,
     kEplNmtEventDllCeSoa            =   0x0A,
-    kEplNmtEventDllCeAsnd           =   0x0B,
-    kEplNmtEventDllCeFrameTimeout   =   0x0C,
+    kEplNmtEventDllCeAInv           =   0x0B,
+    kEplNmtEventDllCeAsnd           =   0x0C,
+    kEplNmtEventDllCeFrameTimeout   =   0x0D,
 
     // Events triggered by NMT-Commands
     kEplNmtEventSwReset             =   0x10, // NMT_GT1, NMT_GT2, NMT_GT8
@@ -241,6 +242,8 @@ typedef enum
 
 } tEplNmtBootEvent;
 
+
+typedef void (PUBLIC * tEplRebootCb) (void);
 
 //---------------------------------------------------------------------------
 // function prototypes

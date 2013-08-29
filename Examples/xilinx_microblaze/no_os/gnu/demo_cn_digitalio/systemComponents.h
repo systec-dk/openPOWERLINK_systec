@@ -45,10 +45,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.h"
 #include "xparameters.h"
 
+#include "xilinx_usleep.h"
 
 //------------------------------------------------------------------------------
 // const defines
 //------------------------------------------------------------------------------
+
+#define VETH_NUM_RX_BUFFERS_PLK_EXT     5    ///< number of veth rx buffers when packets are external
+
 #if defined(POWERLINK_USES_PLB_BUS)
 
     #ifdef XPAR_PLB_POWERLINK_0_SMP_PCP_BASEADDR
@@ -72,6 +76,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #define RPDO_CHANNELS_MAX     XPAR_PLB_POWERLINK_0_NUM_RPDO ///< Max Number of RxPDO's of this CN
     #endif //XPAR_PLB_POWERLINK_0_NUM_TPDO && XPAR_PLB_POWERLINK_0_NUM_RPDO
 
+    #if (XPAR_PLB_POWERLINK_0_RX_QUEUE_1_SIZE != 0)
+      #define VETH_NUM_RX_BUFFERS XPAR_PLB_POWERLINK_0_RX_QUEUE_1_SIZE
+    #else
+      #define VETH_NUM_RX_BUFFERS VETH_NUM_RX_BUFFERS_PLK_EXT
+    #endif //XPAR_PLB_POWERLINK_0_VETH_ENABLE
 
     #if (XPAR_PLB_POWERLINK_0_PDI_GEN_TIME_SYNC != FALSE)
     #define TIMESYNC_HW
@@ -107,6 +116,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     #if (XPAR_AXI_POWERLINK_0_PDI_GEN_TIME_SYNC != FALSE)
     #define TIMESYNC_HW
     #endif //XPAR_AXI_POWERLINK_0_PDI_GEN_TIME_SYNC
+
+    #if (XPAR_AXI_POWERLINK_0_RX_QUEUE_1_SIZE != 0)
+      #define VETH_NUM_RX_BUFFERS XPAR_AXI_POWERLINK_0_RX_QUEUE_1_SIZE
+    #else
+      #define VETH_NUM_RX_BUFFERS VETH_NUM_RX_BUFFERS_PLK_EXT
+    #endif //XPAR_AXI_POWERLINK_0_RX_QUEUE_1_SIZE != 0
 
     #ifdef XPAR_AXI_POWERLINK_0_PDI_ASYNC_BUF_COUNT
     #define PDI_ASYNC_CHANNELS_MAX XPAR_AXI_POWERLINK_0_PDI_ASYNC_BUF_COUNT

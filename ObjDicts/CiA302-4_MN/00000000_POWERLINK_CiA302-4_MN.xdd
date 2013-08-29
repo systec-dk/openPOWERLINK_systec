@@ -33,7 +33,7 @@
         <productName>openPOWERLINK device</productName>
         <version versionType="HW">1.00</version>
         <version versionType="SW">1.00</version>
-        <version versionType="FW">EPL V2 V1.8 r3</version>
+        <version versionType="FW">EPL V2 V1.8 r4</version>
       </DeviceIdentity>
       <DeviceFunction>
         <capabilities>
@@ -172,7 +172,7 @@
           <Object index="1006" name="NMT_CycleLen_U32" objectType="7" dataType="0007" accessType="rw" PDOmapping="no"/>
           <Object index="1008" name="NMT_ManufactDevName_VS" objectType="7" dataType="0009" accessType="const" PDOmapping="no" defaultValue="openPOWERLINK device"/>
           <Object index="1009" name="NMT_ManufactHwVers_VS" objectType="7" dataType="0009" accessType="const" PDOmapping="no" defaultValue="1.00"/>
-          <Object index="100A" name="NMT_ManufactSwVers_VS" objectType="7" dataType="0009" accessType="const" PDOmapping="no" defaultValue="EPL V2 V1.8 r2"/>
+          <Object index="100A" name="NMT_ManufactSwVers_VS" objectType="7" dataType="0009" accessType="const" PDOmapping="no" defaultValue="EPL V2 V1.8 r4"/>
           <Object index="1018" name="NMT_IdentityObject_REC" objectType="9">
             <SubObject subIndex="00" name="NumberOfEntries" objectType="7" dataType="0005" accessType="const" PDOmapping="no" defaultValue="4"/>
             <SubObject subIndex="01" name="VendorId_U32" objectType="7" dataType="0007" accessType="const" PDOmapping="no" defaultValue="0x00000000"/>
@@ -9913,12 +9913,16 @@
           <dynamicChannel accessType="readOnly" addressOffset="0000" bitAlignment="0" dataType="0006" maxNumber="2032" startIndex="A100" endIndex="A107"/>
           <dynamicChannel accessType="readOnly" addressOffset="0000" bitAlignment="0" dataType="0004" maxNumber="1016" startIndex="A1C0" endIndex="A1C3"/>
           <dynamicChannel accessType="readOnly" addressOffset="0000" bitAlignment="0" dataType="0007" maxNumber="1016" startIndex="A200" endIndex="A203"/>
+          <dynamicChannel accessType="readOnly" addressOffset="0000" bitAlignment="0" dataType="0015" maxNumber="508" startIndex="A400" endIndex="A401"/>
+          <dynamicChannel accessType="readOnly" addressOffset="0000" bitAlignment="0" dataType="001B" maxNumber="508" startIndex="A440" endIndex="A441"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0002" maxNumber="4064" startIndex="A480" endIndex="A48F"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0005" maxNumber="4064" startIndex="A4C0" endIndex="A4CF"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0003" maxNumber="2032" startIndex="A540" endIndex="A547"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0006" maxNumber="2032" startIndex="A580" endIndex="A587"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0004" maxNumber="1016" startIndex="A640" endIndex="A643"/>
           <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0007" maxNumber="1016" startIndex="A680" endIndex="A683"/>
+          <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="0015" maxNumber="508" startIndex="A880" endIndex="A881"/>
+          <dynamicChannel accessType="readWriteOutput" addressOffset="0000" bitAlignment="0" dataType="001B" maxNumber="508" startIndex="A8C0" endIndex="A8C1"/>
         </dynamicChannels>
       </ApplicationLayers>
       <TransportLayers/>

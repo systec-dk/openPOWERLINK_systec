@@ -135,6 +135,15 @@ typedef enum
 
 } tEplDllAsyncReqPriority;
 
+typedef enum
+{
+    kEplDllAsyncBuffNmt         = 0x00,
+    kEplDllAsyncBuffAsnd        = 0x01,
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    kEplDllAsyncBuffVeth        = 0x02,
+#endif
+} tEplDllAsyncBufferNumber;
+
 typedef struct
 {
     unsigned int      m_uiFrameSize;

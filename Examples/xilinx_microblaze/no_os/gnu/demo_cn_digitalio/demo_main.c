@@ -41,18 +41,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //------------------------------------------------------------------------------
 #include "Epl.h"
 
-#ifdef __NIOS2__
-#include <unistd.h>
-#elif defined(__MICROBLAZE__)
-#include "xilinx_usleep.h"
-#endif
-
 #include "systemComponents.h"
 
 #ifdef LCD_BASE
 #include "Cmp_Lcd.h"
 #endif
 
+#ifdef EPL_VETH_SEND_TEST
+  #include "VirtualEthernetNoOsTest.h"
+#endif
 
 //============================================================================//
 //            G L O B A L   D E F I N I T I O N S                             //
@@ -76,7 +73,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // instances then the function name of each object dictionary has to differ.
 tEplKernel PUBLIC  EplObdInitRam (tEplObdInitParam MEM* pInitParam_p);
 
-tEplKernel PUBLIC AppCbSync(void) EPL_SECTION_MAIN_APP_CB_SYNC;
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+ tEplKernel PUBLIC AppCbSync(tEplSocTimeStamp SocTimeStamp_p) EPL_SECTION_MAIN_APP_CB_SYNC;
+#else
+ tEplKernel PUBLIC AppCbSync(void) EPL_SECTION_MAIN_APP_CB_SYNC;
+#endif
+
 tEplKernel PUBLIC AppCbEvent(
     tEplApiEventType        EventType_p,
     tEplApiEventArg*        pEventArg_p,
@@ -94,8 +96,12 @@ tEplKernel PUBLIC AppCbEvent(
 
 #define CYCLE_LEN   1000        ///< lenght of the cycle [us]
 #define MAC_ADDR    0x00, 0x12, 0x34, 0x56, 0x78, NODEID  ///< MAC address of the CN
+#define HOST_NAME   "openPOWERLINK CN"     ///< Hostname of the CN
 #define IP_ADDR     0xc0a86401  ///< IP-Address 192.168.100.1 (don't care the last byte!)
 #define SUBNET_MASK 0xFFFFFF00  ///< The subnet mask (255.255.255.0)
+#define DEF_GATEWAY 0xc0a864f0
+
+#define MAC_ADDR_LAST_BYTE      5       ///< position of the last MAC address byte
 
 //------------------------------------------------------------------------------
 // local types
@@ -392,7 +398,11 @@ This function sets the outputs, reads the inputs and runs the control loop.
 \retval              otherwise                   post error event to API layer
 */
 //------------------------------------------------------------------------------
-tEplKernel PUBLIC AppCbSync(void)
+#if EPL_DLL_SOCTIME_FORWARD != FALSE
+ tEplKernel PUBLIC AppCbSync(tEplSocTimeStamp SocTimeStamp_p)
+#else
+ tEplKernel PUBLIC AppCbSync(void)
+#endif
 {
     tEplKernel        EplRet = kEplSuccessful;
     register int      iCnt;
@@ -444,11 +454,12 @@ communcation command.
 static int openPowerlink(BYTE bNodeId_p)
 {
     DWORD                       ip = IP_ADDR;          ///< ip address
-    const BYTE                  abMacAddr[] = {MAC_ADDR};
+    BYTE                        abMacAddr[] = {MAC_ADDR};
     static tEplApiInitParam     EplApiInitParam;       ///< epl init parameter
     tEplObdSize                 ObdSize;               ///< needed for process var
     tEplKernel                  EplRet;
     unsigned int                uiVarEntries;
+    BYTE                        abHostname[] = HOST_NAME;
 
     fShutdown_l = FALSE;
 
@@ -460,6 +471,9 @@ static int openPowerlink(BYTE bNodeId_p)
     /* calc the IP address with the nodeid */
     ip &= 0xFFFFFF00; //dump the last byte
     ip |= bNodeId_p; // and mask it with the node id
+
+    // set last byte of MAC address to node ID
+    abMacAddr[MAC_ADDR_LAST_BYTE] = (BYTE)bNodeId_p;
 
     /* set EPL init parameters */
     EplApiInitParam.m_uiSizeOfStruct = sizeof (EplApiInitParam);
@@ -490,12 +504,14 @@ static int openPowerlink(BYTE bNodeId_p)
     EplApiInitParam.m_dwApplicationSwDate = 0;
     EplApiInitParam.m_dwApplicationSwTime = 0;
     EplApiInitParam.m_dwSubnetMask = SUBNET_MASK;
-    EplApiInitParam.m_dwDefaultGateway = 0;
+    EplApiInitParam.m_dwDefaultGateway = DEF_GATEWAY;
     EplApiInitParam.m_pfnCbEvent = AppCbEvent;
     EplApiInitParam.m_pfnCbSync  = AppCbSync;
     EplApiInitParam.m_pfnObdInitRam = EplObdInitRam;
+    strncpy(EplApiInitParam.m_sHostname, abHostname,
+               sizeof(EplApiInitParam.m_sHostname));
 
-    PRINTF("\nNode ID is set to: %d\n", EplApiInitParam.m_uiNodeId);
+    PRINTF("\nNode ID is set to: 0x%x\n", EplApiInitParam.m_uiNodeId);
 
     /* initialize POWERLINK stack */
     PRINTF("init openPOWERLINK stack:\n");
@@ -505,7 +521,7 @@ static int openPowerlink(BYTE bNodeId_p)
         PRINTF("init openPOWERLINK stack... error 0x%X\n\n", EplRet);
         goto Exit;
     }
-    PRINTF("init openPOWERLINK stack...ok\n\n");
+    PRINTF("init openPOWERLINK stack... ok\n\n");
 
     /* link process variables used by CN to object dictionary */
     PRINTF("linking process vars:\n");
@@ -539,6 +555,10 @@ static int openPowerlink(BYTE bNodeId_p)
         goto ExitShutdown;
     }
 
+#ifdef EPL_VETH_SEND_TEST
+    VEthTestApiInitialize(NULL);
+#endif
+
     /* Start POWERLINK Stack */
     PRINTF("start openPOWERLINK stack... ok\n\n");
 
@@ -557,6 +577,12 @@ static int openPowerlink(BYTE bNodeId_p)
         {
             break;
         }
+
+#ifdef EPL_VETH_SEND_TEST
+        VEthTestApiSend();
+
+        VethTestApiProcess();
+#endif
     }
 
 ExitShutdown:

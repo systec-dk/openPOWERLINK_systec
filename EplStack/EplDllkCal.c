@@ -146,9 +146,14 @@
 typedef struct
 {
 #if EPL_USE_SHAREDBUFF != FALSE
-//    tShbInstance    m_ShbInstanceRx;      // FIFO for Rx ASnd frames
-    tShbInstance    m_ShbInstanceTxNmt;   // FIFO for Tx frames with NMT request priority
-    tShbInstance    m_ShbInstanceTxGen;   // FIFO for Tx frames with generic priority
+//    tShbInstance    m_ShbInstanceRx;        // FIFO for Rx ASnd frames
+    tShbInstance              m_ShbInstanceTxNmt;       // FIFO for Tx frames with NMT request priority
+    tShbInstance              m_ShbInstanceTxGenAsnd;   // FIFO for Asnd Tx frames with generic priority
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    tShbInstance              m_ShbInstanceTxGenVeth;   // FIFO for Veth Tx frames with generic priority
+
+    tEplDllAsyncBufferNumber  m_ShbCurrentBuffer;       // Switch between Asnd and Veth Tx buffer
+#endif
 #else
     unsigned int    m_uiFrameSizeNmt;
     BYTE            m_abFrameNmt[1500];
@@ -233,14 +238,28 @@ unsigned int    fShbNewCreated;
         Ret = kEplNoResource;
     }
 
-    ShbError = ShbCirAllocBuffer (EPL_DLLCAL_BUFFER_SIZE_TX_GEN, EPL_DLLCAL_BUFFER_ID_TX_GEN,
-        &EplDllkCalInstance_g.m_ShbInstanceTxGen, &fShbNewCreated);
+    ShbError = ShbCirAllocBuffer (EPL_DLLCAL_BUFFER_SIZE_TX_GEN_ASND, EPL_DLLCAL_BUFFER_ID_TX_GEN_ASND,
+        &EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, &fShbNewCreated);
     // returns kShbOk, kShbOpenMismatch, kShbOutOfMem or kShbInvalidArg
 
     if (ShbError != kShbOk)
     {
         Ret = kEplNoResource;
     }
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    ShbError = ShbCirAllocBuffer (EPL_DLLCAL_BUFFER_SIZE_TX_GEN_VETH, EPL_DLLCAL_BUFFER_ID_TX_GEN_VETH,
+        &EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, &fShbNewCreated);
+    // returns kShbOk, kShbOpenMismatch, kShbOutOfMem or kShbInvalidArg
+
+    if (ShbError != kShbOk)
+    {
+        Ret = kEplNoResource;
+    }
+
+    EplDllkCalInstance_g.m_ShbCurrentBuffer = kEplDllAsyncBuffAsnd;
+#endif
+
 
 #if EPL_DLL_PRES_CHAINING_MN != FALSE
     ShbError = ShbCirAllocBuffer (EPL_DLLCAL_BUFFER_SIZE_TX_SYNC, EPL_DLLCAL_BUFFER_ID_TX_SYNC,
@@ -289,12 +308,21 @@ tShbError       ShbError;
     }
     EplDllkCalInstance_g.m_ShbInstanceTxNmt = NULL;
 
-    ShbError = ShbCirReleaseBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGen);
+    ShbError = ShbCirReleaseBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd);
     if (ShbError != kShbOk)
     {
         Ret = kEplNoResource;
     }
-    EplDllkCalInstance_g.m_ShbInstanceTxGen = NULL;
+    EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd = NULL;
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    ShbError = ShbCirReleaseBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth);
+    if (ShbError != kShbOk)
+    {
+        Ret = kEplNoResource;
+    }
+    EplDllkCalInstance_g.m_ShbInstanceTxGenVeth = NULL;
+#endif
 
 #if EPL_DLL_PRES_CHAINING_MN != FALSE
     ShbError = ShbCirReleaseBuffer (EplDllkCalInstance_g.m_ShbInstanceTxSync);
@@ -409,6 +437,18 @@ tEplKernel      Ret = kEplSuccessful;
             break;
         }
 
+        case kEplEventTypeReleaseRxFrame:
+        {
+#if (EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE) || \
+    (EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE)
+            tEplFrameInfo*   pFrameInfo;
+
+            pFrameInfo = (tEplFrameInfo *)pEvent_p->m_pArg;
+            Ret = EplDllkReleaseRxFrame(pFrameInfo->m_pFrame, pFrameInfo->m_uiFrameSize);
+#endif
+            break;
+        }
+
         default:
         {
             Ret = kEplInvalidEvent;
@@ -441,10 +481,14 @@ tEplKernel EplDllkCalAsyncGetTxCount(tEplDllAsyncReqPriority * pPriority_p, unsi
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_USE_SHAREDBUFF != FALSE
 tShbError       ShbError;
-unsigned long   ulFrameCount;
+unsigned long   ulFrameCountNmt;
+unsigned long   ulFrameCountAsnd;
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+  unsigned long   ulFrameCountVeth;
+#endif
 
     // get frame count of Tx FIFO with NMT request priority
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &ulFrameCount);
+    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &ulFrameCountNmt);
     // returns kShbOk, kShbInvalidArg
 
     // error handling
@@ -454,20 +498,20 @@ unsigned long   ulFrameCount;
         goto Exit;
     }
 
-    if (ulFrameCount > EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountNmt)
+    if (ulFrameCountNmt > EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountNmt)
     {
-        EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountNmt = ulFrameCount;
+        EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountNmt = ulFrameCountNmt;
     }
 
-    if (ulFrameCount != 0)
+    if (ulFrameCountNmt != 0)
     {   // NMT requests are in queue
         *pPriority_p = kEplDllAsyncReqPrioNmt;
-        *puiCount_p = (unsigned int) ulFrameCount;
+        *puiCount_p = (unsigned int) ulFrameCountNmt;
         goto Exit;
     }
 
-    // get frame count of Tx FIFO with generic priority
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGen, &ulFrameCount);
+    // get frame count of Asnd Tx FIFO with generic priority
+    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, &ulFrameCountAsnd);
     // returns kShbOk, kShbInvalidArg
 
     // error handling
@@ -477,13 +521,35 @@ unsigned long   ulFrameCount;
         goto Exit;
     }
 
-    if (ulFrameCount > EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGen)
+    if (ulFrameCountAsnd > EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGenAsnd)
     {
-        EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGen = ulFrameCount;
+        EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGenAsnd = ulFrameCountAsnd;
     }
 
     *pPriority_p = kEplDllAsyncReqPrioGeneric;
-    *puiCount_p = (unsigned int) ulFrameCount;
+    *puiCount_p = (unsigned int) ulFrameCountAsnd;
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    // get frame count of Veth Tx FIFO with generic priority
+    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, &ulFrameCountVeth);
+    // returns kShbOk, kShbInvalidArg
+
+    // error handling
+    if (ShbError != kShbOk)
+    {
+        Ret = kEplNoResource;
+        goto Exit;
+    }
+
+    if (ulFrameCountVeth > EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGenVeth)
+    {
+        EplDllkCalInstance_g.m_Statistics.m_ulMaxTxFrameCountGenVeth = ulFrameCountVeth;
+    }
+
+    *pPriority_p = kEplDllAsyncReqPrioGeneric;
+    // return the highest count of both fifo's
+    *puiCount_p = (unsigned int) ((ulFrameCountVeth < ulFrameCountAsnd) ? ulFrameCountAsnd : ulFrameCountVeth);
+#endif
 
 Exit:
 #else
@@ -540,10 +606,32 @@ unsigned long   ulFrameSize;
             break;
 
         default:    // generic priority
-            ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGen, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) == 0)
+            ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
             // returns kShbOk, kShbDataTruncated, kShbInvalidArg, kShbNoReadableData
+#else
+            switch(EplDllkCalInstance_g.m_ShbCurrentBuffer)
+            {
+                case kEplDllAsyncBuffAsnd:
+                    ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
+                    if(ShbError == kShbNoReadableData)
+                    {   // nothing to read in Asnd queue -> try Veth frames!
+                        ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
+                    }
+                    break;
+                case kEplDllAsyncBuffVeth:
+                    ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
+                    if(ShbError == kShbNoReadableData)
+                    {   // nothing to read in Veth queue -> try Asnd frames!
+                        ShbError = ShbCirReadDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, (BYTE *) pFrame_p, *puiFrameSize_p, &ulFrameSize);
+                    }
+                    break;
+                default:
+                    ShbError = kShbBufferInvalid;
+                    break;
+            }
+#endif
             break;
-
     }
 
     // error handling
@@ -559,6 +647,11 @@ unsigned long   ulFrameSize;
         }
         goto Exit;
     }
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    EplDllkCalInstance_g.m_ShbCurrentBuffer = (EplDllkCalInstance_g.m_ShbCurrentBuffer == kEplDllAsyncBuffAsnd)
+            ? kEplDllAsyncBuffVeth : kEplDllAsyncBuffAsnd;
+#endif
 
     *puiFrameSize_p = (unsigned int) ulFrameSize;
 
@@ -607,8 +700,13 @@ tEplEvent   Event;
 
     Event.m_EventSink = kEplEventSinkDlluCal;
     Event.m_EventType = kEplEventTypeAsndRx;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND != FALSE
     Event.m_pArg = pFrameInfo_p->m_pFrame;
     Event.m_uiSize = pFrameInfo_p->m_uiFrameSize;
+#else
+    Event.m_uiSize    = sizeof(tEplFrameInfo);
+    Event.m_pArg      = pFrameInfo_p;
+#endif
 
     Ret = EplEventkPost(&Event);
     if (Ret != kEplSuccessful)
@@ -618,6 +716,9 @@ tEplEvent   Event;
     else
     {
         EplDllkCalInstance_g.m_Statistics.m_ulMaxRxFrameCount++;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+        Ret = kEplReject;    // Signal dllk to release buffer later
+#endif
     }
 
     return Ret;
@@ -633,6 +734,7 @@ tEplEvent   Event;
 //
 // Parameters:  pFrameInfo_p            = frame info structure
 //              Priority_p              = priority
+//              Buffer_p                = buffer to send (SDO or Veth)
 //
 // Returns:     tEplKernel              = error code
 //
@@ -641,12 +743,13 @@ tEplEvent   Event;
 //
 //---------------------------------------------------------------------------
 
-tEplKernel EplDllkCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPriority Priority_p)
+tEplKernel EplDllkCalAsyncSend(tEplFrameInfo * pFrameInfo_p, tEplDllAsyncReqPriority Priority_p, tEplDllAsyncBufferNumber Buffer_p)
 {
 tEplKernel  Ret = kEplSuccessful;
 tEplEvent       Event;
 #if EPL_USE_SHAREDBUFF != FALSE
 tShbError   ShbError;
+tEplKernel  ShbRet = kEplSuccessful;
 
     switch (Priority_p)
     {
@@ -656,8 +759,25 @@ tShbError   ShbError;
             break;
 
         default:    // generic priority
-            ShbError = ShbCirWriteDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGen, pFrameInfo_p->m_pFrame, pFrameInfo_p->m_uiFrameSize);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) == 0)
+            ShbError = ShbCirWriteDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, pFrameInfo_p->m_pFrame, pFrameInfo_p->m_uiFrameSize);
             // returns kShbOk, kShbExceedDataSizeLimit, kShbBufferFull, kShbInvalidArg
+#else
+            switch(Buffer_p)
+            {
+                case kEplDllAsyncBuffAsnd:    // Message is an Asnd frame
+                    ShbError = ShbCirWriteDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, pFrameInfo_p->m_pFrame, pFrameInfo_p->m_uiFrameSize);
+                    break;
+
+                case kEplDllAsyncBuffVeth:    // Message is an Veth frame
+                    ShbError = ShbCirWriteDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, pFrameInfo_p->m_pFrame, pFrameInfo_p->m_uiFrameSize);
+                    break;
+
+                default:
+                    ShbError = kShbInvalidArg;
+                    break;
+            }
+#endif
             break;
 
     }
@@ -669,16 +789,16 @@ tShbError   ShbError;
             break;
 
         case kShbExceedDataSizeLimit:
-            Ret = kEplDllAsyncTxBufferFull;
+            ShbRet = kEplDllAsyncTxBufferFull;
             break;
 
         case kShbBufferFull:
-            Ret = kEplDllAsyncTxBufferFull;
+            ShbRet = kEplDllAsyncTxBufferFull;
             break;
 
         case kShbInvalidArg:
         default:
-            Ret = kEplNoResource;
+            ShbRet = kEplNoResource;
             break;
     }
 
@@ -726,8 +846,7 @@ tShbError   ShbError;
 #if EPL_USE_SHAREDBUFF == FALSE
 Exit:
 #endif
-
-    return Ret;
+    return (( ShbRet != kEplSuccessful) ? ShbRet : Ret);
 }
 
 
@@ -750,10 +869,12 @@ tEplKernel EplDllkCalAsyncClearBuffer(void)
 {
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_USE_SHAREDBUFF != FALSE
-tShbError   ShbError;
 
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxNmt, 1000, NULL);
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGen, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxNmt, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, 1000, NULL);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, 1000, NULL);
+#endif
 
 #else
     EplDllkCalInstance_g.m_uiFrameSizeNmt = 0;
@@ -822,10 +943,12 @@ tEplKernel EplDllkCalGetStatistics(tEplDllkCalStatistics ** ppStatistics)
 {
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_USE_SHAREDBUFF != FALSE
-tShbError   ShbError;
 
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountNmt);
-    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGen, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGen);
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxNmt, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountNmt);
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenAsnd);
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceTxGenVeth, &EplDllkCalInstance_g.m_Statistics.m_ulCurTxFrameCountGenVeth);
+#endif
 //    ShbError = ShbCirGetReadBlockCount (EplDllkCalInstance_g.m_ShbInstanceRx, &EplDllkCalInstance_g.m_Statistics.m_ulCurRxFrameCount);
 
 #else

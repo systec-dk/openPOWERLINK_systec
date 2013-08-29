@@ -83,11 +83,11 @@ How to build the binaries
 ---------------------------
 
 1. Open the Xilinx Platform Studio (XPS) and set the 'Global Repository Search
-   Path' to the POWERLINK IP-Core (ipcore) directory.
+   Path' to the POWERLINK IP-Core (ipcore/xilinx) directory.
    (Note: There is no need to open a project!)
 
    Edit -> Preferences -> Application -> Global Peripheral Repository Search
-   Path (e.g: $STACK_ROOT/Examples/xilinx_microblaze/ipcore)
+   Path (e.g: $STACK_ROOT/Examples/ipcore/xilinx)
 
 2. Open 'ISE Design Suite [64,32] Bit Command Prompt' depending on your
    platform.
@@ -157,7 +157,7 @@ How to import the project into the SDK for debugging purposes
 4. Set the Repository Search Path with:
 
    Xilinx Tools -> Repositories -> Local Repositories
-   (e.g: $STACK_ROOT/Examples/xilinx_microblaze/ipcore)
+   (e.g: $STACK_ROOT/Examples/ipcore/xilinx)
 
 5. Create a new Board Support Package with:
    File -> New -> Xilinx Board Support Package

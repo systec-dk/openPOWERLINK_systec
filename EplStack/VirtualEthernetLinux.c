@@ -142,7 +142,7 @@ static int VEthClose(struct net_device *pNetDevice_p);
 static int VEthXmit(struct sk_buff *pSkb_p, struct net_device *pNetDevice_p);
 static struct net_device_stats* VEthGetStats(struct net_device *pNetDevice_p);
 static void VEthTimeout(struct net_device *pNetDevice_p);
-static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p);
+static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p);
 
 
 //=========================================================================//
@@ -215,7 +215,7 @@ tEplFrameInfo   FrameInfo;
     FrameInfo.m_uiFrameSize = pSkb_p->len;
 
     //call send fkt on DLL
-    Ret = EplDllkCalAsyncSend(&FrameInfo, kEplDllAsyncReqPrioGeneric);
+    Ret = EplDllkCalAsyncSend(&FrameInfo, kEplDllAsyncReqPrioGeneric, kEplDllAsyncBuffVeth);
     if (Ret != kEplSuccessful)
     {
         EPL_DBGLVL_VETH_TRACE("VEthXmit: EplDllkCalAsyncSend returned 0x%02X\n", Ret);
@@ -260,12 +260,14 @@ static void VEthTimeout(struct net_device *pNetDevice_p)
 
 
 
-static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p)
+static tEplKernel VEthRecvFrame(tEplFrameInfo * pFrameInfo_p, tEdrvReleaseRxBuffer* pReleaseRxBuffer_p)
 {
 tEplKernel  Ret = kEplSuccessful;
     struct net_device* pNetDevice = pVEthNetDevice_g;
     struct net_device_stats* pStats = netdev_priv(pNetDevice);
     struct sk_buff *pSkb;
+
+    UNUSED_PARAMETER(pReleaseRxBuffer_p);
 
     EPL_DBGLVL_VETH_TRACE("VEthRecvFrame: FrameSize=%u\n", pFrameInfo_p->m_uiFrameSize);
 

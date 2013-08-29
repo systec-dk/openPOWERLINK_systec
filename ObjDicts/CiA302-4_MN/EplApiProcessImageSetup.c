@@ -205,6 +205,18 @@ tEplKernel      Ret = kEplSuccessful;
         goto Exit;
     }
 
+    Ret = EplApiProcessImageLinkRange(0xA400, 0xA401, 0, FALSE, 8, EPLAPI_PI_SUBINDEX_COUNT);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplApiProcessImageLinkRange(0xA440, 0xA441, 0, FALSE, 8, EPLAPI_PI_SUBINDEX_COUNT);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
     Ret = EplApiProcessImageLinkRange(0xA480, 0xA48F, 0, TRUE, 1, EPLAPI_PI_SUBINDEX_COUNT);
     if (Ret != kEplSuccessful)
     {
@@ -236,6 +248,18 @@ tEplKernel      Ret = kEplSuccessful;
     }
 
     Ret = EplApiProcessImageLinkRange(0xA680, 0xA683, 0, TRUE, 4, EPLAPI_PI_SUBINDEX_COUNT);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplApiProcessImageLinkRange(0xA880, 0xA881, 0, TRUE, 8, EPLAPI_PI_SUBINDEX_COUNT);
+    if (Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
+
+    Ret = EplApiProcessImageLinkRange(0xA8C0, 0xA8C1, 0, TRUE, 8, EPLAPI_PI_SUBINDEX_COUNT);
     if (Ret != kEplSuccessful)
     {
         goto Exit;

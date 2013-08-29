@@ -78,6 +78,7 @@
 #include "EplLed.h"
 #include "EplCfm.h"
 #include "EplEvent.h"
+#include "EplPdo.h"
 
 #include <stddef.h>
 
@@ -151,6 +152,15 @@ typedef struct
     unsigned int        m_uiMappObjectCount;
 } tEplApiEventPdoChange;
 
+// structure for kEplEventReceivedFrame
+typedef struct
+{
+    unsigned int    m_uiNodeId;
+    tEplFrame       *m_pFrame;
+    unsigned int    m_uiFrameSize;
+
+} tEplApiEventRcvPres;
+
 typedef enum
 {
     kEplApiEventUserDef        = 0x00,    // m_pUserArg
@@ -168,6 +178,7 @@ typedef enum
     kEplApiEventCfmResult      = 0x72,    // m_CfmResult
     kEplApiEventReceivedAsnd   = 0x73,    // m_RcvAsnd
     kEplApiEventPdoChange      = 0x74,    // m_PdoChange
+    kEplApiEventReceivedPres   = 0x80,    // m_ReceivedPres
 } tEplApiEventType;
 
 
@@ -186,6 +197,7 @@ typedef union
     tEplErrHistoryEntry     m_ErrHistoryEntry;
     tEplApiEventRcvAsnd     m_RcvAsnd;
     tEplApiEventPdoChange   m_PdoChange;
+    tEplApiEventRcvPres     m_ReceivedPres;
 } tEplApiEventArg;
 
 
@@ -260,6 +272,8 @@ typedef struct
     tEplApiCbEvent      m_pfnCbEvent;
     void*               m_pEventUserArg;
     tEplSyncCb          m_pfnCbSync;
+    tEplPdoCbCopyPdo    m_pfnCbTpdoPreCopy;  // function preprocesses TPDO copy operation
+    tEplPdoCbCopyPdo    m_pfnCbRpdoPostCopy; // function postprocesses RPDO copy operation
 
     tEplObdInitRam      m_pfnObdInitRam;    // function initializes OBD in RAM
     tEplObdDeinitRam    m_pfnObdDeinitRam;  // function frees OBD (for future use, currently NULL)
@@ -271,6 +285,8 @@ typedef struct
     // synchronization trigger (AppCbSync, cycle preparation)
     unsigned int        m_uiSyncNodeId;     // after PRes from CN with this node-ID (0 = SoC, 255 = SoA)
     BOOL                m_fSyncOnPrcNode;   // TRUE: CN is PRes chained; FALSE: conventional CN (PReq/PRes)
+
+    tEplRebootCb        m_pfnRebootCb;              // callback function to reboot device
 
 } tEplApiInitParam;
 
@@ -413,6 +429,9 @@ EPLDLLEXPORT tEplKernel PUBLIC EplApiProcessImageLinkObject(
 
 // objdict specific setup function
 EPLDLLEXPORT tEplKernel PUBLIC EplApiProcessImageSetup(void);
+
+// Request forwarding of Pres frame from DLL -> API
+EPLDLLEXPORT tEplKernel PUBLIC EplApiTriggerPresForward(unsigned int uiNodeId_p);
 
 // functions for getting cleartext values of stack states and events
 EPLDLLEXPORT char * PUBLIC EplGetNmtEventStr(tEplNmtEvent nmtEvent_p);

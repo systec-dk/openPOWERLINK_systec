@@ -161,6 +161,10 @@
 #define EDRV_USE_DIAGNOSTICS            TRUE
 #endif
 
+#if (CONFIG_EDRV == 210)
+// Intel's I210 controller specific define to enable Time triggered send
+#define EDRV_USE_TTTX                   TRUE
+#endif
 // =========================================================================
 // Data Link Layer (DLL) specific defines
 // =========================================================================
@@ -197,9 +201,9 @@
 #define EDRV_AUTO_RESPONSE_DELAY            TRUE
 #endif
 
-#if (CONFIG_EDRV == 8139) || (CONFIG_EDRV == 8255)
+#if (CONFIG_EDRV == 8139) || (CONFIG_EDRV == 8255) || (CONFIG_EDRV == 210)
 // Disable deferred release of rx-buffers until Edrv8139/Edrv8255x supports it
-#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE    TRUE
+#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS    TRUE
 #endif
 
 // =========================================================================

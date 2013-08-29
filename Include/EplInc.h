@@ -126,6 +126,7 @@
 #define EPL_MODULE_PDOU        0x00010000L // PDO user part module
 #define EPL_MODULE_LEDU        0x00020000L // LED user part module
 #define EPL_MODULE_GW309ASCII  0x00040000L // ASCII Gateway according to CiA309 part 3
+#define EPL_MODULE_MASND       0x00080000L // Multi Asnd module
 
 #include "EplCfg.h"     // EPL configuration file (configuration from application)
 
@@ -150,6 +151,12 @@ typedef struct
 
 } tEplNetTime;
 
+typedef struct
+{
+    tEplNetTime             m_netTime;
+    QWORD                   m_qwRelTime;
+    BOOL                    m_fSocRelTimeValid;
+} tEplSocTimeStamp;
 
 // forward declaration of target specific timestamp
 typedef struct _tEplTgtTimeStamp tEplTgtTimeStamp;
@@ -203,6 +210,7 @@ typedef union
 #define EPL_FEATURE_NMT_BASICETH    0x00000800  // MN specific
 #define EPL_FEATURE_RT1             0x00001000
 #define EPL_FEATURE_RT2             0x00002000
+#define EPL_FEATURE_MASND           0x00010000
 #define EPL_FEATURE_PRES_CHAINING   0x00040000
 
 
@@ -255,6 +263,14 @@ typedef union
     #endif
 #endif
 
+#ifndef EPL_DEF_FEATURE_MASND
+    #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
+        #define EPL_DEF_FEATURE_MASND           (EPL_FEATURE_MASND)
+    #else
+        #define EPL_DEF_FEATURE_MASND           0
+    #endif
+#endif
+
 #ifndef EPL_DEF_FEATURE_DLL_MULTIPLEX
     #define EPL_DEF_FEATURE_DLL_MULTIPLEX       (EPL_FEATURE_DLL_MULTIPLEX)
 #endif
@@ -267,6 +283,10 @@ typedef union
     #endif
 #endif
 
+#ifndef EPL_DEF_FEATURE_NMT_EXT
+    #define EPL_DEF_FEATURE_NMT_EXT             (EPL_FEATURE_NMT_EXT)
+#endif
+
 #define EPL_DEF_FEATURE_FLAGS                   (EPL_DEF_FEATURE_ISOCHR \
                                                 | EPL_DEF_FEATURE_SDO_ASND \
                                                 | EPL_DEF_FEATURE_SDO_UDP \
@@ -274,8 +294,9 @@ typedef union
                                                 | EPL_DEF_FEATURE_PDO_DYN \
                                                 | EPL_DEF_FEATURE_CFM \
                                                 | EPL_DEF_FEATURE_DLL_MULTIPLEX \
-                                                | EPL_DEF_FEATURE_PRES_CHAINING)
-
+                                                | EPL_DEF_FEATURE_MASND \
+                                                | EPL_DEF_FEATURE_PRES_CHAINING \
+                                                | EPL_DEF_FEATURE_NMT_EXT)
 
 #ifndef tabentries
 #define tabentries(aVar_p)  (sizeof(aVar_p)/sizeof(*(aVar_p)))

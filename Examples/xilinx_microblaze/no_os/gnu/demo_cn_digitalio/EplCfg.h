@@ -70,7 +70,7 @@
 
 #include "EplInc.h"
 
-
+#include "systemComponents.h"
 
 // =========================================================================
 // generic defines which for whole EPL Stack
@@ -128,12 +128,9 @@
                                 | EPL_MODULE_NMTK \
                                 | EPL_MODULE_NMTU \
                                 | EPL_MODULE_LEDU \
+                                | EPL_MODULE_VETH \
+                                | EPL_MODULE_MASND \
                                 )
-
-/*                                | EPL_MODULE_PDOU \ */
-
-
-
 
 // =========================================================================
 // EPL ethernet driver (Edrv) specific defines
@@ -198,8 +195,11 @@
 // CN supports PRes Chaining
 #define EPL_DLL_PRES_CHAINING_CN        TRUE
 
-// Disable deferred release of rx-buffers until Edrv for openMAC supports it
-#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE    TRUE
+// Disable late release for isochronous frames (preq, pres)
+#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS    TRUE
+
+// Disable late release for asynchronous frames (asnd)
+#define EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND           FALSE
 
 // Async buffer for NMT commands TX in bytes
 #define EPL_DLLCAL_BUFFER_SIZE_TX_NMT        4096
@@ -209,6 +209,9 @@
 
 // Async buffer for Sync Response TX in bytes
 #define EPL_DLLCAL_BUFFER_SIZE_TX_SYNC       4096
+
+// Enable forwarding of SoC timestamps
+#define EPL_DLL_SOCTIME_FORWARD         TRUE
 
 // =========================================================================
 // Event kernel/user module defines
@@ -226,9 +229,8 @@
 #define EPL_OBD_USE_KERNEL                TRUE
 
 // switch this define to TRUE if Epl should compare object range
-// automaticly
-#define EPL_OBD_CHECK_OBJECT_RANGE          FALSE
-//#define EPL_OBD_CHECK_OBJECT_RANGE          TRUE
+// automatically
+#define EPL_OBD_CHECK_OBJECT_RANGE          TRUE
 
 // set this define to TRUE if there are strings or domains in OD, which
 // may be changed in object size and/or object data pointer by its object
@@ -246,7 +248,14 @@
 // if TRUE the high resolution timer module will be used
 #define EPL_TIMER_USE_HIGHRES           FALSE
 
+// =========================================================================
+// Asnd module specific defines
+// =========================================================================
 
+// set number of frames to be queues for defered asnd release
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+  #define EPL_ASND_NUM_RX_BUFFERS         6
+#endif
 
 // =========================================================================
 // SDO module specific defines
@@ -258,6 +267,18 @@
 //#define EPL_MAX_SDO_COM_CON         100
 //#define EPL_SDO_MAX_CONNECTION_UDP  50
 
+// =========================================================================
+// Virtual Ethernet module specific defines
+// =========================================================================
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+
+// number of rx buffers in queue for deferred release
+#define EPL_VETH_NUM_RX_BUFFERS    VETH_NUM_RX_BUFFERS
+
+// enable send routine for test frames
+//#define EPL_VETH_SEND_TEST
+
+#endif
 
 // =========================================================================
 // API Layer specific defines

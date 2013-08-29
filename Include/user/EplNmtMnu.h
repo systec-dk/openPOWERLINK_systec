@@ -127,7 +127,9 @@ tEplKernel EplNmtMnuSendNmtCommand(unsigned int uiNodeId_p,
                                    tEplNmtCommand  NmtCommand_p);
 
 tEplKernel EplNmtMnuRequestNmtCommand(unsigned int uiNodeId_p,
-                                    tEplNmtCommand  NmtCommand_p);
+                                    tEplNmtCommand  NmtCommand_p,
+                                    void* pNmtCommandData_p,
+                                    unsigned int uiDataSize_p);
 
 tEplKernel EplNmtMnuTriggerStateChange(unsigned int uiNodeId_p,
                                        tEplNmtNodeCommand  NodeCommand_p);

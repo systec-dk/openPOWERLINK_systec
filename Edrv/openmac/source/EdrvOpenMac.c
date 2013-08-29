@@ -66,74 +66,64 @@
 ----------------------------------------------------------------------------*/
 
 
-#include "global.h"
 #include "EplInc.h"
 #include "edrv.h"
+#include "kernel/EplDllkFilter.h"
 #include "Benchmark.h"
-#include "Debug.h"
-
-#ifdef __NIOS2__
-#include "system.h"     // FPGA system definitions
-#include <sys/alt_cache.h>
-#include <sys/alt_irq.h>
-#include <alt_types.h>
-#include <io.h>
-#elif defined(__MICROBLAZE__)
-#include "xparameters.h" // FPGA system definitions
-#include "xintc_l.h"
-#include "mb_interface.h"
-#else
-    #error "Configuration is unknown!"
-#endif
 #include "omethlib.h"   // openMAC header
-
 #include "EplTgtTimeStamp_openMac.h"
 
-//comment the following lines to disable feature
-//#define EDRV_DEBUG        //debugging information forwarded to stdout
-//#define EDRV_2NDTXQUEUE    //use additional TX queue for MN
+//--- set the system's base addresses ---
+
+#ifdef __NIOS2__
+  #include "system.h"     // FPGA system definitions
+  #include <sys/alt_cache.h>
+  #include <sys/alt_irq.h>
+  #include <alt_types.h>
+  #include <io.h>
+  #include <unistd.h>    // for usleep
+
+  //POWERLINK IP-Core in "pcp_0" subsystem
+  #if defined(PCP_0_QSYS_POWERLINK_0_MAC_REG_BASE)
+    #include "EdrvOpenMac_qsys.h"
+  #elif defined(POWERLINK_0_MAC_REG_BASE)
+    #include "EdrvOpenMac_sopc.h"
+  #else
+    #error "POWERLINK IP-Core is not found in Nios II (sub-)system!"
+  #endif
+
+#elif defined(__MICROBLAZE__)
+  #include "xparameters.h" // FPGA system definitions
+  #include "xintc_l.h"
+  #include "mb_interface.h"
+  #include "xilinx_usleep.h"
+
+  //POWERLINK IP-Core with PLB
+  #if defined(POWERLINK_USES_PLB_BUS)
+    #include "EdrvOpenMac_plb.h"
+  #elif defined(POWERLINK_USES_AXI_BUS)
+    #include "EdrvOpenMac_axi.h"
+  #else
+    #error "POWERLINK IP-Core is not found in Microblaze system!"
+  #endif
+
+#else
+  #error "Configuration is unknown!"
+#endif
 
 //---------------------------------------------------------------------------
 // defines
 //---------------------------------------------------------------------------
+
+//comment the following lines to disable feature
+//#define EDRV_DEBUG        //debugging information forwarded to stdout
+//#define EDRV_2NDTXQUEUE    //use additional TX queue for MN
 
 //------------------------------------------------------
 //--- set phys settings ---
 //set phy AC timing behavior (ref. to data sheet)
 #define EDRV_PHY_RST_PULSE_US        10000 //length of reset pulse (rst_n = 0)
 #define EDRV_PHY_RST_READY_US         5000 //time after phy is ready to operate
-
-//--- set the system's base addresses ---
-#if defined(__NIOS2__)
-
-//POWERLINK IP-Core in "pcp_0" subsystem
-#if defined(PCP_0_QSYS_POWERLINK_0_MAC_REG_BASE)
-#include "EdrvOpenMac_qsys.h"
-
-//POWERLINK IP-Core in SOPC
-#elif defined(POWERLINK_0_MAC_REG_BASE)
-#include "EdrvOpenMac_sopc.h"
-
-#else
-#error "POWERLINK IP-Core is not found in Nios II (sub-)system!"
-#endif
-
-#elif defined(__MICROBLAZE__)
-
-//POWERLINK IP-Core with PLB
-#if defined(POWERLINK_USES_PLB_BUS)
-#include "EdrvOpenMac_plb.h"
-
-#elif defined(POWERLINK_USES_AXI_BUS)
-#include "EdrvOpenMac_axi.h"
-
-#else
-#error "POWERLINK IP-Core is not found in Microblaze system!"
-#endif
-
-#else
-#error "Configuration unknown!"
-#endif
 
 //--- set driver's MTU ---
 #define EDRV_MAX_BUFFER_SIZE        1518
@@ -142,7 +132,7 @@
 #define EDRV_MAX_FILTERS            16
 
 //--- set driver's auto-response frames ---
-#define EDRV_MAX_AUTO_RESPONSES     14
+#define EDRV_MAX_AUTO_RESPONSES     15
 
 //--- set additional transmit queue size ---
 #define EDRV_MAX_TX_BUF2            16
@@ -165,6 +155,40 @@
 #define EDRV_TIME_TRIG_TX FALSE
 #endif
 
+#ifndef EDRV_QUEUE1_SIZE
+#define EDRV_QUEUE1_SIZE    0
+#endif
+
+#ifndef EDRV_QUEUE2_SIZE
+#define EDRV_QUEUE2_SIZE    0
+#endif
+
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+  #if (EDRV_QUEUE2_SIZE == 0) && (EDRV_PKT_LOC == EDRV_PKT_LOC_TX_RX_INT)
+    #error "Defered release for Asnd frames is enabled but no queue is allocated for it! \
+Please increase the size of receive queue number 2."
+  #endif
+
+  #if EDRV_QUEUE2_SIZE != 0
+    #define EDRV_ASND_RX_PENDING    EDRV_QUEUE2_SIZE
+  #else
+    #define EDRV_ASND_RX_PENDING    EPL_ASND_NUM_RX_BUFFERS
+  #endif
+#endif
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+  #if (EDRV_QUEUE1_SIZE == 0) && (EDRV_PKT_LOC == EDRV_PKT_LOC_TX_RX_INT)
+    #error "The Virtual Ethernet driver is enabled but no queue is allocated for it! \
+Please increase the size of receive queue number 1."
+  #endif
+
+  #if EDRV_QUEUE1_SIZE != 0
+    #define EDRV_VETH_RX_PENDING    EDRV_QUEUE1_SIZE
+  #else
+    #define EDRV_VETH_RX_PENDING    EPL_VETH_NUM_RX_BUFFERS
+  #endif
+#endif
+
 #if (EDRV_AUTO_RESPONSE == FALSE && EDRV_TIME_TRIG_TX == FALSE)
     #error "Please enable EDRV_AUTO_RESPONSE in EplCfg.h to use openMAC for CN!"
 #endif
@@ -182,11 +206,7 @@
 #define GET_TYPE_BASE(typ, element, ptr)    \
     ((typ*)( ((size_t)ptr) - (size_t)&((typ*)0)->element ))
 
-#ifdef __NIOS2__
-#include <unistd.h>
-#elif defined(__MICROBLAZE__)
-#include "xilinx_usleep.h"
-#endif
+// rename usleep
 #define EDRV_USLEEP(time)            usleep(time)
 
 #ifdef __NIOS2__
@@ -212,6 +232,12 @@ typedef struct _tEdrvInstance
     ometh_config_typ         m_EthConf;
     OMETH_H                  m_hOpenMac;
     OMETH_HOOK_H             m_hHook;
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+    OMETH_HOOK_H             m_hHookAsnd;
+#endif
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    OMETH_HOOK_H             m_hHookVeth;
+#endif
     OMETH_FILTER_H           m_ahFilter[EDRV_MAX_FILTERS];
 
     phy_reg_typ*             m_pPhy[EDRV_PHY_NUM];
@@ -444,9 +470,55 @@ BYTE            abFilterMask[31],
         goto Exit;
     }
 
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+    // initialize RX hook for Asnd frames
+    EdrvInstance_l.m_hHookAsnd = omethHookCreate(EdrvInstance_l.m_hOpenMac,
+            EdrvRxHook, EDRV_ASND_RX_PENDING);
+    if (EdrvInstance_l.m_hHookAsnd == 0)
+    {
+        Ret = kEplNoResource;
+        goto Exit;
+    }
+#endif
+
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+    EdrvInstance_l.m_hHookVeth = omethHookCreate(EdrvInstance_l.m_hOpenMac,
+            EdrvRxHook, EDRV_VETH_RX_PENDING);
+    if (EdrvInstance_l.m_hHookVeth == 0)
+    {
+        Ret = kEplNoResource;
+        goto Exit;
+    }
+#endif
+
     for (i = 0; i < EDRV_MAX_FILTERS; i++)
     {
-        EdrvInstance_l.m_ahFilter[i] = omethFilterCreate(EdrvInstance_l.m_hHook, (void*) i, abFilterMask, abFilterValue);
+        switch(i)
+        {
+#if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
+            case EPL_DLLK_FILTER_VETH_UNICAST:
+            case EPL_DLLK_FILTER_VETH_BROADCAST:
+            {
+                EdrvInstance_l.m_ahFilter[i] = omethFilterCreate(EdrvInstance_l.m_hHookVeth,
+                                    (void*) i, abFilterMask, abFilterValue);
+                break;
+            }
+#endif
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ASND == FALSE
+            case EPL_DLLK_FILTER_ASND:
+            {
+                EdrvInstance_l.m_ahFilter[i] = omethFilterCreate(EdrvInstance_l.m_hHookAsnd,
+                                    (void*) i, abFilterMask, abFilterValue);
+                break;
+            }
+#endif
+            default:
+            {
+                EdrvInstance_l.m_ahFilter[i] = omethFilterCreate(EdrvInstance_l.m_hHook,
+                                    (void*) i, abFilterMask, abFilterValue);
+            }
+        }
+
         if (EdrvInstance_l.m_ahFilter[i] == 0)
         {
             Ret = kEplNoResource;
@@ -747,7 +819,9 @@ Exit:
 tEplKernel EdrvReleaseTxMsgBuffer     (tEdrvTxBuffer * pBuffer_p)
 {
 tEplKernel          Ret = kEplSuccessful;
-ometh_packet_typ*   pPacket = NULL;
+#if EDRV_PKT_LOC == EDRV_PKT_LOC_TX_RX_EXT
+ometh_packet_typ*   pPacket
+#endif
 
     if (pBuffer_p->m_BufferNumber.m_dwVal < EDRV_MAX_AUTO_RESPONSES)
     {
@@ -761,11 +835,9 @@ ometh_packet_typ*   pPacket = NULL;
         goto Exit;
     }
 
+#if EDRV_PKT_LOC == EDRV_PKT_LOC_TX_RX_EXT
     pPacket = GET_TYPE_BASE(ometh_packet_typ, data, pBuffer_p->m_pbBuffer);
 
-    // mark buffer as free, before actually freeing it
-    pBuffer_p->m_pbBuffer = NULL;
-#if EDRV_PKT_LOC == EDRV_PKT_LOC_TX_RX_EXT
     //free tx buffer
 #ifdef __NIOS2__
     alt_uncached_free(pPacket);
@@ -777,6 +849,9 @@ ometh_packet_typ*   pPacket = NULL;
 #else
 #error "Configuration unknown"
 #endif
+
+    // mark buffer as free
+    pBuffer_p->m_pbBuffer = NULL;
 
 Exit:
     return Ret;
@@ -1224,6 +1299,40 @@ tEplKernel Ret = kEplSuccessful;
     return Ret;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EdrvReleaseRxBuffer
+//
+// Description: This function will be called when a RX buffer needs to be
+//              released later.
+//
+// Parameters:  pRxBuffer_p = the buffer to release
+//
+// Returns:     kEplSuccessful after successfully releasing the buffer
+//              kEplEdrvInvalidRxBuf if the buffer does not exist
+//
+// State:
+//
+//---------------------------------------------------------------------------
+tEplKernel  EdrvReleaseRxBuffer (tEdrvRxBuffer* pRxBuffer_p)
+{
+    tEplKernel Ret = kEplEdrvInvalidRxBuf;
+    ometh_packet_typ*   pPacket = NULL;
+
+    pPacket = GET_TYPE_BASE(ometh_packet_typ, data, pRxBuffer_p->m_pbBuffer);
+    pPacket->length = pRxBuffer_p->m_uiRxMsgLen;
+
+    if(pPacket->length != 0)
+    {
+        omethPacketFree(pPacket);
+        Ret = kEplSuccessful;
+    } else {
+        Ret = kEplEdrvInvalidRxBuf;
+    }
+
+    return Ret;
+}
+
 
 //=========================================================================//
 //                                                                         //
@@ -1367,6 +1476,8 @@ tEdrvRxBuffer       rxBuffer;
 unsigned int        uiIndex;
 #endif
 tEplTgtTimeStamp    TimeStamp;
+int                     iRet;
+tEdrvReleaseRxBuffer    RetReleaseRxBuffer;
 
     rxBuffer.m_BufferInFrame = kEdrvBufferLastInFrame;
     rxBuffer.m_pbBuffer = (BYTE *) &pPacket->data;
@@ -1382,7 +1493,14 @@ tEplTgtTimeStamp    TimeStamp;
     microblaze_invalidate_dcache_range((DWORD)pPacket, pPacket->length);
 #endif
 
-    EdrvInstance_l.m_InitParam.m_pfnRxHandler(&rxBuffer); //pass frame to Powerlink Stack
+    RetReleaseRxBuffer = EdrvInstance_l.m_InitParam.m_pfnRxHandler(&rxBuffer); //pass frame to Powerlink Stack
+    if (RetReleaseRxBuffer == kEdrvReleaseRxBufferLater)
+    {
+        iRet = 0; //packet has to be released later, openMAC may not use this buffer!
+    } else {
+        iRet = -1; //packet has to be moved back to openMAC
+    }
+
 #if EDRV_MAX_AUTO_RESPONSES > 0
     uiIndex = (unsigned int) arg;
 
@@ -1398,6 +1516,5 @@ tEplTgtTimeStamp    TimeStamp;
     }
 #endif
 
-    return 0;
+    return iRet;
 }
-

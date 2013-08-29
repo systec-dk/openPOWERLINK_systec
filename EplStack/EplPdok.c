@@ -69,8 +69,8 @@
 ****************************************************************************/
 
 #include "kernel/EplPdok.h"
+#include "kernel/EplPdokCopy.h"
 #include "kernel/EplEventk.h"
-#include "EplObd.h"
 #include "kernel/EplDllk.h"
 #include "Benchmark.h"
 
@@ -147,8 +147,10 @@ typedef struct
     tEplPdoAllocationParam  m_Allocation;
     tEplPdoChannel*         m_pRxPdoChannel;
     tEplPdoMappObject(*     m_paRxObject)[EPL_D_PDO_RPDOChannelObjects_U8];     // pointer to array
+    tEplPdoCbCopyPdo        m_pfnCbRpdoPostCopy;
     tEplPdoChannel*         m_pTxPdoChannel;
     tEplPdoMappObject(*     m_paTxObject)[EPL_D_PDO_TPDOChannelObjects_U8];     // pointer to array
+    tEplPdoCbCopyPdo        m_pfnCbTpdoPreCopy;
 
 } tEplPdokInstance;
 
@@ -173,11 +175,6 @@ static tEplKernel EplPdokPdoEncode(tEplFrame* pFrame_p,
                                    BOOL fReadyFlag_p)
                                    EPL_SECTION_PDOK_ENCODE_TPDO_CB;
 
-static tEplKernel EplPdokCopyVarToPdo(BYTE* pbPayload_p, tEplPdoMappObject* pMappObject_p);
-
-static tEplKernel EplPdokCopyVarFromPdo(BYTE* pbPayload_p, tEplPdoMappObject* pMappObject_p);
-
-
 
 //=========================================================================//
 //                                                                         //
@@ -191,7 +188,12 @@ static tEplKernel EplPdokCopyVarFromPdo(BYTE* pbPayload_p, tEplPdoMappObject* pM
 //
 // Description: add and initialize new instance of EPL stack
 //
-// Parameters:  none
+// Parameters:  pfnPdokCbPreCopyTPdo_p = pointer to callback function,
+//                                       which will be called right before the
+//                                       TPDO data will be copied
+//             pfnPdokCbPostCopyRPdo_p = pointer to callback function,
+//                                       which will be called right after the
+//                                       RPDO data was copied
 //
 // Returns:     tEplKernel              = error code
 //
@@ -200,13 +202,30 @@ static tEplKernel EplPdokCopyVarFromPdo(BYTE* pbPayload_p, tEplPdoMappObject* pM
 //
 //---------------------------------------------------------------------------
 
-tEplKernel EplPdokAddInstance(void)
+tEplKernel EplPdokAddInstance(tEplPdoCbCopyPdo pfnPdokCbPreCopyTPdo_p,
+                              tEplPdoCbCopyPdo pfnPdokCbPostCopyRPdo_p)
 {
 tEplKernel      Ret = kEplSuccessful;
 
     EPL_MEMSET(&EplPdokInstance_g, 0, sizeof(EplPdokInstance_g));
 
     Ret = EplDllkRegTpdoHandler(EplPdokCbProcessTpdo);
+    if (Ret != kEplSuccessful)
+    {
+        return Ret;
+    }
+
+    // set TPDO callback function
+    if (pfnPdokCbPreCopyTPdo_p != NULL)
+    {
+        EplPdokInstance_g.m_pfnCbTpdoPreCopy = pfnPdokCbPreCopyTPdo_p;
+    }
+
+    // set RPDO callback function
+    if (pfnPdokCbPostCopyRPdo_p != NULL)
+    {
+        EplPdokInstance_g.m_pfnCbRpdoPostCopy = pfnPdokCbPostCopyRPdo_p;
+    }
 
     return Ret;
 }
@@ -254,6 +273,16 @@ tEplKernel EplPdokDelInstance(void)
     {
         EPL_FREE(EplPdokInstance_g.m_paTxObject);
         EplPdokInstance_g.m_paTxObject = NULL;
+    }
+
+    if (EplPdokInstance_g.m_pfnCbTpdoPreCopy != NULL)
+    {
+        EplPdokInstance_g.m_pfnCbTpdoPreCopy = NULL;
+    }
+
+    if (EplPdokInstance_g.m_pfnCbRpdoPostCopy != NULL)
+    {
+        EplPdokInstance_g.m_pfnCbRpdoPostCopy = NULL;
     }
 
     return kEplSuccessful;
@@ -588,12 +617,18 @@ unsigned int        uiMappObjectCount;
 
         }
 
+        // call data copy callback function right after RPDO access
+        if ((EplPdokInstance_g.m_pfnCbRpdoPostCopy != NULL) && (pPdoChannel->m_uiMappObjectCount != 0))
+        {
+            EplPdokInstance_g.m_pfnCbRpdoPostCopy((BYTE) uiChannelId);
+        }
+
         // processing finished successfully
         break;
     }
 
 Exit:
-#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE == FALSE
+#if EPL_DLL_DISABLE_DEFERRED_RXFRAME_RELEASE_ISOCHRONOUS == FALSE
     EplDllkReleaseRxFrame(pFrame_p, uiFrameSize_p);
     // $$$ return value?
 #endif
@@ -700,6 +735,12 @@ unsigned int        uiMappObjectCount;
         // set PDO version in frame
         AmiSetByteToLe(&pFrame_p->m_Data.m_Pres.m_le_bPdoVersion, pPdoChannel->m_bMappingVersion);
 
+        // call data copy callback function right before TPDO access
+        if ((EplPdokInstance_g.m_pfnCbTpdoPreCopy != NULL) && (pPdoChannel->m_uiMappObjectCount != 0))
+        {
+            EplPdokInstance_g.m_pfnCbTpdoPreCopy((BYTE) uiChannelId);
+        }
+
         // process mapping
         for (uiMappObjectCount = pPdoChannel->m_uiMappObjectCount, pMappObject = EplPdokInstance_g.m_paTxObject[uiChannelId];
              uiMappObjectCount > 0;
@@ -741,257 +782,6 @@ unsigned int        uiMappObjectCount;
 Exit:
     return Ret;
 }
-
-
-//---------------------------------------------------------------------------
-//
-// Function:    EplPdokCopyVarToPdo
-//
-// Description: This function copies a variable specified by the mapping object
-//              to the PDO payload.
-//
-// Parameters:  pbPayload_p             = pointer to PDO payload in destination frame
-//              pMappObject_p           = pointer to mapping object
-//
-// Returns:     tEplKernel              = error code
-//
-//
-// State:
-//
-//---------------------------------------------------------------------------
-
-static tEplKernel EplPdokCopyVarToPdo(BYTE* pbPayload_p, tEplPdoMappObject* pMappObject_p)
-{
-tEplKernel      Ret = kEplSuccessful;
-unsigned int    uiByteOffset;
-void*           pVar;
-
-    uiByteOffset = EPL_PDO_MAPPOBJECT_GET_BITOFFSET(pMappObject_p) >> 3;
-    pbPayload_p += uiByteOffset;
-    pVar = EPL_PDO_MAPPOBJECT_GET_VAR(pMappObject_p);
-
-    switch (EPL_PDO_MAPPOBJECT_GET_TYPE(pMappObject_p))
-    {
-        //-----------------------------------------------
-        // types without ami
-        case kEplObdTypVString:
-        case kEplObdTypOString:
-        case kEplObdTypDomain:
-        default:
-        {
-            // read value from object
-            EPL_MEMCPY (pbPayload_p, pVar, EPL_PDO_MAPPOBJECT_GET_BYTESIZE(pMappObject_p));
-
-            break;
-        }
-
-        //-----------------------------------------------
-        // numerical type which needs ami-write
-        // 8 bit or smaller values
-        case kEplObdTypBool:
-        case kEplObdTypInt8:
-        case kEplObdTypUInt8:
-        {
-            AmiSetByteToLe(pbPayload_p, *((BYTE*)pVar));
-            break;
-        }
-
-        // 16 bit values
-        case kEplObdTypInt16:
-        case kEplObdTypUInt16:
-        {
-            AmiSetWordToLe(pbPayload_p, *((WORD*)pVar));
-            break;
-        }
-
-        // 24 bit values
-        case kEplObdTypInt24:
-        case kEplObdTypUInt24:
-        {
-            AmiSetDword24ToLe(pbPayload_p, *((DWORD*)pVar));
-            break;
-        }
-
-        // 32 bit values
-        case kEplObdTypInt32:
-        case kEplObdTypUInt32:
-        case kEplObdTypReal32:
-        {
-            AmiSetDwordToLe(pbPayload_p, *((DWORD*)pVar));
-            break;
-        }
-
-        // 40 bit values
-        case kEplObdTypInt40:
-        case kEplObdTypUInt40:
-        {
-            AmiSetQword40ToLe(pbPayload_p, *((QWORD*)pVar));
-            break;
-        }
-
-        // 48 bit values
-        case kEplObdTypInt48:
-        case kEplObdTypUInt48:
-        {
-            AmiSetQword48ToLe(pbPayload_p, *((QWORD*)pVar));
-            break;
-        }
-
-        // 56 bit values
-        case kEplObdTypInt56:
-        case kEplObdTypUInt56:
-        {
-            AmiSetQword56ToLe(pbPayload_p, *((QWORD*)pVar));
-            break;
-        }
-
-        // 64 bit values
-        case kEplObdTypInt64:
-        case kEplObdTypUInt64:
-        case kEplObdTypReal64:
-        {
-            AmiSetQword64ToLe(pbPayload_p, *((QWORD*)pVar));
-            break;
-        }
-
-        // time of day
-        case kEplObdTypTimeOfDay:
-        case kEplObdTypTimeDiff:
-        {
-            AmiSetTimeOfDay(pbPayload_p, ((tTimeOfDay*)pVar));
-            break;
-        }
-
-    }
-
-    return Ret;
-}
-
-
-//---------------------------------------------------------------------------
-//
-// Function:    EplPdokCopyVarFromPdo
-//
-// Description: This function copies a variable specified by the mapping object
-//              from the PDO payload.
-//
-// Parameters:  pbPayload_p             = pointer to PDO payload in destination frame
-//              pMappObject_p           = pointer to mapping object
-//
-// Returns:     tEplKernel              = error code
-//
-//
-// State:
-//
-//---------------------------------------------------------------------------
-
-static tEplKernel EplPdokCopyVarFromPdo(BYTE* pbPayload_p, tEplPdoMappObject* pMappObject_p)
-{
-tEplKernel      Ret = kEplSuccessful;
-unsigned int    uiByteOffset;
-void*           pVar;
-
-    uiByteOffset = EPL_PDO_MAPPOBJECT_GET_BITOFFSET(pMappObject_p) >> 3;
-    pbPayload_p += uiByteOffset;
-    pVar = EPL_PDO_MAPPOBJECT_GET_VAR(pMappObject_p);
-
-    switch (EPL_PDO_MAPPOBJECT_GET_TYPE(pMappObject_p))
-    {
-        //-----------------------------------------------
-        // types without ami
-        case kEplObdTypVString:
-        case kEplObdTypOString:
-        case kEplObdTypDomain:
-        default:
-        {
-            // read value from object
-            EPL_MEMCPY (pVar, pbPayload_p, EPL_PDO_MAPPOBJECT_GET_BYTESIZE(pMappObject_p));
-
-            break;
-        }
-
-        //-----------------------------------------------
-        // numerical type which needs ami-write
-        // 8 bit or smaller values
-        case kEplObdTypBool:
-        case kEplObdTypInt8:
-        case kEplObdTypUInt8:
-        {
-            *((BYTE*)pVar) = AmiGetByteFromLe(pbPayload_p);
-            break;
-        }
-
-        // 16 bit values
-        case kEplObdTypInt16:
-        case kEplObdTypUInt16:
-        {
-            *((WORD*)pVar) = AmiGetWordFromLe(pbPayload_p);
-            break;
-        }
-
-        // 24 bit values
-        case kEplObdTypInt24:
-        case kEplObdTypUInt24:
-        {
-            *((DWORD*)pVar) = AmiGetDword24FromLe(pbPayload_p);
-            break;
-        }
-
-        // 32 bit values
-        case kEplObdTypInt32:
-        case kEplObdTypUInt32:
-        case kEplObdTypReal32:
-        {
-            *((DWORD*)pVar) = AmiGetDwordFromLe(pbPayload_p);
-            break;
-        }
-
-        // 40 bit values
-        case kEplObdTypInt40:
-        case kEplObdTypUInt40:
-        {
-            *((QWORD*)pVar) = AmiGetQword40FromLe(pbPayload_p);
-            break;
-        }
-
-        // 48 bit values
-        case kEplObdTypInt48:
-        case kEplObdTypUInt48:
-        {
-            *((QWORD*)pVar) = AmiGetQword48FromLe(pbPayload_p);
-            break;
-        }
-
-        // 56 bit values
-        case kEplObdTypInt56:
-        case kEplObdTypUInt56:
-        {
-            *((QWORD*)pVar) = AmiGetQword56FromLe(pbPayload_p);
-            break;
-        }
-
-        // 64 bit values
-        case kEplObdTypInt64:
-        case kEplObdTypUInt64:
-        case kEplObdTypReal64:
-        {
-            *((QWORD*)pVar) = AmiGetQword64FromLe(pbPayload_p);
-            break;
-        }
-
-        // time of day
-        case kEplObdTypTimeOfDay:
-        case kEplObdTypTimeDiff:
-        {
-            AmiGetTimeOfDay(pVar, ((tTimeOfDay*)pbPayload_p));
-            break;
-        }
-
-    }
-
-    return Ret;
-}
-
 
 #endif // #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOK)) != 0)
 

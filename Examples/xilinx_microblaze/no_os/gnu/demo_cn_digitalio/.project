@@ -3,6 +3,7 @@
 	<name>demo_cn_digitalio</name>
 	<comment></comment>
 	<projects>
+		<project>standalone_bsp_s6plkeb-axi</project>
 		<project>standalone_bsp_lx150t_axi</project>
 	</projects>
 	<buildSpec>
@@ -182,6 +183,11 @@
 			<locationURI>STACK_LOC/EplStack/EplSdoComu.c</locationURI>
 		</link>
 		<link>
+			<name>EplStack/EplPdokCopyEndian.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/EplPdokCopyEndian.c</locationURI>
+		</link>
+		<link>
 			<name>EplStack/EplTimeruGeneric.c</name>
 			<type>1</type>
 			<locationURI>STACK_LOC/EplStack/EplTimeruGeneric.c</locationURI>
@@ -200,6 +206,16 @@
 			<name>EplStack/amibe.c</name>
 			<type>1</type>
 			<locationURI>STACK_LOC/EplStack/amibe.c</locationURI>
+		</link>
+		<link>
+			<name>EplStack/VirtualEthernetNoOs.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/VirtualEthernetNoOs.c</locationURI>
+		</link>
+		<link>
+			<name>EplStack/VirtualEthernetNoOsTest.c</name>
+			<type>1</type>
+			<locationURI>STACK_LOC/EplStack/VirtualEthernetNoOsTest.c</locationURI>
 		</link>
 		<link>
 			<name>ObjDicts/CiA401_CN</name>

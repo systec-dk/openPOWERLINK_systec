@@ -207,7 +207,6 @@ set_location_assignment PIN_P5 -to led[6]
 set_location_assignment PIN_R6 -to led[7]
 set_instance_assignment -name IO_STANDARD "2.5 V" -to button[3]
 set_global_assignment -name IOBANK_VCCIO 2.5V -section_id 2
-set_global_assignment -name MISC_FILE "C:/Projekte/EPL_V2/Examples/altera_fpga/EBV_DBC3C40/design_nios2_openmac/nios_openMac.dpf"
 set_instance_assignment -name IO_STANDARD "2.5 V" -to led[7]
 set_instance_assignment -name IO_STANDARD "2.5 V" -to led[6]
 set_instance_assignment -name IO_STANDARD "2.5 V" -to led[5]
@@ -246,7 +245,6 @@ set_location_assignment PIN_AA17 -to phy1_rst_n
 set_location_assignment PIN_AA16 -to phy1_smi_clk
 set_location_assignment PIN_AB17 -to phy1_smi_io
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to phy1_rx_d
-set_global_assignment -name MISC_FILE "C:/Projekte/CVS_Projekte/EPL_V2/Examples/altera_nios2/EBV_DBC3C40/design_nios2_openmac/nios_openMac.dpf"
 set_instance_assignment -name TCO_REQUIREMENT "5 ns" -from * -to adr -disable
 set_instance_assignment -name TCO_REQUIREMENT "5 ns" -from * -to nbe -disable
 set_instance_assignment -name TCO_REQUIREMENT "6 ns" -from * -to data -disable
@@ -258,7 +256,6 @@ set_location_assignment PIN_K2 -to epcs_dclk
 set_location_assignment PIN_K1 -to epcs_sdi
 set_location_assignment PIN_D1 -to epcs_sdo
 set_location_assignment PIN_E2 -to epcs_ce_n
-set_global_assignment -name MISC_FILE "D:/Projekte/EPL/SW/EPL_V2/Examples/altera_nios2/EBV_DBC3C40/design_nios2_openmac/nios_openMac.dpf"
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to epcs_ce_n
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to epcs_dclk
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to epcs_sdi
@@ -279,7 +276,6 @@ set_location_assignment PIN_AA3 -to 7seg2[3]
 set_location_assignment PIN_AB5 -to 7seg2[2]
 set_location_assignment PIN_AB3 -to 7seg2[1]
 set_location_assignment PIN_AA5 -to 7seg2[0]
-set_global_assignment -name MISC_FILE "C:/Data/Source/work/openPOWERLINK-work/Examples/altera_nios2/EBV_DBC3C40/design_nios2_openmac_digio/nios_openMac.dpf"
 set_instance_assignment -name IO_STANDARD "2.5 V" -to 7seg1[0]
 set_instance_assignment -name IO_STANDARD "2.5 V" -to 7seg1[2]
 set_instance_assignment -name IO_STANDARD "2.5 V" -to 7seg1[4]
@@ -370,16 +366,13 @@ set_global_assignment -name SYNCHRONIZER_IDENTIFICATION AUTO
 set_global_assignment -name STRATIXIII_UPDATE_MODE REMOTE
 set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
 set_global_assignment -name SMART_RECOMPILE ON
-set_global_assignment -name MISC_FILE "c:/Work/RepositoryWORK/openPOWERLINK_CNDK/fpga/altera/EBV_DBC3C40/nios2_openmac_SimpleLatchedIO/nios_openMac.dpf"
 set_location_assignment PIN_K7 -to STATE_OPERATIONAL
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rstn
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to STATE_OPERATIONAL
-set_global_assignment -name MISC_FILE "C:/mairt/workspace/openPOWERLINK_mairt/Examples/altera_nios2/EBV_DBC3C40/design_nios2_openmac/nios_openMac.dpf"
 set_location_assignment PIN_V14 -to phy0_link
 set_location_assignment PIN_AA19 -to phy0_rx_err
 set_location_assignment PIN_V12 -to phy1_link
 set_location_assignment PIN_AA15 -to phy1_rx_err
-set_global_assignment -name MISC_FILE "C:/mairt/workspace/openPOWERLINK_mairt/Examples/altera_nios2/EBV_DBC3C40/design_nios2_directIO/nios_openMac.dpf"
 set_global_assignment -name SDC_FILE PLK_RMII_base.sdc
 set_global_assignment -name VHDL_FILE sevsegEncode.vhd
 set_global_assignment -name BDF_FILE nios_pll.bdf

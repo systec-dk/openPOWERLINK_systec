@@ -69,8 +69,6 @@
 #ifndef XILINX_SLEEP_H_
 #define XILINX_SLEEP_H_
 
-#include "global.h"
-
-void usleep(DWORD time);
+void usleep(unsigned long useconds);
 
 #endif /* XILINX_SLEEP_H_ */
