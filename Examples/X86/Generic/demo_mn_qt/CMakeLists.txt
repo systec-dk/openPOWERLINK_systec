@@ -78,6 +78,7 @@ SET(DEMO_SOURCES src/EplApi.cpp
                  src/MainWindow.cpp
                  src/NodeState.cpp
                  ${POWERLINK_SOURCE_DIR}/ObjDicts/${OBJDICT}/EplApiProcessImageSetup.c
+                 ${POWERLINK_SOURCE_DIR}/EplStack/EplDebug.c
     )
 
 # The TRACE macros need trace.c on the Windows platform
