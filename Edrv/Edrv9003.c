@@ -520,8 +520,14 @@ tEplKernel EdrvShutdown(void)
 {
 
     // unregister platform driver
-    PRINTF("%s calling platform_driver_unregister()\n", __func__);
-    platform_driver_unregister (&EdrvDriver);
+    if(EdrvDriver.name != NULL ){
+        printk("%s calling pci_unregister_driver()\n", __FUNCTION__);
+        pci_unregister_driver (&EdrvDriver);
+        // clear driver structure
+        EPL_MEMSET(&EdrvDriver, 0, sizeof (EdrvDriver));
+    }else{
+        printk("%s pci driver for EPL already unregisted\n", __FUNCTION__);
+    }
 
     return kEplSuccessful;
 }
