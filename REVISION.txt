@@ -1083,3 +1083,131 @@ Fellow worker:    Daniel Krüger (d.k.)
                     - [FIX] Change visibility of 2nd compare timer pulse feature in IP-Core for Altera FPGAs
                     (Thomas Mair)
 
+2013-05-15 V1.8.4   - [FIX] Objdict: move object 0x1F9B behind object 0x1F9A
+                    (Daniel Krueger)
+
+2013-06-27 V1.8.4   - [FIX] EplApiGeneric: Load concise DCF (CDC) when OD archive is invalid
+                    (Daniel Krueger)
+
+2012-10-29 V1.8.4   - [FIX] Change xilinx usleep implementation
+                    (Thomas Mair)
+
+2013-06-06 V1.8.4   - [FIX] Correct OD ranges
+                    (Thomas Mair)
+
+2013-04-17 V1.8.4   - [FEATURE] Update ipcore to version 0.3.0
+                    (Thomas Mair)
+
+2013-04-25 V1.8.4   - [FEATURE] Forward SoC timestamps through AppCbSync
+                    (Thomas Mair)
+
+2013-06-06 V1.8.4   - [TASK] Increment version number in xdds
+                    (Thomas Mair)
+
+2013-05-16 V1.8.4   - [FIX] Correct object 1F9A/0
+                    (Thomas Mair)
+
+2013-05-15 V1.8.4   - [TASK] Split CN xdds into Os and NoOs
+                    - [FIX] Add Store/Restore support to Os CN .xdd file
+                    (Thomas Mair)
+
+2012-04-16 V1.8.4   - [FEATURE] Create R/TPDO pre- and postprocessing callback functions
+                    (Michael Hogger)
+
+2013-05-24 V1.8.4   - [TASK] Update ipcore directory structure
+                    - [TASK] Revise FPGA examples to new ipcore path
+                    (Joerg Zelenka)
+
+2013-06-03 V1.8.4   - [TASK] Ipcore source file cleanup
+                    (Thomas Mair)
+
+2013-06-06 V1.8.4   - [FEATURE] Add late release to EdrvOpenMac
+                    - [FEATURE] Add phy config for ink board
+                    - [TASK] Change filters to work with Veth driver
+                    - [FEATURE] Add VirtualEthernet support to EdrvOpenMac
+                    - [FIX] Add late release to CbAsync
+                    (Thomas Mair)
+
+2013-04-02 V1.8.4   - [FEATURE] Add second async buffer for Veth frames
+                    (Thomas Mair)
+
+2012-09-27 V1.8.4   - [FEATURE] Add VirtualEthernet for NoOs
+                    (Thomas Mair)
+
+2013-06-28 V1.8.4   - [FIX] Use process image object names conforming to the POWERLINK specification
+                    (Wolfgang Seiss)
+
+2013-06-27 V1.8.4   - [FEATURE] Add 64-bit datatypes to the CiA302-4 MN OD
+                    (Wolfgang Seiss)
+
+2013-04-05 V1.8.4   - [TASK] Altera demo update
+                    (Thomas Mair)
+
+2013-06-07 V1.8.4   - [FEATURE] Create Veth NoOs test framework
+                    - [FIX] Remove Veth NoOs test
+                    (Thomas Mair)
+
+2013-07-08 V1.8.4   - [TASK] Change R/TPDO copy functions
+                    (Thomas Mair)
+
+2013-04-24 V1.8.4   - [FEATURE] Change Xilinx stack examples
+                    (Thomas Mair)
+
+2013-07-08 V1.8.4   - [FEATURE] Change Xilinx example application
+                    - [FEATURE] Enable veth driver in xilinx demo
+                    - [FEATURE] Enable MAsnd in xilinx demo
+                    - [FEATURE] Change Altera example application
+                    - [FEATURE] Enable veth driver in altera demo
+                    - [FEATURE] Enable MAsnd in altera demo
+                    (Thomas Mair)
+
+2013-01-25 V1.8.4   - [FEATURE] Implement Multi Asnd for CNs
+                    (Thomas Mair)
+
+2013-07-12 V1.8.4   - [TASK] Implement late release for Asnd frames
+                    (Thomas Mair)
+
+2013-06-06 V1.8.4   - [FIX] Add error handling to EplDllkProcessFillTx
+                    - [FEATURE] Add Veth and MAsnd to NoOs .xdd file
+                    (Thomas Mair)
+
+2013-05-14 V1.8.4   - [FIX] Remove warnings when compiled with gcc 4.6.2
+                    (Thomas Mair)
+
+2013-08-14 V1.8.4   - [FIX] Fix compilation issue for kernels > 3.5
+                    - [FIX] Fix Linux kernel compile issues
+                    - [FIX] Fix hostname length issue
+                    (Josef Baumgartner)
+
+2013-06-11 V1.8.4   - [FIX] Fix transfer counter for segmented SDO transfer
+                    (Romain Naour)
+
+2013-06-24 V1.8.4   - [FIX] Fix NoAck during segmented transfer
+                    (Romain Naour)
+
+2013-08-21 V1.8.4   - [FIX] Add range check for objects 0x14XX/0x18XX
+                    (Josef Baumgartner)
+
+2011-07-18 V1.8.4   - [FEATURE] Add implementation of extended NMT commands
+                    (Wolfgang Wallner)
+
+2013-08-19 V1.8.4   - [FIX] Fix EplLoad/EplUnload to properly detect Ethernet devices
+                    (Josef Baumgartner)
+
+2013-08-21 V1.8.4   - [FEATURE] Add support for time triggered sending
+                    (Gaurav Kumar Singh)
+
+2013-03-14 V1.8.4   - [FEATURE] Add driver for Intel I210 Ethernet controller
+                    (Gaurav Kumar Singh)
+
+2013-06-28 V1.8.4   - [TASK] EplCfmuProcessNodeEvent: Add parameter NMT state of CN
+                    - [FIX] EplApiGeneric: Forward most node events unconditionally to CFM
+                    - [FIX] EplCfmu: stop configuration process on IdentResponse and NotActive
+                    (Daniel Krueger)
+
+2013-09-18 V1.8.4   - [FIX] demo_mn_qt: add EplDebug.c in demo_sources list
+                    (Romain Naour)
+
+2013-09-21 V1.8.4   - [FIX] EdrvShutdown() kernel oops
+                    (Romain Naour)
+
