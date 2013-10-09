@@ -5,7 +5,7 @@
 
   \brief          Header file for EplInput Widget
 
-  (c) SYSTEC electronic GmbH, D-07973 Greiz, August-Bebel-Str. 29
+  (c) SYSTEC electronic GmbH, D-08468 Heinsdorfergrund, Am Windrad 2
       www.systec-electronic.com
 
   (c) Bernecker + Rainer Ges.m.b.H.

@@ -4,7 +4,7 @@
   (c) 2011, Bernecker + Rainer Ges.m.b.H., B&R Strasse 1, A-5142 Eggelsberg
             http://www.br-automation.com
 
-  (c) SYSTEC electronic GmbH, D-07973 Greiz, August-Bebel-Str. 29
+  (c) SYSTEC electronic GmbH, D-08468 Heinsdorfergrund, Am Windrad 2
       www.systec-electronic.com
 
   Project:      openPOWERLINK

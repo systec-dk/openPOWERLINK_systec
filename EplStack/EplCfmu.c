@@ -1,7 +1,7 @@
 /****************************************************************************
 
   (c) Kalycito Infotech Private Limited
-  (c) SYSTEC electronic GmbH, D-07973 Greiz, August-Bebel-Str. 29
+  (c) SYSTEC electronic GmbH, D-08468 Heinsdorfergrund, Am Windrad 2
       www.systec-electronic.com
 
   Project:      openPOWERLINK
