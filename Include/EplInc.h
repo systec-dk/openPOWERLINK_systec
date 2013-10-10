@@ -295,8 +295,7 @@ typedef union
                                                 | EPL_DEF_FEATURE_CFM \
                                                 | EPL_DEF_FEATURE_DLL_MULTIPLEX \
                                                 | EPL_DEF_FEATURE_MASND \
-                                                | EPL_DEF_FEATURE_PRES_CHAINING \
-                                                | EPL_DEF_FEATURE_NMT_EXT)
+                                                | EPL_DEF_FEATURE_PRES_CHAINING )
 
 #ifndef tabentries
 #define tabentries(aVar_p)  (sizeof(aVar_p)/sizeof(*(aVar_p)))
