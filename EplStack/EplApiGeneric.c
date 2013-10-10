@@ -231,9 +231,11 @@ static tEplKernel PUBLIC EplApiUpdateSdoConfig();
 // update OD from init param
 static tEplKernel PUBLIC EplApiUpdateObd(BOOL fUpdateStorableParam_p);
 
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
 // Link the needed domain objects
 static tEplKernel PUBLIC EplApiLinkDomainObjects(tEplApiLinkObjectRequest* pLinkRequ,
                                                  size_t RequCnt);
+#endif
 
 // process events from user event queue
 static tEplKernel PUBLIC EplApiProcessEvent(tEplEvent* pEplEvent_p);
@@ -2790,6 +2792,7 @@ Exit:
     return Ret;
 }
 
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
 //---------------------------------------------------------------------------
 //
 // Function:    EplObdLinkDomainObjects()
@@ -2829,6 +2832,7 @@ static tEplKernel PUBLIC EplApiLinkDomainObjects(tEplApiLinkObjectRequest* pLink
 
     return Ret;
 }
+#endif
 
 #if (EPL_OBD_USE_STORE_RESTORE != FALSE)
 // ----------------------------------------------------------------------------
