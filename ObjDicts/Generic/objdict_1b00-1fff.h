@@ -190,9 +190,9 @@
         EPL_OBD_END_INDEX(0x1F99)
 
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) != 0)
-        // Object 1F9Ah: NMT_HostName_VS
+        // Object 1F9Ah: NMT_HostName_VSTR
         EPL_OBD_BEGIN_INDEX_RAM(0x1F9A, 0x01, NULL)
-           EPL_OBD_SUBINDEX_RAM_VSTRING(0x1F9A, 0x00, kEplObdAccRW, NMT_HostName_VS, 33, "")
+           EPL_OBD_SUBINDEX_RAM_VSTRING(0x1F9A, 0x00, kEplObdAccRW, NMT_HostName_VSTR, 34, "")
         EPL_OBD_END_INDEX(0x1F9A)
 #endif
 
