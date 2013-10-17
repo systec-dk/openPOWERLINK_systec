@@ -1211,3 +1211,14 @@ Fellow worker:    Daniel Krüger (d.k.)
 2013-09-21 V1.8.4   - [FIX] EdrvShutdown() kernel oops
                     (Romain Naour)
 
+2013-08-28 V1.8.4   - [FEATURE] Add API to forward PResp frames to application
+                    - [FIX] Replace tabs with spaces in DLL module
+                    (Wolfgang Wallner)
+
+2013-10-10 V1.8.4   - [FIX] Reset extended NMT commands feature flag
+                    - [FIX] Resolve hostname issue
+                    - [FIX] Remove EplApiLinkDomainObjects for CNs
+                    - [FIX] Resolve warning in FPGA demos
+                    - [FIX] Adapt CiA401 CN xdd files
+                    (Thomas Mair)
+
