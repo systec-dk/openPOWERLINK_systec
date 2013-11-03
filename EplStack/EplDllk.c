@@ -8039,7 +8039,7 @@ tEplFrame*      pTxFrameSyncRes;
                    &EplDllkInstance_g.m_be_abLocalMac[0], 6);
         AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_PREQ].m_abFilterValue[14],
                        kEplMsgTypePreq);
-        AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_PREQ].m_abFilterMask[15],
+        AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_PREQ].m_abFilterValue[15],
                        (BYTE) EplDllkInstance_g.m_DllConfigParam.m_uiNodeId); // Set Dst Node ID
 
         // disable auto-response delay
