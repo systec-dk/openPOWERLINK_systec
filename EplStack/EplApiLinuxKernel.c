@@ -625,6 +625,9 @@ int  iRet;
             if (uiEplState_g == EPL_STATE_RUNNING)
             {   // post NmtEventSwitchOff
                 EplRet = EplApiExecNmtCommand(kEplNmtEventSwitchOff);
+                TRACE("EPL:   waiting for NMT_GS_OFF\n");
+                wait_event_interruptible(WaitQueueRelease_g,
+                                        (uiEplState_g == EPL_STATE_SHUTDOWN));
 
             }
 
