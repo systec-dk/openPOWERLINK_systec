@@ -4340,6 +4340,8 @@ BYTE            bFlag1;
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOK)) != 0)
         if (NmtState_p >= kEplNmtCsReadyToOperate)
         {   // inform PDO module only in ReadyToOp and Op
+            WORD wPreqPayloadSize = AmiGetWordFromLe(&pFrame->m_Data.m_Preq.m_le_wSize);
+
             if (NmtState_p != kEplNmtCsOperational)
             {
                 // reset RD flag and all other flags, but that does not matter, because they were processed above
@@ -4347,9 +4349,8 @@ BYTE            bFlag1;
             }
 
             // compares real frame size and PDO size
-            if (((unsigned int) (AmiGetWordFromLe(&pFrame->m_Data.m_Preq.m_le_wSize) + EPL_FRAME_OFFSET_PDO_PAYLOAD)
-                 > pFrameInfo_p->m_uiFrameSize)
-                 || (pFrameInfo_p->m_uiFrameSize > (EplDllkInstance_g.m_DllConfigParam.m_uiPreqActPayloadLimit + EPL_FRAME_OFFSET_PDO_PAYLOAD)))
+            if (((unsigned int) (wPreqPayloadSize + EPL_FRAME_OFFSET_PDO_PAYLOAD) > pFrameInfo_p->m_uiFrameSize) ||
+                                (wPreqPayloadSize > EplDllkInstance_g.m_DllConfigParam.m_uiPreqActPayloadLimit))
             {   // format error
             tEplErrorHandlerkEvent  DllEvent;
 
