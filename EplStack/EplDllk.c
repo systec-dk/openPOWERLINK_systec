@@ -1637,10 +1637,14 @@ tEplDllkNodeInfo*   pIntNodeInfo;
     EPL_MEMSET(EplDllkInstance_g.m_aFilter, 0, sizeof (EplDllkInstance_g.m_aFilter));
 
     // setup ASnd filter
-    AmiSetQword48ToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterValue[0],
-                      EPL_C_DLL_MULTICAST_ASND);
-    AmiSetQword48ToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterMask[0],
-                      EPL_DLL_MACADDR_MASK);
+    AmiSetWordToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterValue[12],
+                   EPL_C_DLL_ETHERTYPE_EPL);
+    AmiSetWordToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterMask[12],
+                   0xFFFF);
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterValue[14],
+                   kEplMsgTypeAsnd);
+    AmiSetByteToBe(&EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_abFilterMask[14],
+                   0xFF);
     EplDllkInstance_g.m_aFilter[EPL_DLLK_FILTER_ASND].m_fEnable = TRUE;
 
     // setup SoC filter
