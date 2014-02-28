@@ -2290,10 +2290,10 @@ unsigned int    uiSubindex;
 unsigned int    uiBytesToTransfer;
 tEplObdSize     EntrySize;
 tEplObdAccess   AccessType;
-DWORD           dwAbortCode;
+//DWORD           dwAbortCode;
 BYTE*           pbSrcData;
 
-    dwAbortCode = 0;
+//    dwAbortCode = 0;
 
     // a init of a write
     // -> variable part of header possible
