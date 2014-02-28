@@ -457,7 +457,7 @@ int  main (int argc, char **argv)
 
     EplApiInitParam.m_dwSubnetMask              = SUBNET_MASK;
     EplApiInitParam.m_dwDefaultGateway          = 0;
-    strncpy(EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
+    strncpy((char *)EplApiInitParam.m_sHostname, sHostname, sizeof(EplApiInitParam.m_sHostname));
 
 #if EDRV_USE_TTTX != FALSE
     EplApiInitParam.m_uiSyncNodeId              = EPL_C_ADR_SYNC_ON_SOC;
