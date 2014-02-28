@@ -414,7 +414,6 @@ tEplEventSource         EventSource;
         tEplEvent   Event;
         tEplNmtEvent NmtEvent;
 #endif
-        tShbError   ShbError;
 
         // directly call NMTk process function, because event queue is full
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMTK)) != 0)
@@ -430,7 +429,7 @@ tEplEventSource         EventSource;
 
         // NMT state machine changed to reset (i.e. NMT_GS_RESET_COMMUNICATION)
         // now, it is safe to reset the counter and empty the event queue
-        ShbError = ShbCirResetBuffer (EplEventkInstance_g.m_pShbUserToKernelInstance, 1000, NULL);
+        ShbCirResetBuffer (EplEventkInstance_g.m_pShbUserToKernelInstance, 1000, NULL);
 
         EplEventkInstance_g.m_uiUserToKernelFullCount = 0;
         TGT_DBG_SIGNAL_TRACE_POINT(22);
