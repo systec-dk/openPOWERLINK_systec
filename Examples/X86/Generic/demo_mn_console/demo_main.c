@@ -220,9 +220,12 @@ static void printlog(char *fmt, ...)
 {
     va_list             arglist;
     time_t              timeStamp;
-    struct tm           timeVal;
-    struct tm           *p_timeVal;
     char                timeStr[20];
+#if (TARGET_SYSTEM == _LINUX_)
+    struct tm           timeVal;
+#else
+    struct tm           *p_timeVal;
+#endif
 
     time(&timeStamp);
 
