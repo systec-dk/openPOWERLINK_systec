@@ -906,9 +906,7 @@ tEplKernel EplDllkCalAsyncClearQueues(void)
 {
 tEplKernel  Ret = kEplSuccessful;
 #if EPL_DLL_PRES_CHAINING_MN != FALSE
-tShbError   ShbError;
-
-    ShbError = ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxSync, 1000, NULL);
+    ShbCirResetBuffer (EplDllkCalInstance_g.m_ShbInstanceTxSync, 1000, NULL);
 #endif
 
     // clear MN asynchronous queues
