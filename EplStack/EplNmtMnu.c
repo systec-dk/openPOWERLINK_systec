@@ -1520,8 +1520,10 @@ tEplKernel      Ret;
             unsigned int        uiNodeId;
             tEplNmtCommand      NmtCommand;
             BYTE                bNmtState;
-            unsigned int        uiNodeId_tmp;
+
+            unsigned int        uiNodeId_tmp = EPL_C_ADR_INVALID;   // Init to non-existent nodeId
             BYTE*               pCmdData;
+
             tEplNmtMntGetNodeId NodeListOp;
             tEplKernel          RetGetNodeId;
 
