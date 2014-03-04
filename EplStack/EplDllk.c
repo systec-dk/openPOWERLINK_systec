@@ -238,6 +238,12 @@ typedef enum
 
 typedef struct
 {
+    BOOL      m_fLossReported;        // A loss of SoC was already reported in this cycle
+    BOOL      m_fTimeoutOccurred;     // The sync interrupt occurred after a report of a loss of SoC
+} tEplLossSocStatus;
+
+typedef struct
+{
     BYTE    FwRequ;                 // Forward request, incremented by call from app
     BYTE    FwResp;                 // Forward response, incremented by Dllk layer
 } tEplDllkPresFw;
@@ -307,6 +313,8 @@ typedef struct
 
     unsigned int        m_uiCycleCount;     // cycle counter (needed for multiplexed cycle support)
     unsigned long long  m_ullFrameTimeout;  // frame timeout (cycle length + loss of frame tolerance)
+
+    tEplLossSocStatus   m_LossSocStatus;
 
 #if EPL_DLL_PRES_CHAINING_CN != FALSE
     unsigned int        m_uiSyncReqPrevNodeId;
@@ -491,6 +499,9 @@ static tEplKernel PUBLIC EplDllkCbCnPResFallBackTimeout(void);
 
 // Request forwarding of Pres frames
 static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p );
+
+static BOOL EplTriggerLossOfSocEvent(void);
+static BOOL EplTriggerLossOfSocEventOnFrameTimeout(void);
 
 //=========================================================================//
 //                                                                         //
@@ -3348,8 +3359,13 @@ tEplErrorHandlerkEvent  DllEvent;
                                 break;
                             }
 
-                            // report DLL_CEV_LOSS_SOC and DLL_CEV_LOSS_SOA
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA | EPL_DLL_ERR_CN_LOSS_SOC;
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
+
+                            // report DLL_CEV_LOSS_SOA
+                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA;
 
                             // enter DLL_CS_WAIT_SOC
                             EplDllkInstance_g.m_DllState = kEplDllCsWaitSoc;
@@ -3404,6 +3420,10 @@ tEplErrorHandlerkEvent  DllEvent;
                             // start of cycle and isochronous phase
                             // enter DLL_CS_WAIT_PREQ
                             EplDllkInstance_g.m_DllState = kEplDllCsWaitPreq;
+
+                            // Valid Soc arrived -> Reset report flags!
+                            EplDllkInstance_g.m_LossSocStatus.m_fLossReported = FALSE;
+                            EplDllkInstance_g.m_LossSocStatus.m_fTimeoutOccurred = FALSE;
                             break;
 
                             // DLL_CT4
@@ -3419,12 +3439,19 @@ tEplErrorHandlerkEvent  DllEvent;
                                 break;
                             }
 
-                            // fall through
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
 
+                            break;
                         case kEplNmtEventDllCePreq:
                         case kEplNmtEventDllCeSoa:
                             // report DLL_CEV_LOSS_SOC
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            if(EplTriggerLossOfSocEvent() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
                         case kEplNmtEventDllCeAInv:
@@ -3451,11 +3478,22 @@ tEplErrorHandlerkEvent  DllEvent;
                                 break;
                             }
 
-                            // fall through
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
 
+                            EplDllkInstance_g.m_DllState = kEplDllCsWaitSoc;
+
+                            break;
                         case kEplNmtEventDllCePreq:
-                            // report DLL_CEV_LOSS_SOC and DLL_CEV_LOSS_SOA
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA | EPL_DLL_ERR_CN_LOSS_SOC;
+                            if(EplTriggerLossOfSocEvent() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
+
+                            // report DLL_CEV_LOSS_SOA
+                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA;
 
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_MASND)) != 0)
                         case kEplNmtEventDllCeAInv:
@@ -3515,8 +3553,14 @@ tEplErrorHandlerkEvent  DllEvent;
 
                             // DLL_CT8
                         case kEplNmtEventDllCeFrameTimeout:
-                            // report DLL_CEV_LOSS_SOC and DLL_CEV_LOSS_SOA
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA | EPL_DLL_ERR_CN_LOSS_SOC;
+
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
+
+                            // report DLL_CEV_LOSS_SOA
+                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA;
 
                         case kEplNmtEventDllCeSoa:
                             // NMT_CS_STOPPED active
@@ -3553,9 +3597,17 @@ tEplErrorHandlerkEvent  DllEvent;
 //                        case kEplNmtEventDllCePres:
                         case kEplNmtEventDllCePreq:
                         case kEplNmtEventDllCeSoa:
+                            if(EplTriggerLossOfSocEvent() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
+                            break;
                         case kEplNmtEventDllCeFrameTimeout:
                             // report DLL_CEV_LOSS_SOC
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
 
                         case kEplNmtEventDllCeAsnd:
                         default:
@@ -3569,8 +3621,13 @@ tEplErrorHandlerkEvent  DllEvent;
                     {
                             // DLL_CT3
                         case kEplNmtEventDllCeFrameTimeout:
-                            // report DLL_CEV_LOSS_SOC and DLL_CEV_LOSS_SOA
-                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA | EPL_DLL_ERR_CN_LOSS_SOC;
+                            if(EplTriggerLossOfSocEventOnFrameTimeout() != FALSE)
+                            {
+                                DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOC;
+                            }
+
+                            // report DLL_CEV_LOSS_SOA
+                            DllEvent.m_ulDllErrorEvents |= EPL_DLL_ERR_CN_LOSS_SOA;
 
                         case kEplNmtEventDllCeSoa:
                             // enter DLL_CS_WAIT_SOC
@@ -8109,6 +8166,75 @@ static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p )
 
     return  Ret;
 }
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplTriggerLossOfSocEvent
+//
+// Description: The loss of SoC event shall only be reported once per cycle
+//              to the error handler. This functions checks if the event was
+//              already reported in this cycle.
+//
+// Returns:     BOOL  = Error event needs to be triggered in this cycle
+//
+//
+//---------------------------------------------------------------------------
+static BOOL EplTriggerLossOfSocEvent(void)
+{
+    BOOL fTriggerEvent = FALSE;
+
+    if(EplDllkInstance_g.m_LossSocStatus.m_fLossReported == FALSE)
+    {
+        EplDllkInstance_g.m_LossSocStatus.m_fLossReported = TRUE;
+
+        fTriggerEvent = TRUE;
+    }
+
+    return fTriggerEvent;
+}
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplTriggerLossOfSocEventOnFrameTimeout
+//
+// Description: The loss of SoC event shall only be reported once per cycle to
+//              the error handler. This functions checks if the event was
+//              already reported in this cycle in case of a frame timeout.
+//              Contrary to the logical checks for loss of SoC detection the
+//              frame timeout always occurs for a lost SoC. Therefore the
+//              timeout event is used to detect multiple loss of SoC after each
+//              other.
+//
+// Returns:     BOOL  = Error event needs to be triggered in this cycle
+//
+//
+//---------------------------------------------------------------------------
+static BOOL EplTriggerLossOfSocEventOnFrameTimeout(void)
+{
+    BOOL fTriggerEvent = FALSE;
+
+    if(EplDllkInstance_g.m_LossSocStatus.m_fLossReported == FALSE)
+    {
+        EplDllkInstance_g.m_LossSocStatus.m_fLossReported = TRUE;
+        EplDllkInstance_g.m_LossSocStatus.m_fTimeoutOccurred = TRUE;
+
+        // Loss of SoC will be reported and can be marked as so!
+        fTriggerEvent = TRUE;
+    }
+    else
+    {
+        if(EplDllkInstance_g.m_LossSocStatus.m_fTimeoutOccurred != FALSE)
+        {
+            // Loss and timeout already reported -> Second SoC lost
+            fTriggerEvent = TRUE;
+        }
+
+        EplDllkInstance_g.m_LossSocStatus.m_fTimeoutOccurred = TRUE;
+    }
+
+    return fTriggerEvent;
+}
+
 
 #endif // #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLK)) != 0)
 // EOF
