@@ -330,23 +330,27 @@ BOOL                fDoUpdate = FALSE;
 
     if (pNodeInfo->m_CfmState != kEplCfmuStateIdle)
     {
-        // send abort
+        // Set node CFM state
         pNodeInfo->m_CfmState = kEplCfmuStateInternalAbort;
-        Ret = EplSdoComSdoAbort(pNodeInfo->m_SdoComConHdl, EPL_SDOAC_DATA_NOT_TRANSF_DUE_LOCAL_CONTROL);
-        if (Ret != kEplSuccessful)
-        {
-            goto Exit;
-        }
 
-        // close connection
-        Ret = EplSdoComUndefineCon(pNodeInfo->m_SdoComConHdl);
-        pNodeInfo->m_SdoComConHdl = ~0U;
-        if (Ret != kEplSuccessful)
+        // Send abort if SDO command is not undefined
+        if (pNodeInfo->m_SdoComConHdl != ~0U)
         {
-            EPL_DBGLVL_CFM_TRACE("SDO Free Error!\n");
-            goto Exit;
-        }
+            Ret = EplSdoComSdoAbort(pNodeInfo->m_SdoComConHdl, EPL_SDOAC_DATA_NOT_TRANSF_DUE_LOCAL_CONTROL);
+            if (Ret != kEplSuccessful)
+            {
+                goto Exit;
+            }
 
+            // close connection
+            Ret = EplSdoComUndefineCon(pNodeInfo->m_SdoComConHdl);
+            pNodeInfo->m_SdoComConHdl = ~0U;
+            if (Ret != kEplSuccessful)
+            {
+                EPL_DBGLVL_CFM_TRACE("SDO Free Error!\n");
+                goto Exit;
+            }
+        }
     }
 
     if ((NodeEvent_p == kEplNmtNodeEventFound)
