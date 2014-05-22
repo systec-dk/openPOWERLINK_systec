@@ -110,8 +110,14 @@ typedef struct
 // function prototypes
 //---------------------------------------------------------------------------
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 EPLDLLEXPORT tEplKernel PUBLIC EplCfmuCbObdAccess(tEplObdCbParam MEM* pParam_p);
 
-
+#ifdef __cplusplus
+	}
+#endif
 
 #endif // _EPLCFM_H_

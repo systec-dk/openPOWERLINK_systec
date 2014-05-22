@@ -384,7 +384,7 @@ EPLDLLEXPORT tEplKernel PUBLIC EplApiSendAsndFrame
     size_t          uiAsndSize_p
 );
 
-tEplKernel PUBLIC EplApiSetAsndForward
+EPLDLLEXPORT tEplKernel PUBLIC EplApiSetAsndForward
 (
     BYTE                bServiceId_p,
     tEplApiAsndFilter   FilterType_p

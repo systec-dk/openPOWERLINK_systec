@@ -1521,7 +1521,7 @@ tEplKernel      Ret;
             tEplNmtCommand      NmtCommand;
             BYTE                bNmtState;
             unsigned int        uiNodeId_tmp;
-            BYTE*               *pCmdData;
+            BYTE*               pCmdData;
             tEplNmtMntGetNodeId NodeListOp;
             tEplKernel          RetGetNodeId;
 
