@@ -108,6 +108,8 @@ done
 ###############################################################################
 # Get Main kernel version
 KERNEL_MAIN=`uname -r | cut -f1 -d.`
+# Get minor kernel version
+KERNEL_MINOR=`uname -r | cut -f2 -d.`
 
 ###############################################################################
 # Used by udev rule to set priority
@@ -269,13 +271,15 @@ if [ "$KERNEL_MAIN" = "2" ] ; then
         chrt -f -p 81 `ps -C sirq-hrtimer/1 -o pid --no-headers`
     fi
 else
-    # Set real-time priority -97 for softirq thread
-    # We only have to set hrtimer thread for core 1 because the stack
-    # binds to the second core!
-    numproc=`ps aux | grep -c "ksoftirqd/1"`
-    if [ $numproc -gt 1 ] ; then
-        echo Adjusting priority of softirq thread
-        chrt -f -p 98 `ps -C ksoftirqd/1 -o pid --no-headers`
+    if [ "$KERNEL_MINOR" -lt "6" ] ; then
+        # Set real-time priority -97 for softirq thread
+        # We only have to set hrtimer thread for core 1 because the stack
+        # binds to the second core!
+        numproc=`ps aux | grep -c "ksoftirqd/1"`
+        if [ $numproc -gt 1 ] ; then
+            echo Adjusting priority of softirq thread
+            chrt -f -p 98 `ps -C ksoftirqd/1 -o pid --no-headers`
+        fi
     fi
 fi
 
