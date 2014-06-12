@@ -4433,8 +4433,10 @@ tEplDllkNodeInfo*   pIntNodeInfo = NULL;
     uiNodeId = AmiGetByteFromLe(&pFrame->m_le_bSrcNodeId);
 
     // Check if PRes frame should be forwarded to API layer
-    pPresFw = &EplDllkInstance_g.m_aPresForward[ uiNodeId ];
-    if( pPresFw->FwRequ != pPresFw->FwResp )
+    pPresFw = &EplDllkInstance_g.m_aPresForward[ uiNodeId - 1];
+    if ((uiNodeId > 0)
+        && (uiNodeId <= EPL_NMT_MAX_NODE_ID)
+        && ( pPresFw->FwRequ != pPresFw->FwResp ))
     {
         tEplEvent               Event;
         tEplDllkEventRcvPres    PresEvent;
@@ -8160,11 +8162,14 @@ static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p )
 {
     tEplKernel      Ret = kEplSuccessful;
 
+#if EPL_NMT_MAX_NODE_ID > 0
+    uiNode_p--;
     if( uiNode_p < EPL_NMT_MAX_NODE_ID )
     {
         EplDllkInstance_g.m_aPresForward[ uiNode_p ].FwRequ ++;
     }
     else
+#endif
     {
         Ret = kEplInvalidNodeId;
     }
