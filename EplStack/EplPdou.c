@@ -304,7 +304,7 @@ tEplKernel      Ret = kEplSuccessful;
                 for (uiMappParamIndex = EPL_PDOU_OBD_IDX_TX_MAPP_PARAM;
                     uiMappParamIndex < EPL_PDOU_OBD_IDX_TX_MAPP_PARAM
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
-                        + sizeof (EplPdouInstance_g.m_abPdoIdToChannelIdRx);
+                        + sizeof (EplPdouInstance_g.m_abPdoIdToChannelIdTx);
 #else
                         + (EPL_PDOU_PDO_ID_MASK + 1);
 #endif
@@ -560,7 +560,7 @@ tEplPdoAllocationParam  AllocParam;
 
     for (uiPdoId = 0, uiCommParamIndex = EPL_PDOU_OBD_IDX_TX_COMM_PARAM;
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
-        uiPdoId < sizeof (EplPdouInstance_g.m_abPdoIdToChannelIdRx);
+        uiPdoId < sizeof (EplPdouInstance_g.m_abPdoIdToChannelIdTx);
 #else
         uiPdoId < (EPL_PDOU_PDO_ID_MASK + 1);
 #endif
