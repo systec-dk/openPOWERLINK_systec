@@ -91,7 +91,6 @@
 
 #include "Epl.h"
 #include "EplApiLinux.h"
-#include "proc_fs.h"
 
 
 
@@ -302,7 +301,6 @@ static struct miscdevice EplLinMiscDevice_g =
 static  int  __init  EplLinInit (void)
 {
 
-tEplKernel          EplRet;
 int  iErr;
 int  iRet;
 #ifdef CONFIG_DEVFS_FS
@@ -338,15 +336,6 @@ int  nMinorNumber;
     }
 
 
-    // create device node in PROCFS
-    EplRet = EplLinProcInit();
-    if (EplRet != kEplSuccessful)
-    {
-        iRet = -EIO;
-        goto Exit;
-    }
-
-
 Exit:
 
     TRACE("EPL: - EplLinInit (iRet=%d)\n", iRet);
@@ -365,13 +354,7 @@ Exit:
 static void  __exit  EplLinExit (void)
 {
 
-tEplKernel          EplRet;
-
     TRACE("EPL: + EplLinExit...\n");
-
-    // deinitialize proc fs
-    EplRet = EplLinProcFree();
-    TRACE("EplLinProcFree():        0x%X\n", EplRet);
 
     // deregister misc device
     misc_deregister(&EplLinMiscDevice_g);
