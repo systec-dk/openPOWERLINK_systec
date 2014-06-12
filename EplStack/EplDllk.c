@@ -3431,7 +3431,6 @@ tEplErrorHandlerkEvent  DllEvent;
                             break;
 
                             // DLL_CT4
-//                        case kEplNmtEventDllCePres:
                         case kEplNmtEventDllCeFrameTimeout:
                             if (NmtState_p == kEplNmtCsPreOperational2)
                             {   // ignore frame timeout in PreOp2,
@@ -3449,6 +3448,7 @@ tEplErrorHandlerkEvent  DllEvent;
                             }
 
                             break;
+                        case kEplNmtEventDllCePres:
                         case kEplNmtEventDllCePreq:
                         case kEplNmtEventDllCeSoa:
                             // report DLL_CEV_LOSS_SOC
