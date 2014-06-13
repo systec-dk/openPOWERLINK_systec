@@ -330,12 +330,12 @@ BOOL                fDoUpdate = FALSE;
 
     if (pNodeInfo->m_CfmState != kEplCfmuStateIdle)
     {
-        // Set node CFM state
-        pNodeInfo->m_CfmState = kEplCfmuStateInternalAbort;
-
         // Send abort if SDO command is not undefined
         if (pNodeInfo->m_SdoComConHdl != ~0U)
         {
+            // Set node CFM state to an intermediate state to catch the SDO callback
+            pNodeInfo->m_CfmState = kEplCfmuStateInternalAbort;
+
             Ret = EplSdoComSdoAbort(pNodeInfo->m_SdoComConHdl, EPL_SDOAC_DATA_NOT_TRANSF_DUE_LOCAL_CONTROL);
             if (Ret != kEplSuccessful)
             {
@@ -351,6 +351,9 @@ BOOL                fDoUpdate = FALSE;
                 goto Exit;
             }
         }
+
+        // Set node CFM state to idle
+        pNodeInfo->m_CfmState = kEplCfmuStateIdle;
     }
 
     if ((NodeEvent_p == kEplNmtNodeEventFound)
