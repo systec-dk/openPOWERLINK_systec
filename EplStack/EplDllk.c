@@ -6415,6 +6415,12 @@ unsigned int    nIndex = 0;
             }
             break;
         }
+
+        case kEplMsgTypeAInv:
+        {
+            Ret = kEplEdrvBufNotExisting;
+            goto Exit;
+        }
 #else
         default:
         {
