@@ -4448,7 +4448,7 @@ tEplDllkNodeInfo*   pIntNodeInfo = NULL;
 
         // If Presp frames are received which are larger than the buffer, they are cut off
         // (the application will most probably just be interested in the frame-header anyway).
-        EPL_MEMCPY(&PresEvent.m_FrameBuf, pFrame, min(sizeof(PresEvent.m_FrameBuf), pFrameInfo_p->m_uiFrameSize));
+        EPL_MEMCPY(&PresEvent.m_FrameBuf, pFrame, min((unsigned int)sizeof(PresEvent.m_FrameBuf), pFrameInfo_p->m_uiFrameSize));
 
         Event.m_EventSink = kEplEventSinkApi;
         Event.m_EventType = kEplEventTypeReceivedPres;
