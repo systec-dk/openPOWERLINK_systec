@@ -257,7 +257,7 @@ tEplCfmuNodeInfo*   pNodeInfo;
         pNodeInfo = EPL_CFMU_GET_NODEINFO(uiNodeId);
         if (pNodeInfo != NULL)
         {
-            if (pNodeInfo->m_SdoComConHdl != ~0)
+            if (pNodeInfo->m_SdoComConHdl != ~0U)
             {
                 Ret = EplSdoComSdoAbort(pNodeInfo->m_SdoComConHdl, EPL_SDOAC_DATA_NOT_TRANSF_DUE_DEVICE_STATE);
             }
@@ -581,7 +581,7 @@ BYTE*                   pbBuffer;
     // abort any running SDO transfer
     pNodeInfo = EPL_CFMU_GET_NODEINFO(pParam_p->m_uiSubIndex);
     if ((pNodeInfo != NULL)
-        && (pNodeInfo->m_SdoComConHdl != ~0))
+        && (pNodeInfo->m_SdoComConHdl != ~0U))
     {
         Ret = EplSdoComSdoAbort(pNodeInfo->m_SdoComConHdl, EPL_SDOAC_DATA_NOT_TRANSF_DUE_DEVICE_STATE);
     }
@@ -1025,7 +1025,7 @@ tEplSdoComTransParamByIndex TransParamByIndex;
         goto Exit;
     }
 
-    if (pNodeInfo_p->m_SdoComConHdl == ~0)
+    if (pNodeInfo_p->m_SdoComConHdl == ~0U)
     {
         // init command layer connection
         Ret = EplSdoComDefineCon(&pNodeInfo_p->m_SdoComConHdl,
