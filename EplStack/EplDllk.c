@@ -342,7 +342,7 @@ static tEplDllkInstance     EplDllkInstance_g;
 
 static tEdrvTxBuffer        aEplDllkTxBuffer_l[EPL_DLLK_TXFRAME_COUNT];
 
-TGT_DLLK_DECLARE_CRITICAL_SECTION;
+TGT_DLLK_DECLARE_CRITICAL_SECTION
 
 
 //---------------------------------------------------------------------------
