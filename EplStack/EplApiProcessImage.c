@@ -79,6 +79,7 @@
 #include <linux/mm_types.h>
 #include <linux/sched.h>
 #include <linux/highmem.h>
+#include <linux/kref.h>
 #include <linux/version.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
 #include <linux/semaphore.h>
@@ -175,6 +176,7 @@
 // special completion structure for Linux Kernel
 typedef struct
 {
+    struct kref             m_Kref;
     struct completion       m_Completion;
     struct page*            m_apPageIn[EPL_API_PI_PAGE_COUNT];
     struct page*            m_apPageOut[EPL_API_PI_PAGE_COUNT];
@@ -275,6 +277,8 @@ static void EplApiProcessImagePutUserPages(
 
 static tEplKernel EplApiProcessImageExchangeIntUserPages(
     tEplApiProcessImageCopyJobInt* pCopyJob_p);
+
+static void EplApiProcessImageReleaseCompletion(struct kref* pKref_p);
 #endif
 
 
@@ -786,6 +790,12 @@ tShbInstance    ShbInstance;
     ShbError = ShbCirWriteDataBlock(ShbInstance, pCopyJob_p, sizeof (*pCopyJob_p));
     if (ShbError != kShbOk)
     {
+#if (TARGET_SYSTEM == _LINUX_) && defined(__KERNEL__)
+        if (pCopyJob_p->m_CopyJob.m_fNonBlocking == FALSE)
+        {   // there won't be any queue reader, so decrement ref counter
+            kref_put(&pCopyJob_p->m_Event.m_pCompletion->m_Kref, EplApiProcessImageReleaseCompletion);
+        }
+#endif
         Ret = kEplApiPIJobQueueFull;
         goto Exit;
     }
@@ -1098,6 +1108,32 @@ void*           pVirtUserPart;
 
     return Ret;
 }
+
+
+//---------------------------------------------------------------------------
+//
+// Function:    EplApiProcessImageReleaseCompletion()
+//
+// Description: Frees completion structure.
+//
+// Parameters:  pKref_p                 = pointer to kref structure
+//
+// Returns:     void
+//
+// State:
+//
+//---------------------------------------------------------------------------
+
+static void EplApiProcessImageReleaseCompletion(struct kref* pKref_p)
+{
+tEplApiProcessImageCompletion* pCompletion = container_of(pKref_p, tEplApiProcessImageCompletion, m_Kref);
+
+    EplApiProcessImagePutUserPages(
+            pCompletion->m_apPageIn, FALSE);
+    EplApiProcessImagePutUserPages(
+            pCompletion->m_apPageOut, TRUE);
+    EPL_FREE(pCompletion);
+}
 #endif
 
 
@@ -1129,6 +1165,9 @@ tEplKernel      Ret = kEplSuccessful;
         goto Exit;
     }
     init_completion(&pCopyJob_p->m_Event.m_pCompletion->m_Completion);
+    kref_init(&pCopyJob_p->m_Event.m_pCompletion->m_Kref);
+    // increment ref counter once again for copy job queue reader
+    kref_get(&pCopyJob_p->m_Event.m_pCompletion->m_Kref);
 
     EPL_MEMSET (pCopyJob_p->m_Event.m_pCompletion->m_apPageIn,
             0, sizeof (pCopyJob_p->m_Event.m_pCompletion->m_apPageIn));
@@ -1238,11 +1277,7 @@ tEplKernel      Ret = kEplSuccessful;
 #if (TARGET_SYSTEM == _LINUX_) && defined(__KERNEL__)
     if (pCopyJob_p->m_Event.m_pCompletion != NULL)
     {
-        EplApiProcessImagePutUserPages(
-                pCopyJob_p->m_Event.m_pCompletion->m_apPageIn, FALSE);
-        EplApiProcessImagePutUserPages(
-                pCopyJob_p->m_Event.m_pCompletion->m_apPageOut, TRUE);
-        EPL_FREE(pCopyJob_p->m_Event.m_pCompletion);
+        kref_put(&pCopyJob_p->m_Event.m_pCompletion->m_Kref, EplApiProcessImageReleaseCompletion);
         pCopyJob_p->m_Event.m_pCompletion = NULL;
     }
 
@@ -1291,6 +1326,7 @@ tEplKernel      Ret = kEplSuccessful;
     {
 #if (TARGET_SYSTEM == _LINUX_) && defined(__KERNEL__)
         complete(&pCopyJob_p->m_Event.m_pCompletion->m_Completion);
+        kref_put(&pCopyJob_p->m_Event.m_pCompletion->m_Kref, EplApiProcessImageReleaseCompletion);
 #elif (TARGET_SYSTEM == _LINUX_) && !defined(__KERNEL__)
         sem_post(&pCopyJob_p->m_Event.m_semCompletion);
 #elif (TARGET_SYSTEM == _WIN32_)
