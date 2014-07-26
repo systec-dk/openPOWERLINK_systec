@@ -760,6 +760,7 @@ tEplKernel  ShbRet = kEplSuccessful;
 
         default:    // generic priority
 #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_VETH)) == 0)
+            UNUSED_PARAMETER(Buffer_p);
             ShbError = ShbCirWriteDataBlock (EplDllkCalInstance_g.m_ShbInstanceTxGenAsnd, pFrameInfo_p->m_pFrame, pFrameInfo_p->m_uiFrameSize);
             // returns kShbOk, kShbExceedDataSizeLimit, kShbBufferFull, kShbInvalidArg
 #else
