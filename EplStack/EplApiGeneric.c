@@ -226,7 +226,7 @@ static tEplKernel PUBLIC EplApiCbNmtStateChange(tEplEventNmtStateChange NmtState
 static tEplKernel PUBLIC EplApiUpdateDllConfig(BOOL fUpdateIdentity_p);
 
 // update SDO configuration from OD
-static tEplKernel PUBLIC EplApiUpdateSdoConfig();
+static tEplKernel PUBLIC EplApiUpdateSdoConfig(void);
 
 // update OD from init param
 static tEplKernel PUBLIC EplApiUpdateObd(BOOL fUpdateStorableParam_p);
@@ -2551,7 +2551,7 @@ Exit:
 //
 //
 //---------------------------------------------------------------------------
-static tEplKernel PUBLIC EplApiUpdateSdoConfig()
+static tEplKernel PUBLIC EplApiUpdateSdoConfig(void)
 {
     tEplKernel          Ret = kEplSuccessful;
     tEplObdSize         ObdSize;
