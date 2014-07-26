@@ -781,8 +781,8 @@ static tEplKernel EdrvCyclicProcessTxBufferList(void)
 {
     tEplKernel          Ret = kEplSuccessful;
     tEdrvTxBuffer*      pTxBuffer;
-    BOOL                bFirstPacket = TRUE;
 #if EDRV_USE_TTTX != FALSE
+    BOOL                bFirstPacket = TRUE;
     unsigned long long  ullLaunchTime;
     QWORD               qwCycleMin,qwCycleMax;
     QWORD               qwCurrMacTime = 0;
