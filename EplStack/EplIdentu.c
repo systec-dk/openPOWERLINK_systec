@@ -267,7 +267,7 @@ tEplKernel  Ret;
 tEplKernel PUBLIC EplIdentuReset()
 {
 tEplKernel  Ret;
-int         iIndex;
+unsigned int iIndex;
 
     Ret = kEplSuccessful;
 
