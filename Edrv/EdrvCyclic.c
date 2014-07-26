@@ -148,7 +148,9 @@ typedef struct
 
 static tEplKernel PUBLIC EdrvCyclicCbTimerCycle(tEplTimerEventArg* pEventArg_p);
 
+#if EDRV_USE_TTTX == FALSE
 static tEplKernel PUBLIC EdrvCyclicCbTimerSlot(tEplTimerEventArg* pEventArg_p);
+#endif
 
 static tEplKernel EdrvCyclicProcessTxBufferList(void);
 
@@ -723,7 +725,7 @@ Exit:
 // State:
 //
 //---------------------------------------------------------------------------
-
+#if EDRV_USE_TTTX == FALSE
 static tEplKernel PUBLIC EdrvCyclicCbTimerSlot(tEplTimerEventArg* pEventArg_p)
 {
 tEplKernel      Ret = kEplSuccessful;
@@ -760,7 +762,7 @@ Exit:
     }
     return Ret;
 }
-
+#endif
 
 //---------------------------------------------------------------------------
 //
