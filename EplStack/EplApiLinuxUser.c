@@ -1034,6 +1034,7 @@ tEplKernel PUBLIC EplApiGetIdentResponse(
     // This function is currently not supported
     // in the Linux kernel space implementation
     *ppIdentResponse_p  = NULL;
+    UNUSED_PARAMETER(uiNodeId_p);
 
     return  kEplInvalidOperation;
 }
