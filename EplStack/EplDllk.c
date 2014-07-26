@@ -7732,14 +7732,12 @@ static tEplKernel EplDllkMnSendSoa(tEplNmtState NmtState_p,
 {
 tEplKernel      Ret = kEplSuccessful;
 tEdrvTxBuffer  *pTxBuffer = NULL;
-tEplFrame      *pTxFrame;
 
     *pDllStateProposed_p = kEplDllMsNonCyclic;
 
     pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_SOA];
     if (pTxBuffer->m_pbBuffer != NULL)
     {   // SoA does exist
-        pTxFrame = (tEplFrame *) pTxBuffer->m_pbBuffer;
 
         Ret = EplDllkUpdateFrameSoa(pTxBuffer, NmtState_p, fEnableInvitation_p, EplDllkInstance_g.m_bCurLastSoaReq);
         if (Ret != kEplSuccessful)
