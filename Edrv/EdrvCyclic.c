@@ -782,7 +782,7 @@ Exit:
 static tEplKernel EdrvCyclicProcessTxBufferList(void)
 {
     tEplKernel          Ret = kEplSuccessful;
-    tEdrvTxBuffer*      pTxBuffer;
+    tEdrvTxBuffer*      pTxBuffer = NULL;
 #if EDRV_USE_TTTX != FALSE
     BOOL                bFirstPacket = TRUE;
     unsigned long long  ullLaunchTime;
