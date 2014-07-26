@@ -3875,7 +3875,7 @@ Exit:
 static tEplKernel EplNmtMnuReset(void)
 {
 tEplKernel  Ret;
-int         iIndex;
+unsigned int iIndex;
 
     Ret = EplTimeruDeleteTimer(&EplNmtMnuInstance_g.m_TimerHdlNmtState);
 
