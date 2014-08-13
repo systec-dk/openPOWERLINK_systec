@@ -86,7 +86,6 @@ ${STACK_ROOT}/EplStack/EplNmtk.c \
 ${STACK_ROOT}/EplStack/EplNmtu.c \
 ${STACK_ROOT}/EplStack/EplNmtCnu.c \
 ${STACK_ROOT}/EplStack/EplPdok.c \
-${STACK_ROOT}/EplStack/EplPdokCopyEndian.c \
 ${STACK_ROOT}/EplStack/EplPdokCal.c \
 ${STACK_ROOT}/EplStack/EplPdou.c \
 ${STACK_ROOT}/EplStack/EplPdouCal.c \
