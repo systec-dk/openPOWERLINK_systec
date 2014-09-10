@@ -177,7 +177,7 @@
                                                                                         {1, typ,          (acc)|kEplObdAccArray, &xDef##ind##_0x01_g,   &axCur##ind##_g[0]}, \
                                                                                         EPL_OBD_END_SUBINDEX()};
         #define EPL_OBD_RAM_INDEX_RAM_ARRAY_ALT(ind,cnt,call,typ,acc,dtyp,name,def)     static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
-                                                                                        {0, kEplObdTypUInt8, kEplObdAccRW,          &xDef##ind##_0x00_g,   &xCur##ind##_0x00_g}, \
+                                                                                        {0, kEplObdTypUInt8, (acc),              &xDef##ind##_0x00_g,   &xCur##ind##_0x00_g}, \
                                                                                         {1, typ,          (acc)|kEplObdAccArray, &xDef##ind##_0x01_g,   &axCur##ind##_g[0]}, \
                                                                                         EPL_OBD_END_SUBINDEX()};
         #define EPL_OBD_RAM_INDEX_RAM_VARARRAY(ind,cnt,call,typ,acc,dtyp,name,def)      static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
@@ -189,7 +189,7 @@
                                                                                         {1, typ,          (acc)|kEplObdAccArray|kEplObdAccVar, NULL,                  &aVarEntry##ind##_g[0]}, \
                                                                                         EPL_OBD_END_SUBINDEX()};
         #define EPL_OBD_RAM_INDEX_RAM_PDO_MAPPING(ind,cnt,call,acc,name,def)            static tEplObdSubEntry MEM aObdSubEntry##ind##Ram_g[]= { \
-                                                                                        {0, kEplObdTypUInt8, kEplObdAccRW,          &xDef##ind##_0x00_g,   &xCur##ind##_0x00_g}, \
+                                                                                        {0, kEplObdTypUInt8, (acc),                  &xDef##ind##_0x00_g,   &xCur##ind##_0x00_g}, \
                                                                                         {1, kEplObdTypUInt64, (acc)|kEplObdAccArray, &xDef##ind##_0x01_g,   &axCur##ind##_g[0]}, \
                                                                                         EPL_OBD_END_SUBINDEX()};
 
