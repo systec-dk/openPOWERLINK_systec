@@ -527,8 +527,8 @@ int  main (int argc, char **argv)
 #endif
 
     printf("Initializing process image...\n");
-    printf("Size of input process image: %ld\n", sizeof(AppProcessImageIn_g));
-    printf("Size of output process image: %ld\n", sizeof (AppProcessImageOut_g));
+    printf("Size of input process image: %lu\n", (unsigned long) sizeof(AppProcessImageIn_g));
+    printf("Size of output process image: %lu\n", (unsigned long) sizeof (AppProcessImageOut_g));
     AppProcessImageCopyJob_g.m_fNonBlocking = FALSE;
     AppProcessImageCopyJob_g.m_uiPriority = 0;
     AppProcessImageCopyJob_g.m_In.m_pPart = &AppProcessImageIn_g;
