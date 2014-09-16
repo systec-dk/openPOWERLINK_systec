@@ -135,11 +135,6 @@
 			<location>OPENPOWERLINK_DIR/EplStack/EplPdok.c</location>
 		</link>
 		<link>
-			<name>EplPdokCopyEndian.c</name>
-			<type>1</type>
-			<location>OPENPOWERLINK_DIR/EplStack/EplPdokCopyEndian.c</location>
-		</link>
-		<link>
 			<name>EplPdokCal.c</name>
 			<type>1</type>
 			<location>OPENPOWERLINK_DIR/EplStack/EplPdokCal.c</location>

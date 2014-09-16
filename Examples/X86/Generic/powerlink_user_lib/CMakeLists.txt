@@ -165,7 +165,6 @@ SET (LIB_SOURCES_KERNEL ${LIB_SOURCES_KERNEL}
                         ${POWERLINK_SOURCE_DIR}/EplStack/EplNmtk.c
                         ${POWERLINK_SOURCE_DIR}/EplStack/EplNmtkCal.c
                         ${POWERLINK_SOURCE_DIR}/EplStack/EplPdok.c
-                        ${POWERLINK_SOURCE_DIR}/EplStack/EplPdokCopyEndian.c
                         ${POWERLINK_SOURCE_DIR}/EplStack/EplPdokCal.c
                         ${POWERLINK_SOURCE_DIR}/EplStack/EplErrorHandlerk.c
     )
