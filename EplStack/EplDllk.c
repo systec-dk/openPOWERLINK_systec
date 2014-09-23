@@ -201,11 +201,6 @@
 
 #define EPL_DLLK_SOAREQ_COUNT       3
 
-// defines for tEdrvTxBuffer.m_uiTxBufLen
-#define EPL_DLLK_BUFLEN_EMPTY       0   // buffer is empty
-#define EPL_DLLK_BUFLEN_FILLING     1   // just the buffer is being filled
-#define EPL_DLLK_BUFLEN_MIN         60  // minimum ethernet frame length
-
 // defines for tEplDllkInstance.m_bUpdateTxFrame
 #define EPL_DLLK_UPDATE_NONE        0   // no update necessary
 #define EPL_DLLK_UPDATE_STATUS      1   // StatusRes needs update
@@ -235,6 +230,14 @@ typedef enum
     kEplDllMsWaitAsnd       = 0x0A, // MN: wait for ASnd frame if SoA contained invitation
 
 } tEplDllState;
+
+typedef enum
+{
+    kEplDllkTxBufEmpty      = 0,    // Tx buffer is empty
+    kEplDllkTxBufFilling,           // just the buffer is being filled
+    kEplDllkTxBufSending,           // the buffer is being transmitted
+    kEplDllkTxBufReady,             // the buffer is ready for transmission
+} tEplDllkTxBuf;
 
 typedef struct
 {
@@ -284,6 +287,8 @@ typedef struct
 #if EPL_DLL_PRES_CHAINING_CN != FALSE
     BYTE                m_bCurTxBufferOffsetSyncRes;
 #endif
+    tEplDllkTxBuf       m_aTxBufferStateNmtReq[2];
+    tEplDllkTxBuf       m_aTxBufferStateNonEpl[2];
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
     tEplDllkNodeInfo*   m_pFirstNodeInfo;
     BYTE                m_aabCnNodeIdList[2][EPL_NMT_MAX_NODE_ID];
@@ -1612,10 +1617,12 @@ tEplDllkNodeInfo*   pIntNodeInfo;
         goto Exit;
     }
     // mark Tx buffer as empty
-    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNmtReq[0] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = 0;
     EplDllkInstance_g.m_pTxBuffer[uiHandle].m_pfnTxHandler = EplDllkCbTransmittedNmtReq;
     uiHandle++;
-    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNmtReq[1] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = 0;
     EplDllkInstance_g.m_pTxBuffer[uiHandle].m_pfnTxHandler = EplDllkCbTransmittedNmtReq;
 
     // non-EPL frame
@@ -1626,10 +1633,12 @@ tEplDllkNodeInfo*   pIntNodeInfo;
         goto Exit;
     }
     // mark Tx buffer as empty
-    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNonEpl[0] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = 0;
     EplDllkInstance_g.m_pTxBuffer[uiHandle].m_pfnTxHandler = EplDllkCbTransmittedNonEpl;
     uiHandle++;
-    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNonEpl[1] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_pTxBuffer[uiHandle].m_uiTxMsgLen = 0;
     EplDllkInstance_g.m_pTxBuffer[uiHandle].m_pfnTxHandler = EplDllkCbTransmittedNonEpl;
 
 
@@ -2157,6 +2166,8 @@ unsigned int    uiHandle;
         goto Exit;
     }
 
+    EplDllkInstance_g.m_aTxBufferStateNmtReq[0] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_aTxBufferStateNmtReq[1] = kEplDllkTxBufEmpty;
     Ret = EplDllkDeleteTxFrame(EPL_DLLK_TXFRAME_NMTREQ);
     if (Ret != kEplSuccessful)
     {   // error occurred while deregistering Tx frame
@@ -2171,6 +2182,8 @@ unsigned int    uiHandle;
     }
 #endif
 
+    EplDllkInstance_g.m_aTxBufferStateNonEpl[0] = kEplDllkTxBufEmpty;
+    EplDllkInstance_g.m_aTxBufferStateNonEpl[1] = kEplDllkTxBufEmpty;
     Ret = EplDllkDeleteTxFrame(EPL_DLLK_TXFRAME_NONEPL);
     if (Ret != kEplSuccessful)
     {   // error occurred while deregistering Tx frame
@@ -3021,6 +3034,7 @@ tEdrvTxBuffer*  pTxBuffer;
 unsigned int    uiFrameSize;
 unsigned int    uiFrameCount;
 unsigned int    uiNextTxBufferOffset;
+tEplDllkTxBuf*  pTxBufferState = NULL;
 #if (EDRV_AUTO_RESPONSE != FALSE)
 unsigned int    uiFilterEntry;
 #endif
@@ -3034,6 +3048,7 @@ unsigned int    uiFilterEntry;
         {
             uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq;
             pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + uiNextTxBufferOffset];
+            pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNmtReq[uiNextTxBufferOffset];
 #if (EDRV_AUTO_RESPONSE != FALSE)
         uiFilterEntry = EPL_DLLK_FILTER_SOA_NMTREQ;
 #endif
@@ -3044,6 +3059,7 @@ unsigned int    uiFilterEntry;
         {
             uiNextTxBufferOffset = EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl;
             pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + uiNextTxBufferOffset];
+            pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNonEpl[uiNextTxBufferOffset];
 #if (EDRV_AUTO_RESPONSE != FALSE)
         uiFilterEntry = EPL_DLLK_FILTER_SOA_NONEPL;
 #endif
@@ -3054,10 +3070,10 @@ unsigned int    uiFilterEntry;
     if (pTxBuffer->m_pbBuffer != NULL)
     {   // NmtRequest or non-EPL frame does exist
         // check if frame is empty and not being filled
-        if (pTxBuffer->m_uiTxMsgLen == EPL_DLLK_BUFLEN_EMPTY)
+        if (*pTxBufferState == kEplDllkTxBufEmpty)
         {
             // mark Tx buffer as filling is in process
-            pTxBuffer->m_uiTxMsgLen = EPL_DLLK_BUFLEN_FILLING;
+            *pTxBufferState = kEplDllkTxBufFilling;
             // set max buffer size as input parameter
             uiFrameSize = pTxBuffer->m_uiMaxBufferLen;
             // copy frame from shared loop buffer to Tx buffer
@@ -3074,6 +3090,7 @@ unsigned int    uiFilterEntry;
 
                 // set buffer valid
                 pTxBuffer->m_uiTxMsgLen = uiFrameSize;
+                *pTxBufferState = kEplDllkTxBufReady;
 
 #if (EDRV_AUTO_RESPONSE != FALSE)
                 if ((NmtState_p & (EPL_NMT_TYPE_MASK | EPL_NMT_SUPERSTATE_MASK)) == (EPL_NMT_TYPE_CS | EPL_NMT_CS_EPLMODE))
@@ -3102,7 +3119,7 @@ unsigned int    uiFilterEntry;
                 // so just ignore it
                 Ret = kEplSuccessful;
                 // mark Tx buffer as empty
-                pTxBuffer->m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+                *pTxBufferState = kEplDllkTxBufEmpty;
 
 #if (EDRV_AUTO_RESPONSE != FALSE)
                 if ((NmtState_p & (EPL_NMT_TYPE_MASK | EPL_NMT_SUPERSTATE_MASK)) == (EPL_NMT_TYPE_CS | EPL_NMT_CS_EPLMODE))
@@ -3132,18 +3149,21 @@ unsigned int    uiFilterEntry;
         if (pTxFrame != NULL)
         {   // frame is present
             // padding is done by Edrv or ethernet controller
+            *pTxBufferState = kEplDllkTxBufSending;
             Ret = EdrvSendTxMsg(pTxBuffer);
         }
         else
         {   // no frame moved to TxBuffer
             // check if TxBuffers contain unsent frames
-            if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq].m_uiTxMsgLen > EPL_DLLK_BUFLEN_EMPTY)
+            if (EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] == kEplDllkTxBufReady)
             {   // NMT request Tx buffer contains a frame
+                EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] = kEplDllkTxBufSending;
                 Ret = EdrvSendTxMsg(
                         &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq]);
             }
-            else if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl].m_uiTxMsgLen > EPL_DLLK_BUFLEN_EMPTY)
+            else if (EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl] == kEplDllkTxBufReady)
             {   // non-EPL Tx buffer contains a frame
+                EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl] = kEplDllkTxBufSending;
                 Ret = EdrvSendTxMsg(
                         &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl]);
             }
@@ -3161,7 +3181,7 @@ unsigned int    uiFilterEntry;
         Ret = EplDllkCalAsyncGetTxCount(&AsyncReqPriority_p, &uiFrameCount);
         if (AsyncReqPriority_p == kEplDllAsyncReqPrioNmt)
         {   // non-empty FIFO with hightest priority is for NMT requests
-            if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq].m_uiTxMsgLen > EPL_DLLK_BUFLEN_EMPTY)
+            if (EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] == kEplDllkTxBufReady)
             {   // NMT request Tx buffer contains a frame
                 // add one more frame
                 uiFrameCount++;
@@ -3169,13 +3189,13 @@ unsigned int    uiFilterEntry;
         }
         else
         {   // non-empty FIFO with highest priority is for generic frames
-            if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq].m_uiTxMsgLen > EPL_DLLK_BUFLEN_EMPTY)
+            if (EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] == kEplDllkTxBufReady)
             {   // NMT request Tx buffer contains a frame
                 // use NMT request FIFO, because of higher priority
                 uiFrameCount = 1;
                 AsyncReqPriority_p = kEplDllAsyncReqPrioNmt;
             }
-            else if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl].m_uiTxMsgLen > EPL_DLLK_BUFLEN_EMPTY)
+            else if (EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl] == kEplDllkTxBufReady)
             {   // non-EPL Tx buffer contains a frame
                 // use NMT request FIFO, because of higher priority
                 // add one more frame
@@ -4926,6 +4946,7 @@ tEdrvTxBuffer*  pTxBuffer = NULL;
 tEplDllReqServiceId     ReqServiceId;
 unsigned int    uiNodeId;
 BYTE            bFlag1;
+tEplDllkTxBuf*  pTxBufferState = NULL;
 
     pFrame = (tEplFrame *) pRxBuffer_p->m_pbBuffer;
 
@@ -5029,12 +5050,14 @@ BYTE            bFlag1;
 #if (EDRV_AUTO_RESPONSE == FALSE)
                 // Auto-response is not available
                 pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq];
+                pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq];
                 if (pTxBuffer->m_pbBuffer != NULL)
                 {   // NmtRequest does exist
                     // check if frame is not empty and not being filled
-                    if (pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
+                    if (*pTxBufferState == kEplDllkTxBufReady)
                     {
                         // send NmtRequest
+                        *pTxBufferState = kEplDllkTxBufSending;
                         Ret = EdrvSendTxMsg(pTxBuffer);
                         if (Ret != kEplSuccessful)
                         {
@@ -5170,12 +5193,14 @@ BYTE            bFlag1;
 #if (EDRV_AUTO_RESPONSE == FALSE)
                 // Auto-response is not available
                 pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl];
+                pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl];
                 if (pTxBuffer->m_pbBuffer != NULL)
                 {   // non-EPL frame does exist
                     // check if frame is not empty and not being filled
-                    if (pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
+                    if (*pTxBufferState == kEplDllkTxBufReady)
                     {
                         // send non-EPL frame
+                        *pTxBufferState = kEplDllkTxBufSending;
                         Ret = EdrvSendTxMsg(pTxBuffer);
                         if (Ret != kEplSuccessful)
                         {
@@ -5492,7 +5517,7 @@ TGT_DLLK_DECLARE_FLAGS
 
     // frame from NMT request FIFO sent
     // mark Tx-buffer as empty
-    pTxBuffer_p->m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNmtReq[pTxBuffer_p - &EplDllkInstance_g.m_pTxBuffer[uiHandle]] = kEplDllkTxBufEmpty;
 
     // post event to DLL
     Priority = kEplDllAsyncReqPrioNmt;
@@ -5564,7 +5589,7 @@ TGT_DLLK_DECLARE_FLAGS
 
     // frame from generic priority FIFO sent
     // mark Tx-buffer as empty
-    pTxBuffer_p->m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
+    EplDllkInstance_g.m_aTxBufferStateNonEpl[pTxBuffer_p - &EplDllkInstance_g.m_pTxBuffer[uiHandle]] = kEplDllkTxBufEmpty;
 
     // post event to DLL
     Priority = kEplDllAsyncReqPrioGeneric;
@@ -5768,9 +5793,10 @@ TGT_DLLK_DECLARE_FLAGS
                 if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq].m_pbBuffer != NULL)
                 {   // NmtRequest does exist
                     // check if frame is not empty and not being filled
-                    if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq].m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
+                    if (EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] == kEplDllkTxBufReady)
                     {
                         // send NmtRequest
+                        EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq] = kEplDllkTxBufSending;
                         Ret = EdrvSendTxMsg(&EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NMTREQ + EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq]);
                         if (Ret != kEplSuccessful)
                         {
@@ -5789,9 +5815,10 @@ TGT_DLLK_DECLARE_FLAGS
                 if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl].m_pbBuffer != NULL)
                 {   // non-EPL frame does exist
                     // check if frame is not empty and not being filled
-                    if (EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl].m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING)
+                    if (EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl] == kEplDllkTxBufReady)
                     {
                         // send non-EPL frame
+                        EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl] = kEplDllkTxBufSending;
                         Ret = EdrvSendTxMsg(&EplDllkInstance_g.m_pTxBuffer[EPL_DLLK_TXFRAME_NONEPL + EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl]);
                         if (Ret != kEplSuccessful)
                         {
@@ -6669,10 +6696,6 @@ unsigned int    nIndex = 0;
     for ( ; nIndex < 2; nIndex++, uiHandle_p++)
     {
         pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[uiHandle_p];
-
-        // mark buffer as free so that frame will not be send in future anymore
-        // $$$ d.k. What's up with running transmissions?
-        pTxBuffer->m_uiTxMsgLen = EPL_DLLK_BUFLEN_EMPTY;
 
         // delete Tx buffer
         Ret = EdrvReleaseTxMsgBuffer(pTxBuffer);
@@ -7614,6 +7637,7 @@ tEplDllkNodeInfo*   pNodeInfo;
             {
                 int iSelectTxBuffer;
                 tEdrvTxBuffer* pTxBuffer;
+                tEplDllkTxBuf* pTxBufferState = NULL;
 
                 // exchange invalid node ID with local node ID
                 EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p] = EplDllkInstance_g.m_DllConfigParam.m_uiNodeId;
@@ -7645,6 +7669,7 @@ tEplDllkNodeInfo*   pNodeInfo;
                         EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq;
 
                         pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNmtReq[EplDllkInstance_g.m_bCurTxBufferOffsetNmtReq];
                         break;
                     }
 
@@ -7654,6 +7679,7 @@ tEplDllkNodeInfo*   pNodeInfo;
                         EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl;
 
                         pTxBuffer = &EplDllkInstance_g.m_pTxBuffer[iSelectTxBuffer];
+                        pTxBufferState = &EplDllkInstance_g.m_aTxBufferStateNonEpl[EplDllkInstance_g.m_bCurTxBufferOffsetNonEpl];
                         break;
                     }
 
@@ -7665,7 +7691,7 @@ tEplDllkNodeInfo*   pNodeInfo;
                 }
 
                 // if the async Tx buffer is not ready discard the request
-                if((pTxBuffer == NULL) || !(pTxBuffer->m_uiTxMsgLen > EPL_DLLK_BUFLEN_FILLING))
+                if ((pTxBuffer == NULL) || ((pTxBufferState != NULL) && (*pTxBufferState != kEplDllkTxBufReady)))
                 {
                     EplDllkInstance_g.m_aLastReqServiceId[bCurReq_p] = kEplDllReqServiceNo;
                     EplDllkInstance_g.m_auiLastTargetNodeId[bCurReq_p] = EPL_C_ADR_INVALID;
