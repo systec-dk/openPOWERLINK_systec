@@ -1545,8 +1545,11 @@ tEplKernel      Ret = kEplSuccessful;
 unsigned int    uiHandle;
 unsigned int    uiFrameSize;
 BYTE            abMulticastMac[6];
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0) \
+    || (EPL_NMT_MAX_NODE_ID > 0)
 unsigned int        uiIndex;
 tEplDllkNodeInfo*   pIntNodeInfo;
+#endif
 
     // initialize flags for PRes and StatusRes (leave Flag 1 unchanged)
     EplDllkInstance_g.m_bMnFlag1 = 0;
@@ -2098,7 +2101,10 @@ static tEplKernel EplDllkProcessDestroy(tEplNmtState OldNmtState_p)
 {
 tEplKernel      Ret = kEplSuccessful;
 BYTE            abMulticastMac[6];
+#if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0) \
+    || (EPL_NMT_MAX_NODE_ID > 0)
 unsigned int    uiIndex;
+#endif
 #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_NMT_MN)) != 0)
 unsigned int    uiHandle;
 #endif
