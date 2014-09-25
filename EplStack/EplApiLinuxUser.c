@@ -218,7 +218,7 @@ int          iRet;
     }
     else
     {
-        TRACE("EPL: ERROR: Can't open '%s'\n", pszDrvName);
+        TRACE("EPL: ERROR: Can't open '%s', because of error %d: %s\n", pszDrvName, errno, strerror(errno));
         Ret = kEplNoResource;
         goto Exit;
     }
