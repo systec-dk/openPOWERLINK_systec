@@ -844,7 +844,7 @@ tEplSdoConHdl       SdoConHdl;
     while (!kthread_should_stop()) {
         printk("%s: waiting for kthread_stop()\n", __FUNCTION__);
         set_current_state(TASK_UNINTERRUPTIBLE);
-        schedule();
+        schedule_timeout(2);
     }
 
 #endif
