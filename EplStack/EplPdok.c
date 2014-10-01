@@ -161,7 +161,7 @@ typedef struct
 
 static tEplPdokInstance  EplPdokInstance_g;
 
-#if EPL_DLL_PDOK_COPY_DIRECT != FALSE
+#if EPL_PDOK_COPY_DIRECT != FALSE
 static const WORD aSizeList[] = { 0,                    // not used            0x00
                                   1,                    // kEplObdTypBool      0x01
                                   1,                    // kEplObdTypInt8      0x02
@@ -191,7 +191,7 @@ static const WORD aSizeList[] = { 0,                    // not used            0
                                   7,                    // kEplObdTypUInt56    0x1A
                                   8,                    // kEplObdTypUInt64    0x1B
             };
-#endif // #if EPL_DLL_PDOK_COPY_DIRECT != FALSE
+#endif // #if EPL_PDOK_COPY_DIRECT != FALSE
 
 //---------------------------------------------------------------------------
 // local function prototypes
@@ -819,7 +819,7 @@ Exit:
     return Ret;
 }
 
-#if EPL_DLL_PDOK_COPY_DIRECT != FALSE
+#if EPL_PDOK_COPY_DIRECT != FALSE
 //---------------------------------------------------------------------------
 //
 // Function:    EplPdokCopyVarToPdo
@@ -1162,7 +1162,7 @@ void*           pVar;
 
     return Ret;
 }
-#endif // #if EPL_DLL_PDOK_COPY_DIRECT != FALSE
+#endif // #if EPL_PDOK_COPY_DIRECT != FALSE
 
 #endif // #if (((EPL_MODULE_INTEGRATION) & (EPL_MODULE_PDOK)) != 0)
 
