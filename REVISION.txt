@@ -1222,3 +1222,94 @@ Fellow worker:    Daniel Krüger (d.k.)
                     - [FIX] Adapt CiA401 CN xdd files
                     (Thomas Mair)
 
+2014-03-27 V1.8.5   - [FIX] Add missing EPLDLLEXPORT macro
+                    (David Puffer)
+
+2014-03-27 V1.8.5   - [FIX] Trigger loss of SoC error event only once per cycle
+                    (Thomas Mair)
+
+2014-03-31 V1.8.5   - [FIX] Add missing extern 'C' declaration.
+                    (David Puffer)
+
+2014-04-02 V1.8.5   - [FIX] Fix ASnd frame filter setup
+                    - [FIX] Fix PReq frame size check
+                    - [FIX] Fix SDO command invalid handle error in CFM
+                    (Joerg Zelenka)
+
+2014-05-08 V1.8.5   - [FIX] Incorrectly declared variable
+                    (David Puffer)
+
+2014-05-23 V1.8.5   - [FIX] Don't change priority of ksoftirq on kernels >=3.6
+                    (Daniel Krueger)
+
+2014-06-12 V1.8.5   - [FIX] Dllk: Fix wrong assignment of node ID in EplDllkPResChainingDisable()
+                    (Wolfgang Wallner)
+
+2014-06-12 V1.8.5   - [FIX] Disable procfs entry of Linux kernel module
+                    - [FIX] Dllk: Don't crash on PRes reception with high node-IDs
+                    - [FIX] Pdou: Mixed up m_abPdoIdToChannelIdTx and m_abPdoIdToChannelIdRx
+                    - [FIX] Dllk: Reimplement handling of PRes in transition DLL_CT4
+                    (Daniel Krueger)
+
+2014-06-13 V1.8.5   - [FIX] Cfm: Fix kEplApiSdoBusyIntern after CN reset command
+                    (Daniel Krueger)
+
+2014-06-16 V1.8.5   - [FIX] Dllk: Fix compiler warning about unhandled case
+                    - [FIX] Dllk: Fix compiler warning about different pointer types
+                    - [FIX] Dllk: Remove needless semicolon
+                    - [FIX] Cfmu: Fix compiler warning about signed/unsigned compare
+                    (Daniel Krueger)
+
+2014-06-17 V1.8.5   - [FIX] ProcessImage: Use proper ref counters for Linux kernel
+                    (Daniel Krueger)
+
+2014-07-26 V1.8.5   - [FIX] ioctl in EplApiShutdown() need to wait for NMT_GS_OFF
+                    - [Fix] Linux Powerlink user lib: add INSTALL target
+                    - [FIX] EdrvCyclic: Fix compiler warning
+                    - [FIX] EplApiGeneric: fix compiler warning
+                    - [FIX] EplEventk: remove unused variable
+                    - [FIX] EplDllkCal: remove unused variable
+                    (Romain Naour)
+
+2014-07-29 V1.8.5   - [FIX] EplNmtMnu: fix compiler warning
+                    (Romain Naour)
+
+2014-09-10 V1.8.5   - [FIX] ShbIpc-LinuxPthreads: fix compiler warning
+                    - [FIX] demo_mn_console: fix compiler warning
+                    - [FIX] Extend PDO Mapping subindexes (objects 0x16xx and 0x1Axx) up to 0xFE
+                    - [FIX] EplObdMacro.h: Use same access rights for sub-index 0
+                    (Daniel Krueger)
+
+2014-09-10 V1.8.5   - [FIX] EplTimeruLinuxUser: remove unused variable
+                    - [FIX] EplSdoComu: comment variable used by commented code
+                    - [FIX] EplDllkCal: fix compiler warning
+                    - [FIX] EplDllk: remove unused variable
+                    - [FIX] EplApiLinuxUser: fix compiler warning
+                    - [FIX] demo_mn_console: add guard to declare the right variable depending on the system used
+                    - [FIX] demo_mn_console: fix compiler warning
+                    - [FIX] EdrvCyclic: fix compiler warining
+                    - [FIX] EdrvCyclic: fix compiler warning
+                    - [FIX] EplIdentu: fix compiler warning
+                    - [FIX] EplNmtMnu: fix compiler warning
+                    - [FIX] EplApiProcessImage: reset PIs data after allocation.
+                    - [FIX] fixes typo in 00000000_POWERLINK_CiA302-4_MN.xdd
+                    (Romain Naour)
+
+2014-09-16 V1.8.5   - [FIX] Fix unknown variable compilation error
+                    (Michael Hogger)
+
+2014-09-16 V1.8.5   - [FIX] Improve Pdok copy from/to PDO functions
+                    (Thomas Mair)
+
+2014-09-23 V1.8.5   - [FIX] Dllk: Do not resend the same Tx buffer in BasicEthernet state
+                    - [FIX] Dllk: fix compiler warning about unused variable on simple CN configs
+                    - [FIX] SdoUdp: Periodically look for kthread_should_stop() to fix raciness
+                    - [TASK] EplApiLinuxUser: Print errno if open of /dev/epl failed
+                    (Daniel Krueger)
+
+2014-10-01 V1.8.5   - [FIX] Fix 8255x Edrv NULL pointer crash
+                    (Avinash Alfred)
+
+2014-10-01 V1.8.5   - [FIX] Rename EPL_DLL_PDOK_COPY_DIRECT to EPL_PDOK_COPY_DIRECT
+                    - [FIX] Add default value for EPL_PDOK_COPY_DIRECT
+                    (Daniel Krueger)
