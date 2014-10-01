@@ -899,9 +899,9 @@ tEdrvTxBuffer* pDmaBuffer = NULL;
 
             cbp = (struct cb *)((EdrvInstance_l.m_pCbVirtAdd) + (CB_REQUIRED_SIZE * EdrvInstance_l.m_uiHeadTxDesc));
 
-            if(cbp->m_uiCmdStat & CS_C)
+            uiCmdStat = cbp->m_uiCmdStat;
+            if((uiCmdStat & CS_C) && (uiCmdStat & CS_SF_) && (uiCmdStat & (OP_TX << CS_OP_SHIFT)))
             {
-                uiCmdStat = cbp->m_uiCmdStat;
                 // clear the status bits of the current CB
                 cbp->m_uiCmdStat &= 0XFFFF0000;
 
@@ -912,18 +912,19 @@ tEdrvTxBuffer* pDmaBuffer = NULL;
                 pDmaBuffer = (tEdrvTxBuffer *)EdrvInstance_l.m_ulaCbDmaAddrBuf[EdrvInstance_l.m_uiHeadTxDesc];
 
                 EdrvInstance_l.m_ulaCbVirtAddrBuf[EdrvInstance_l.m_uiHeadTxDesc] = 0;
+                EdrvInstance_l.m_ulaCbDmaAddrBuf[EdrvInstance_l.m_uiHeadTxDesc] = 0;
 
                 // Increment Tx descriptor queue head pointer
                 EdrvInstance_l.m_uiHeadTxDesc = ((EdrvInstance_l.m_uiHeadTxDesc + 1) % MAX_CBS);
 
-                if(NULL != pDmaBuffer)
+                if ((pDmaBuffer != NULL) && (pTxBuffer != NULL))
                 {
                     // retrieve the address of the DMA handle to
                     // pTxBuffer_p->m_pbBuffer pointer
                     // that was received in EdrvSendTxMsg
                     // so that the mapping can be correspondingly unmapped
                     pci_unmap_single(EdrvInstance_l.m_pPciDev,
-                                     (dma_addr_t) EdrvInstance_l.m_ulaCbDmaAddrBuf[EdrvInstance_l.m_uiHeadTxDesc],
+                                    (dma_addr_t)pDmaBuffer,
                                      pTxBuffer->m_uiTxMsgLen, PCI_DMA_TODEVICE);
                 }
 
@@ -1683,21 +1684,6 @@ tEplKernel Ret = kEplSuccessful;
         }
     }
 
-    // fill RFDs for which memory has been allocated - end
-
-    Ret = EdrvIfeCmdDescWrite(OP_ADDRSETUP, 0);
-    if(Ret != kEplSuccessful)
-    {
-        iResult = -EIO;
-        goto Exit;
-    }
-    Ret = EdrvIfeCmdDescWrite(OP_CONFIGURE, 0);
-    if(Ret != kEplSuccessful)
-    {
-        iResult = -EIO;
-        goto Exit;
-    }
-
     //acknowledge pended interrupts and clear interrupt mask
     uiTemp = ioread16(EdrvInstance_l.m_pIoAddr + SCBSTAT);
     udelay(5);
@@ -1758,6 +1744,22 @@ tEplKernel Ret = kEplSuccessful;
         }
     }
 
+    // fill RFDs for which memory has been allocated - end
+
+    Ret = EdrvIfeCmdDescWrite(OP_ADDRSETUP, 0);
+    if(Ret != kEplSuccessful)
+    {
+        iResult = -EIO;
+        goto Exit;
+    }
+    Ret = EdrvIfeCmdDescWrite(OP_CONFIGURE, 0);
+    if(Ret != kEplSuccessful)
+    {
+        iResult = -EIO;
+        goto Exit;
+    }
+    EdrvInstance_l.m_uiHeadTxDesc = 0;
+    EdrvInstance_l.m_uiTailTxDesc = 0;
     EdrvInstance_l.m_uiHeadRxDesc = 0;
     EdrvInstance_l.m_uiTailRxDesc = MAX_RFDS-1;
     rfdp = (struct rfd *)((EdrvInstance_l.m_pRfdVirtAdd) + (RFD_REQUIRED_SIZE * EdrvInstance_l.m_uiTailRxDesc));
