@@ -375,7 +375,7 @@ tEplKernel PUBLIC VEthApiXmit(BYTE *pData_p, WORD wDataSize)
     {
         Ret = kEplApiInvalidParam;
         EPL_DBGLVL_VETH_TRACE("VEthXmit: Error while transmitting! MTU is set to "
-                "%d and frame has size %d!\n", VEthInstance_g.m_wMtu, uiDataSize);
+                "%d and frame has size %d!\n", VEthInstance_g.m_wMtu, wDataSize);
         goto Exit;
     }
 
