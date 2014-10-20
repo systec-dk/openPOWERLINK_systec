@@ -508,6 +508,10 @@ static tEplKernel EplDllkRequestPresForward( unsigned int uiNode_p );
 static BOOL EplTriggerLossOfSocEvent(void);
 static BOOL EplTriggerLossOfSocEventOnFrameTimeout(void);
 
+static tEplKernel EplMarkTxBufferEmpty(tEplDllkTxBuf * paTxBufState_p,
+                                       tEdrvTxBuffer * pActTxBuffer_p,
+                                       tEdrvTxBuffer * pLocTxBuffer_p);
+
 //=========================================================================//
 //                                                                         //
 //          P U B L I C   F U N C T I O N S                                //
@@ -5523,7 +5527,13 @@ TGT_DLLK_DECLARE_FLAGS
 
     // frame from NMT request FIFO sent
     // mark Tx-buffer as empty
-    EplDllkInstance_g.m_aTxBufferStateNmtReq[pTxBuffer_p - &EplDllkInstance_g.m_pTxBuffer[uiHandle]] = kEplDllkTxBufEmpty;
+    Ret = EplMarkTxBufferEmpty(&EplDllkInstance_g.m_aTxBufferStateNmtReq[0],
+                               pTxBuffer_p,
+                               &EplDllkInstance_g.m_pTxBuffer[uiHandle]);
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
 
     // post event to DLL
     Priority = kEplDllAsyncReqPrioNmt;
@@ -5595,7 +5605,13 @@ TGT_DLLK_DECLARE_FLAGS
 
     // frame from generic priority FIFO sent
     // mark Tx-buffer as empty
-    EplDllkInstance_g.m_aTxBufferStateNonEpl[pTxBuffer_p - &EplDllkInstance_g.m_pTxBuffer[uiHandle]] = kEplDllkTxBufEmpty;
+    Ret = EplMarkTxBufferEmpty(&EplDllkInstance_g.m_aTxBufferStateNonEpl[0],
+                               pTxBuffer_p,
+                               &EplDllkInstance_g.m_pTxBuffer[uiHandle]);
+    if(Ret != kEplSuccessful)
+    {
+        goto Exit;
+    }
 
     // post event to DLL
     Priority = kEplDllAsyncReqPrioGeneric;
@@ -8281,6 +8297,41 @@ static BOOL EplTriggerLossOfSocEventOnFrameTimeout(void)
     return fTriggerEvent;
 }
 
+//---------------------------------------------------------------------------
+//
+// Function:    EplMarkTxBufferEmpty
+//
+// Description: Marks a transmit buffer empty after the payload was sent. It
+//              compares the provided pointer from the edrv with the one stored
+//              in the dllk in order to get the current active transmit buffer.
+//
+// Parameters:  paTxBufState_p     = Pointer to the state array of the transmit buffer
+//              pActTxBuffer_p     = Pointer to the current transmit buffer of the Edrv
+//              pLocTxBuffer_p     = Pointer to the current transmit buffer of the Dllk
+//
+// Returns:     tEplKernel              = error code
+//
+//
+//---------------------------------------------------------------------------
+static tEplKernel EplMarkTxBufferEmpty(tEplDllkTxBuf * paTxBufState_p,
+                                       tEdrvTxBuffer * pActTxBuffer_p,
+                                       tEdrvTxBuffer * pLocTxBuffer_p)
+{
+    tEplKernel Ret = kEplSuccessful;
+    volatile DWORD address = pActTxBuffer_p - pLocTxBuffer_p;   // This volatile prevents microblaze gcc to crash
+
+    // Check if address is in the scope of the array
+    if(address == 0 || address == 1)
+    {
+        paTxBufState_p[address] = kEplDllkTxBufEmpty;
+    }
+    else
+    {
+        Ret = kEplDllInvalidParam;
+    }
+
+    return Ret;
+}
 
 #endif // #if(((EPL_MODULE_INTEGRATION) & (EPL_MODULE_DLLK)) != 0)
 // EOF
