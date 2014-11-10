@@ -597,7 +597,7 @@ int         iIndex;
         goto Exit;
     }
     else
-    {   
+    {
         // write MAC address to free entry
         dwData = 0;
         dwData |= pbMacAddr_p[0] <<  0;
@@ -1018,7 +1018,7 @@ int             iUsedSize = 0;
             uiRxCountMean += EdrvInstance_l.m_uiRxCount[nIdx] * 100;
             uiTxCountMean += EdrvInstance_l.m_uiTxCount[nIdx] * 100;
         }
-                
+
         uiRxCountMean /= EDRV_SAMPLE_NUM;
         uiTxCountMean /= EDRV_SAMPLE_NUM;
 
@@ -1055,7 +1055,7 @@ int             iUsedSize = 0;
                 uiHistTxMax = EdrvInstance_l.m_uiTxCount[nIdx];
             }
         }
-        
+
         if (uiHistRxMax > 0)
         {
             iUsedSize += snprintf (pszBuffer_p + iUsedSize, iSize_p - iUsedSize,
@@ -1117,7 +1117,7 @@ tEplKernel EplRet = kEplEdrvInvalidRxBuf;
         EplRet = kEplSuccessful;
     }
 
-    return EplRet; 
+    return EplRet;
 }
 
 
@@ -1168,7 +1168,7 @@ int             iHandled;
     {   // Manual acknowledge required
         EDRV_REGDW_WRITE(EDRV_REGDW_ICR, dwStatus);
     }
-        
+
 #if EDRV_USE_DIAGNOSTICS != FALSE
     EdrvInstance_l.m_ullInterruptCount++;
     EdrvInstance_l.m_uiRxCount[EdrvInstance_l.m_uiPos] = 0;
@@ -1579,7 +1579,7 @@ unsigned int    nRxBuffer;
     // setup 4: 64us inter-interrupt interval (abort with error)
     //EDRV_REGDW_WRITE(EDRV_REGDW_ITR, 250);
     // setup 5: 10,2us interrupt delay after packet reception
-    //          102,4us max. delay 
+    //          102,4us max. delay
     //          no throttling for packet transmission
     //EDRV_REGDW_WRITE(EDRV_REGDW_RDTR, 10);
     //EDRV_REGDW_WRITE(EDRV_REGDW_RADV, 100);
