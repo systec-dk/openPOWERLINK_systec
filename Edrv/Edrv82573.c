@@ -1789,11 +1789,6 @@ unsigned int    nRxBuffer;
 
         msleep(100);
     }
-    if (iIndex == 0)
-    {
-        iResult = -EIO;
-        goto ExitFail;
-    }
 
     goto Exit;
 
