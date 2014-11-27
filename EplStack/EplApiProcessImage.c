@@ -328,23 +328,35 @@ unsigned int    fShbNewCreated;
         goto Exit;
     }
 
-    EplApiProcessImageInstance_g.m_In.m_pImage = EPL_MALLOC(uiSizeProcessImageIn_p);
-    if (EplApiProcessImageInstance_g.m_In.m_pImage == NULL)
-    {
-        Ret = kEplApiPIOutOfMemory;
+    if ((uiSizeProcessImageIn_p == 0)
+        && (uiSizeProcessImageOut_p == 0))
+    {   // do nothing if both image sizes are zero
         goto Exit;
     }
-    EPL_MEMSET(EplApiProcessImageInstance_g.m_In.m_pImage, 0, uiSizeProcessImageIn_p);
-    EplApiProcessImageInstance_g.m_In.m_uiSize = uiSizeProcessImageIn_p;
 
-    EplApiProcessImageInstance_g.m_Out.m_pImage = EPL_MALLOC(uiSizeProcessImageOut_p);
-    if (EplApiProcessImageInstance_g.m_Out.m_pImage == NULL)
+    if (uiSizeProcessImageIn_p > 0)
     {
-        Ret = kEplApiPIOutOfMemory;
-        goto Exit;
+        EplApiProcessImageInstance_g.m_In.m_pImage = EPL_MALLOC(uiSizeProcessImageIn_p);
+        if (EplApiProcessImageInstance_g.m_In.m_pImage == NULL)
+        {
+            Ret = kEplApiPIOutOfMemory;
+            goto Exit;
+        }
+        EPL_MEMSET(EplApiProcessImageInstance_g.m_In.m_pImage, 0, uiSizeProcessImageIn_p);
+        EplApiProcessImageInstance_g.m_In.m_uiSize = uiSizeProcessImageIn_p;
     }
-    EPL_MEMSET(EplApiProcessImageInstance_g.m_Out.m_pImage, 0, uiSizeProcessImageOut_p);
-    EplApiProcessImageInstance_g.m_Out.m_uiSize = uiSizeProcessImageOut_p;
+
+    if (uiSizeProcessImageOut_p > 0)
+    {
+        EplApiProcessImageInstance_g.m_Out.m_pImage = EPL_MALLOC(uiSizeProcessImageOut_p);
+        if (EplApiProcessImageInstance_g.m_Out.m_pImage == NULL)
+        {
+            Ret = kEplApiPIOutOfMemory;
+            goto Exit;
+        }
+        EPL_MEMSET(EplApiProcessImageInstance_g.m_Out.m_pImage, 0, uiSizeProcessImageOut_p);
+        EplApiProcessImageInstance_g.m_Out.m_uiSize = uiSizeProcessImageOut_p;
+    }
 
     TRACE("%s: Alloc(%p, %u, %p, %u)\n",
           __func__,
@@ -511,15 +523,14 @@ void*           pVar;
         goto Exit;
     }
 
-    if ((EplApiProcessImageInstance_g.m_In.m_pImage == NULL)
-        || (EplApiProcessImageInstance_g.m_Out.m_pImage == NULL))
-    {
-        Ret = kEplApiPINotAllocated;
-        goto Exit;
-    }
-
     if (fOutputPI_p == FALSE)
     {   // input PI
+        if (EplApiProcessImageInstance_g.m_In.m_pImage == NULL)
+        {
+            Ret = kEplApiPINotAllocated;
+            goto Exit;
+        }
+
         pVar = ((BYTE*) EplApiProcessImageInstance_g.m_In.m_pImage) + uiOffsetPI_p;
         if ((uiOffsetPI_p + EntrySize_p) > EplApiProcessImageInstance_g.m_In.m_uiSize)
         {   // at least one entry should fit into the PI, but it doesn't
@@ -533,6 +544,12 @@ void*           pVar;
     }
     else
     {   // output PI
+        if (EplApiProcessImageInstance_g.m_Out.m_pImage == NULL)
+        {
+            Ret = kEplApiPINotAllocated;
+            goto Exit;
+        }
+
         pVar = ((BYTE*) EplApiProcessImageInstance_g.m_Out.m_pImage) + uiOffsetPI_p;
         if ((uiOffsetPI_p + EntrySize_p) > EplApiProcessImageInstance_g.m_Out.m_uiSize)
         {   // at least one entry should fit into the PI, but it doesn't
