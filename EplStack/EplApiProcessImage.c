@@ -334,7 +334,7 @@ unsigned int    fShbNewCreated;
         Ret = kEplApiPIOutOfMemory;
         goto Exit;
     }
-    EPL_MEMSET(EplApiProcessImageInstance_g.m_In.m_pImage, 0, sizeof(uiSizeProcessImageIn_p));
+    EPL_MEMSET(EplApiProcessImageInstance_g.m_In.m_pImage, 0, uiSizeProcessImageIn_p);
     EplApiProcessImageInstance_g.m_In.m_uiSize = uiSizeProcessImageIn_p;
 
     EplApiProcessImageInstance_g.m_Out.m_pImage = EPL_MALLOC(uiSizeProcessImageOut_p);
@@ -343,7 +343,7 @@ unsigned int    fShbNewCreated;
         Ret = kEplApiPIOutOfMemory;
         goto Exit;
     }
-    EPL_MEMSET(EplApiProcessImageInstance_g.m_Out.m_pImage, 0, sizeof(uiSizeProcessImageOut_p));
+    EPL_MEMSET(EplApiProcessImageInstance_g.m_Out.m_pImage, 0, uiSizeProcessImageOut_p);
     EplApiProcessImageInstance_g.m_Out.m_uiSize = uiSizeProcessImageOut_p;
 
     TRACE("%s: Alloc(%p, %u, %p, %u)\n",
